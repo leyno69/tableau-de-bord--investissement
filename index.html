@@ -18,10 +18,14 @@
     <section>
     <h2>Portefeuille</h2>
 
-    <p><strong>Montant investi :</strong> 0 €</p>
-    <p><strong>Valeur actuelle :</strong> 0 €</p>
-    <p><strong>Gain / Perte :</strong> 0 €</p>
-    <p><strong>Rendement :</strong> 0 %</p>
+    <label for="investi">Montant investi (€)</label>
+    <input type="number" id="investi" value="0" step="0.01">
+
+    <label for="valeur">Valeur actuelle (€)</label>
+    <input type="number" id="valeur" value="0" step="0.01">
+
+    <p><strong>Gain / Perte :</strong> <span id="gain">0 €</span></p>
+    <p><strong>Rendement :</strong> <span id="rendement">0 %</span></p>
 </section>
 
     <section>
