@@ -1,0 +1,1 @@
+Titre: Tableau de bord d'investissement Description courte: un tableau de bord personnel pour suivre des actions, des secteurs et des alertes. Sections Vue d'ensemble Portefeuille Radar quotidien Vision long terme et critères de conviction. Outils Graphiques et alertes pour les mouvements significatifs.
