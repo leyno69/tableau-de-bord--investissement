@@ -21,10 +21,14 @@ export default async function handler(req, res) {
 );
 
         if (!response.ok) {
-            return res.status(response.status).json({
-                error: "Erreur lors de la récupération du cours."
-            });
-        }
+    const errorText = await response.text();
+
+    return res.status(response.status).json({
+        error: "Erreur Finnhub",
+        status: response.status,
+        details: errorText
+    });
+}
 
         const data = await response.json();
 
