@@ -17,13 +17,8 @@ export default async function handler(req, res) {
 
     try {
         const response = await fetch(
-            `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}`,
-            {
-                headers: {
-                    "X-Finnhub-Token": apiKey
-                }
-            }
-        );
+    `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${encodeURIComponent(apiKey)}`
+);
 
         if (!response.ok) {
             return res.status(response.status).json({
