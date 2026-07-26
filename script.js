@@ -32,3 +32,4 @@ investiInput.addEventListener("input", calculerPortefeuille);
 valeurInput.addEventListener("input", calculerPortefeuille);
 
 calculerPortefeuille();
+console.log("script version 2 chargé");
