@@ -1,6 +1,7 @@
 /* =========================================================
    TABLEAU DE BORD D'INVESTISSEMENT
    SCRIPT.JS — BLOC 1/2
+   VERSION DEVISES + CONVERSION EUR + TRAÇABILITÉ FX
 ========================================================= */
 
 
@@ -52,6 +53,7 @@ const totalRendementElement =
 ========================================================= */
 
 let positions = [];
+let indexEnModification = null;
 
 try {
     const positionsSauvegardees =
@@ -69,8 +71,6 @@ try {
     positions = [];
 }
 
-let indexEnModification = null;
-
 
 /* =========================================================
    FORMATAGE
@@ -80,7 +80,7 @@ function formatEuro(valeur) {
     const nombre = Number(valeur);
 
     if (!Number.isFinite(nombre)) {
-        return "0,00 €";
+        return "—";
     }
 
     return new Intl.NumberFormat("fr-FR", {
@@ -92,11 +92,51 @@ function formatEuro(valeur) {
 }
 
 
+function formatMonnaie(valeur, devise) {
+    const nombre = Number(valeur);
+
+    if (!Number.isFinite(nombre)) {
+        return "—";
+    }
+
+    const currency =
+        typeof devise === "string" &&
+        devise.trim()
+            ? devise.trim().toUpperCase()
+            : null;
+
+    if (!currency) {
+        return nombre.toLocaleString("fr-FR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 4
+        });
+    }
+
+    try {
+        return new Intl.NumberFormat("fr-FR", {
+            style: "currency",
+            currency,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 4
+        }).format(nombre);
+    } catch (error) {
+        return (
+            nombre.toLocaleString("fr-FR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 4
+            }) +
+            " " +
+            currency
+        );
+    }
+}
+
+
 function formatPourcentage(valeur) {
     const nombre = Number(valeur);
 
     if (!Number.isFinite(nombre)) {
-        return "0,00 %";
+        return "—";
     }
 
     return (
@@ -117,6 +157,20 @@ function formatQuantite(valeur) {
 
     return new Intl.NumberFormat("fr-FR", {
         minimumFractionDigits: 0,
+        maximumFractionDigits: 8
+    }).format(nombre);
+}
+
+
+function formatTaux(valeur) {
+    const nombre = Number(valeur);
+
+    if (!Number.isFinite(nombre)) {
+        return "—";
+    }
+
+    return new Intl.NumberFormat("fr-FR", {
+        minimumFractionDigits: 4,
         maximumFractionDigits: 8
     }).format(nombre);
 }
@@ -153,7 +207,43 @@ function nomCourtier(courtier) {
 
 
 /* =========================================================
-   NETTOYAGE / MIGRATION DES ANCIENNES DONNÉES
+   STATUTS DE DEVISE / FX
+========================================================= */
+
+function libelleStatutDevise(status) {
+    switch (status) {
+        case "forte_confiance_usd_action_us":
+            return "Devise détectée avec forte confiance";
+
+        case "devise_finnhub_profile_non_garantie_comme_devise_de_cotation":
+            return "Devise indiquée par Finnhub, devise de cotation à confirmer";
+
+        case "impossible_a_confirmer":
+        default:
+            return "Devise impossible à confirmer";
+    }
+}
+
+
+function libelleStatutFX(status) {
+    switch (status) {
+        case "aucune_conversion_necessaire":
+            return "Aucune conversion nécessaire";
+
+        case "taux_reference_bce":
+            return "Taux de référence BCE";
+
+        case "conversion_impossible_a_confirmer":
+            return "Conversion impossible à confirmer";
+
+        default:
+            return "Statut de conversion non confirmé";
+    }
+}
+
+
+/* =========================================================
+   NETTOYAGE / MIGRATION DES ANCIENNES POSITIONS
 ========================================================= */
 
 function nettoyerPositions() {
@@ -169,23 +259,48 @@ function nettoyerPositions() {
             const montantInvesti =
                 Number(position.montantInvesti);
 
-            const cours =
-                Number(position.cours);
+            const coursEUR =
+                Number(
+                    position.coursEUR ??
+                    position.priceEUR ??
+                    position.cours
+                );
 
             return (
                 Number.isFinite(quantite) &&
                 quantite > 0 &&
                 Number.isFinite(montantInvesti) &&
                 montantInvesti > 0 &&
-                Number.isFinite(cours) &&
-                cours > 0
+                Number.isFinite(coursEUR) &&
+                coursEUR > 0
             );
         })
         .map(position => {
+            const coursEUR =
+                Number(
+                    position.coursEUR ??
+                    position.priceEUR ??
+                    position.cours
+                );
+
+            const coursOriginal =
+                Number(
+                    position.coursOriginal ??
+                    position.priceOriginal ??
+                    position.cours
+                );
+
+            const deviseOriginale =
+                position.deviseOriginale ||
+                position.currencyOriginal ||
+                null;
+
             return {
                 entreprise:
                     String(
-                        position.entreprise || position.ticker || ""
+                        position.entreprise ||
+                        position.ticker ||
+                        ""
                     ),
 
                 ticker:
@@ -199,12 +314,70 @@ function nettoyerPositions() {
                 quantite:
                     Number(position.quantite),
 
-                cours:
-                    Number(position.cours),
-
                 courtier:
                     position.courtier ||
-                    "trade-republic"
+                    "trade-republic",
+
+                coursEUR,
+
+                coursOriginal:
+                    Number.isFinite(coursOriginal)
+                        ? coursOriginal
+                        : null,
+
+                deviseOriginale,
+
+                deviseStatus:
+                    position.deviseStatus ||
+                    position.currencyStatus ||
+                    "impossible_a_confirmer",
+
+                fxRateToEUR:
+                    Number.isFinite(
+                        Number(position.fxRateToEUR)
+                    )
+                        ? Number(position.fxRateToEUR)
+                        : null,
+
+                fxDate:
+                    position.fxDate || null,
+
+                fxProvider:
+                    position.fxProvider || null,
+
+                fxStatus:
+                    position.fxStatus ||
+                    (
+                        deviseOriginale === "EUR"
+                            ? "aucune_conversion_necessaire"
+                            : "conversion_impossible_a_confirmer"
+                    ),
+
+                brokerRateConfirmed:
+                    position.brokerRateConfirmed === true,
+
+                brokerRate:
+                    Number.isFinite(
+                        Number(position.brokerRate)
+                    )
+                        ? Number(position.brokerRate)
+                        : null,
+
+                brokerRateMessage:
+                    position.brokerRateMessage ||
+                    "Impossible à confirmer sans donnée de transaction ou justificatif du courtier.",
+
+                companyName:
+                    position.companyName || null,
+
+                exchange:
+                    position.exchange || null,
+
+                country:
+                    position.country || null,
+
+                lastMarketTimestamp:
+                    position.lastMarketTimestamp || null
             };
         });
 }
@@ -234,7 +407,7 @@ sauvegarderPositions();
 
 
 /* =========================================================
-   RÉCUPÉRATION DU COURS
+   RÉCUPÉRATION DES DONNÉES DE MARCHÉ
 ========================================================= */
 
 async function recupererCours(ticker) {
@@ -280,18 +453,160 @@ async function recupererCours(ticker) {
         throw new Error(message);
     }
 
-    const prix = Number(data.price);
+    const priceOriginal =
+        Number(data.priceOriginal);
+
+    const priceEUR =
+        Number(data.priceEUR);
+
+    const fallbackPrice =
+        Number(data.price);
+
+    const deviseOriginale =
+        typeof data.currencyOriginal === "string"
+            ? data.currencyOriginal
+                .trim()
+                .toUpperCase()
+            : null;
+
+
+    /*
+       IMPORTANT :
+       On utilise le prix EUR uniquement si l'API
+       a réellement fourni une conversion valide.
+
+       Si la devise est EUR, le prix brut peut servir
+       directement.
+
+       Pour une autre devise, aucun prix brut ne sera
+       présenté comme un prix EUR.
+    */
+
+    const coursEUR =
+        Number.isFinite(priceEUR) &&
+        priceEUR > 0
+            ? priceEUR
+            : (
+                deviseOriginale === "EUR" &&
+                Number.isFinite(fallbackPrice) &&
+                fallbackPrice > 0
+                    ? fallbackPrice
+                    : null
+            );
+
 
     if (
-        !Number.isFinite(prix) ||
-        prix <= 0
+        !Number.isFinite(priceOriginal) ||
+        priceOriginal <= 0
     ) {
         throw new Error(
-            "Cours indisponible pour ce ticker."
+            "Cours d’origine indisponible pour ce ticker."
         );
     }
 
-    return prix;
+
+    if (
+        !Number.isFinite(coursEUR) ||
+        coursEUR <= 0
+    ) {
+        throw new Error(
+            "Conversion en euros indisponible ou impossible à confirmer pour ce ticker."
+        );
+    }
+
+
+    return {
+        symbol:
+            data.symbol || symbole,
+
+        companyName:
+            data.companyName || null,
+
+        exchange:
+            data.exchange || null,
+
+        country:
+            data.country || null,
+
+        coursOriginal:
+            priceOriginal,
+
+        deviseOriginale,
+
+        deviseStatus:
+            data.currencyStatus ||
+            "impossible_a_confirmer",
+
+        coursEUR,
+
+        fxRateToEUR:
+            Number.isFinite(
+                Number(data.fxRateToEUR)
+            )
+                ? Number(data.fxRateToEUR)
+                : null,
+
+        fxDate:
+            data.fxDate || null,
+
+        fxProvider:
+            data.fxProvider || null,
+
+        fxStatus:
+            data.fxStatus ||
+            "conversion_impossible_a_confirmer",
+
+        brokerRateConfirmed:
+            data.brokerRateConfirmed === true,
+
+        brokerRate:
+            Number.isFinite(
+                Number(data.brokerRate)
+            )
+                ? Number(data.brokerRate)
+                : null,
+
+        brokerRateMessage:
+            data.brokerRateMessage ||
+            "Impossible à confirmer sans donnée de transaction ou justificatif du courtier.",
+
+        change:
+            Number.isFinite(Number(data.change))
+                ? Number(data.change)
+                : null,
+
+        changePercent:
+            Number.isFinite(
+                Number(data.changePercent)
+            )
+                ? Number(data.changePercent)
+                : null,
+
+        high:
+            Number.isFinite(Number(data.high))
+                ? Number(data.high)
+                : null,
+
+        low:
+            Number.isFinite(Number(data.low))
+                ? Number(data.low)
+                : null,
+
+        open:
+            Number.isFinite(Number(data.open))
+                ? Number(data.open)
+                : null,
+
+        previousClose:
+            Number.isFinite(
+                Number(data.previousClose)
+            )
+                ? Number(data.previousClose)
+                : null,
+
+        lastMarketTimestamp:
+            data.timestamp || null
+    };
 }
 
 
@@ -323,14 +638,6 @@ function mettreAJourInformationFraction() {
         return;
     }
 
-    /*
-       On ne prétend pas connaître automatiquement
-       l'éligibilité exacte aux fractions d'actions.
-
-       Celle-ci dépend notamment du courtier et
-       de l'instrument disponible sur son catalogue.
-    */
-
     fractionStatus.textContent =
         `${ticker} — ${nomCourtier(courtier)} : ` +
         "éligibilité aux fractions à vérifier auprès du courtier.";
@@ -350,7 +657,6 @@ function mettreAJourModeSaisie() {
         modeSaisieSelect.value;
 
     if (mode === "montant") {
-
         if (champMontant) {
             champMontant.style.display = "flex";
         }
@@ -358,9 +664,7 @@ function mettreAJourModeSaisie() {
         if (champQuantite) {
             champQuantite.style.display = "none";
         }
-
     } else {
-
         if (champQuantite) {
             champQuantite.style.display = "flex";
         }
@@ -375,7 +679,7 @@ function mettreAJourModeSaisie() {
 
 
 /* =========================================================
-   CALCUL DE LA POSITION
+   CALCUL DE LA POSITION SAISIE
 ========================================================= */
 
 function recalculerPosition() {
@@ -394,6 +698,7 @@ function recalculerPosition() {
             ? modeSaisieSelect.value
             : "quantite";
 
+
     if (
         !Number.isFinite(prixAchat) ||
         prixAchat <= 0
@@ -408,7 +713,7 @@ function recalculerPosition() {
 
 
     /* -----------------------------------------------------
-       SAISIE PAR MONTANT INVESTI
+       MODE MONTANT
     ----------------------------------------------------- */
 
     if (
@@ -452,7 +757,7 @@ function recalculerPosition() {
 
 
     /* -----------------------------------------------------
-       SAISIE PAR NOMBRE D'ACTIONS
+       MODE QUANTITÉ
     ----------------------------------------------------- */
 
     const quantite =
@@ -494,24 +799,32 @@ function recalculerPosition() {
 
 
 /* =========================================================
-   CALCUL D'UNE POSITION
+   STATISTIQUES D'UNE POSITION
 ========================================================= */
 
 function calculerStatistiquesPosition(position) {
     const quantite =
         Number(position.quantite);
 
-    const cours =
-        Number(position.cours);
+    const coursEUR =
+        Number(position.coursEUR);
 
     const montantInvesti =
         Number(position.montantInvesti);
 
+    const valorisationDisponible =
+        Number.isFinite(coursEUR) &&
+        coursEUR > 0;
+
     const valeurActuelle =
-        quantite * cours;
+        valorisationDisponible
+            ? quantite * coursEUR
+            : null;
 
     const gain =
-        valeurActuelle - montantInvesti;
+        valorisationDisponible
+            ? valeurActuelle - montantInvesti
+            : null;
 
     const prixAchatMoyen =
         quantite > 0
@@ -519,11 +832,13 @@ function calculerStatistiquesPosition(position) {
             : 0;
 
     const rendement =
+        valorisationDisponible &&
         montantInvesti > 0
             ? (gain / montantInvesti) * 100
-            : 0;
+            : null;
 
     return {
+        valorisationDisponible,
         valeurActuelle,
         gain,
         prixAchatMoyen,
@@ -545,6 +860,9 @@ function afficherPositions() {
 
     let totalInvesti = 0;
     let totalValeur = 0;
+
+    let toutesValorisationsDisponibles = true;
+
 
     if (positions.length === 0) {
         const messageVide =
@@ -574,16 +892,25 @@ function afficherPositions() {
                 );
 
             totalInvesti +=
-                position.montantInvesti;
+                Number(position.montantInvesti);
 
-            totalValeur +=
-                statistiques.valeurActuelle;
+            if (
+                statistiques.valorisationDisponible
+            ) {
+                totalValeur +=
+                    statistiques.valeurActuelle;
+            } else {
+                toutesValorisationsDisponibles =
+                    false;
+            }
+
 
             const positionElement =
                 document.createElement("div");
 
             positionElement.className =
                 "position-card";
+
 
             const entreprise =
                 echapperHTML(
@@ -602,12 +929,87 @@ function afficherPositions() {
                     )
                 );
 
+
             const classeGain =
-                statistiques.gain > 0
-                    ? "positif"
-                    : statistiques.gain < 0
-                        ? "negatif"
-                        : "neutre";
+                !statistiques.valorisationDisponible
+                    ? "neutre"
+                    : statistiques.gain > 0
+                        ? "positif"
+                        : statistiques.gain < 0
+                            ? "negatif"
+                            : "neutre";
+
+
+            const deviseOriginale =
+                position.deviseOriginale
+                    ? echapperHTML(
+                        position.deviseOriginale
+                    )
+                    : "Non confirmée";
+
+
+            const coursOriginalAffiche =
+                Number.isFinite(
+                    Number(position.coursOriginal)
+                )
+                    ? formatMonnaie(
+                        position.coursOriginal,
+                        position.deviseOriginale
+                    )
+                    : "—";
+
+
+            const coursEURAffiche =
+                Number.isFinite(
+                    Number(position.coursEUR)
+                )
+                    ? formatEuro(
+                        position.coursEUR
+                    )
+                    : "Impossible à confirmer";
+
+
+            const fxAffiche =
+                Number.isFinite(
+                    Number(position.fxRateToEUR)
+                )
+                    ? formatTaux(
+                        position.fxRateToEUR
+                    )
+                    : "—";
+
+
+            const fxDate =
+                position.fxDate
+                    ? echapperHTML(
+                        position.fxDate
+                    )
+                    : "—";
+
+
+            const fxProvider =
+                position.fxProvider
+                    ? echapperHTML(
+                        position.fxProvider
+                    )
+                    : "—";
+
+
+            const brokerRateText =
+                position.brokerRateConfirmed
+                    ? (
+                        Number.isFinite(
+                            Number(
+                                position.brokerRate
+                            )
+                        )
+                            ? formatTaux(
+                                position.brokerRate
+                            )
+                            : "Confirmé"
+                    )
+                    : "Impossible à confirmer";
+
 
             positionElement.innerHTML = `
                 <div class="position-header">
@@ -628,6 +1030,7 @@ function afficherPositions() {
 
                 </div>
 
+
                 <div class="position-details">
 
                     <p>
@@ -643,11 +1046,6 @@ function afficherPositions() {
                     </p>
 
                     <p>
-                        <strong>Cours actuel :</strong>
-                        ${formatEuro(position.cours)}
-                    </p>
-
-                    <p>
                         <strong>Montant investi :</strong>
                         ${formatEuro(
                             position.montantInvesti
@@ -655,27 +1053,93 @@ function afficherPositions() {
                     </p>
 
                     <p>
-                        <strong>Valeur actuelle :</strong>
-                        ${formatEuro(
-                            statistiques.valeurActuelle
+                        <strong>Cours d’origine :</strong>
+                        ${coursOriginalAffiche}
+                    </p>
+
+                    <p>
+                        <strong>Devise d’origine :</strong>
+                        ${deviseOriginale}
+                    </p>
+
+                    <p>
+                        <strong>Statut devise :</strong>
+                        ${echapperHTML(
+                            libelleStatutDevise(
+                                position.deviseStatus
+                            )
                         )}
+                    </p>
+
+                    <p>
+                        <strong>Cours converti en EUR :</strong>
+                        ${coursEURAffiche}
+                    </p>
+
+                    <p>
+                        <strong>Taux FX utilisé :</strong>
+                        ${fxAffiche}
+                    </p>
+
+                    <p>
+                        <strong>Source FX :</strong>
+                        ${fxProvider}
+                    </p>
+
+                    <p>
+                        <strong>Date du taux FX :</strong>
+                        ${fxDate}
+                    </p>
+
+                    <p>
+                        <strong>Statut conversion :</strong>
+                        ${echapperHTML(
+                            libelleStatutFX(
+                                position.fxStatus
+                            )
+                        )}
+                    </p>
+
+                    <p>
+                        <strong>Taux exact courtier :</strong>
+                        ${brokerRateText}
+                    </p>
+
+                    <p>
+                        <strong>Valeur actuelle :</strong>
+                        ${
+                            statistiques.valorisationDisponible
+                                ? formatEuro(
+                                    statistiques.valeurActuelle
+                                )
+                                : "Impossible à confirmer"
+                        }
                     </p>
 
                     <p class="${classeGain}">
                         <strong>Gain / Perte :</strong>
-                        ${formatEuro(
-                            statistiques.gain
-                        )}
+                        ${
+                            statistiques.valorisationDisponible
+                                ? formatEuro(
+                                    statistiques.gain
+                                )
+                                : "Impossible à confirmer"
+                        }
                     </p>
 
                     <p class="${classeGain}">
                         <strong>Rendement :</strong>
-                        ${formatPourcentage(
-                            statistiques.rendement
-                        )}
+                        ${
+                            statistiques.valorisationDisponible
+                                ? formatPourcentage(
+                                    statistiques.rendement
+                                )
+                                : "Impossible à confirmer"
+                        }
                     </p>
 
                 </div>
+
 
                 <div class="position-actions">
 
@@ -706,16 +1170,19 @@ function afficherPositions() {
 
 
     /* =====================================================
-       TOTAUX DU PORTEFEUILLE
+       TOTAUX
     ===================================================== */
 
     const totalGain =
-        totalValeur - totalInvesti;
+        toutesValorisationsDisponibles
+            ? totalValeur - totalInvesti
+            : null;
 
     const totalRendement =
+        toutesValorisationsDisponibles &&
         totalInvesti > 0
             ? (totalGain / totalInvesti) * 100
-            : 0;
+            : null;
 
 
     if (totalInvestiElement) {
@@ -726,13 +1193,17 @@ function afficherPositions() {
 
     if (totalValeurElement) {
         totalValeurElement.textContent =
-            formatEuro(totalValeur);
+            toutesValorisationsDisponibles
+                ? formatEuro(totalValeur)
+                : "Partiellement indisponible";
     }
 
 
     if (totalGainElement) {
         totalGainElement.textContent =
-            formatEuro(totalGain);
+            toutesValorisationsDisponibles
+                ? formatEuro(totalGain)
+                : "Impossible à confirmer";
 
         totalGainElement.classList.remove(
             "positif",
@@ -740,11 +1211,17 @@ function afficherPositions() {
             "neutre"
         );
 
-        if (totalGain > 0) {
+        if (
+            toutesValorisationsDisponibles &&
+            totalGain > 0
+        ) {
             totalGainElement.classList.add(
                 "positif"
             );
-        } else if (totalGain < 0) {
+        } else if (
+            toutesValorisationsDisponibles &&
+            totalGain < 0
+        ) {
             totalGainElement.classList.add(
                 "negatif"
             );
@@ -758,9 +1235,11 @@ function afficherPositions() {
 
     if (totalRendementElement) {
         totalRendementElement.textContent =
-            formatPourcentage(
-                totalRendement
-            );
+            toutesValorisationsDisponibles
+                ? formatPourcentage(
+                    totalRendement
+                )
+                : "Impossible à confirmer";
 
         totalRendementElement.classList.remove(
             "positif",
@@ -768,11 +1247,17 @@ function afficherPositions() {
             "neutre"
         );
 
-        if (totalRendement > 0) {
+        if (
+            toutesValorisationsDisponibles &&
+            totalRendement > 0
+        ) {
             totalRendementElement.classList.add(
                 "positif"
             );
-        } else if (totalRendement < 0) {
+        } else if (
+            toutesValorisationsDisponibles &&
+            totalRendement < 0
+        ) {
             totalRendementElement.classList.add(
                 "negatif"
             );
@@ -787,8 +1272,8 @@ function afficherPositions() {
 
 /* =========================================================
    FIN DU BLOC 1/2
-   NE RIEN AJOUTER ICI POUR L'INSTANT.
-   LE BLOC 2/2 SE COLLE DIRECTEMENT À LA SUITE.
+
+   COLLER LE BLOC 2/2 DIRECTEMENT À LA SUITE.
 ========================================================= */
 /* =========================================================
    TABLEAU DE BORD D'INVESTISSEMENT
@@ -797,7 +1282,7 @@ function afficherPositions() {
 
 
 /* =========================================================
-   LECTURE ET VALIDATION DU FORMULAIRE
+   LECTURE DU FORMULAIRE
 ========================================================= */
 
 function lireFormulairePosition() {
@@ -815,7 +1300,9 @@ function lireFormulairePosition() {
 
     const prixAchat =
         prixAchatInput
-            ? parseFloat(prixAchatInput.value)
+            ? parseFloat(
+                prixAchatInput.value
+            )
             : NaN;
 
     const courtier =
@@ -833,7 +1320,7 @@ function lireFormulairePosition() {
 
 
     /* -----------------------------------------------------
-       MODE : SAISIE PAR MONTANT
+       MODE MONTANT
     ----------------------------------------------------- */
 
     if (
@@ -852,13 +1339,14 @@ function lireFormulairePosition() {
             montantInvesti > 0
         ) {
             quantite =
-                montantInvesti / prixAchat;
+                montantInvesti /
+                prixAchat;
         }
     }
 
 
     /* -----------------------------------------------------
-       MODE : SAISIE PAR QUANTITÉ
+       MODE QUANTITÉ
     ----------------------------------------------------- */
 
     else {
@@ -876,7 +1364,8 @@ function lireFormulairePosition() {
             quantite > 0
         ) {
             montantInvesti =
-                prixAchat * quantite;
+                prixAchat *
+                quantite;
         }
     }
 
@@ -911,7 +1400,9 @@ function validerPosition(donnees) {
     }
 
     if (
-        !Number.isFinite(donnees.prixAchat) ||
+        !Number.isFinite(
+            donnees.prixAchat
+        ) ||
         donnees.prixAchat <= 0
     ) {
         throw new Error(
@@ -920,7 +1411,9 @@ function validerPosition(donnees) {
     }
 
     if (
-        !Number.isFinite(donnees.quantite) ||
+        !Number.isFinite(
+            donnees.quantite
+        ) ||
         donnees.quantite <= 0
     ) {
         throw new Error(
@@ -929,7 +1422,9 @@ function validerPosition(donnees) {
     }
 
     if (
-        !Number.isFinite(donnees.montantInvesti) ||
+        !Number.isFinite(
+            donnees.montantInvesti
+        ) ||
         donnees.montantInvesti <= 0
     ) {
         throw new Error(
@@ -967,7 +1462,8 @@ function reinitialiserFormulaire() {
     }
 
     if (modeSaisieSelect) {
-        modeSaisieSelect.value = "quantite";
+        modeSaisieSelect.value =
+            "quantite";
     }
 
     indexEnModification = null;
@@ -988,7 +1484,79 @@ function reinitialiserFormulaire() {
 
 
 /* =========================================================
-   AJOUT / MODIFICATION D'UNE POSITION
+   CONSTRUCTION D'UNE POSITION AVEC DONNÉES DE MARCHÉ
+========================================================= */
+
+function construirePosition(
+    donnees,
+    marche
+) {
+    return {
+        entreprise:
+            donnees.entreprise,
+
+        ticker:
+            donnees.ticker,
+
+        montantInvesti:
+            donnees.montantInvesti,
+
+        quantite:
+            donnees.quantite,
+
+        courtier:
+            donnees.courtier,
+
+        coursOriginal:
+            marche.coursOriginal,
+
+        deviseOriginale:
+            marche.deviseOriginale,
+
+        deviseStatus:
+            marche.deviseStatus,
+
+        coursEUR:
+            marche.coursEUR,
+
+        fxRateToEUR:
+            marche.fxRateToEUR,
+
+        fxDate:
+            marche.fxDate,
+
+        fxProvider:
+            marche.fxProvider,
+
+        fxStatus:
+            marche.fxStatus,
+
+        brokerRateConfirmed:
+            marche.brokerRateConfirmed,
+
+        brokerRate:
+            marche.brokerRate,
+
+        brokerRateMessage:
+            marche.brokerRateMessage,
+
+        companyName:
+            marche.companyName,
+
+        exchange:
+            marche.exchange,
+
+        country:
+            marche.country,
+
+        lastMarketTimestamp:
+            marche.lastMarketTimestamp
+    };
+}
+
+
+/* =========================================================
+   AJOUT / MODIFICATION
 ========================================================= */
 
 async function ajouterPosition() {
@@ -1000,86 +1568,76 @@ async function ajouterPosition() {
         lireFormulairePosition();
 
     try {
-        validerPosition(donnees);
+        validerPosition(
+            donnees
+        );
     } catch (error) {
         alert(error.message);
         return;
     }
 
 
-    /* -----------------------------------------------------
-       ÉTAT DU BOUTON PENDANT LE CHARGEMENT
-    ----------------------------------------------------- */
-
-    ajouterPositionButton.disabled = true;
+    ajouterPositionButton.disabled =
+        true;
 
     ajouterPositionButton.textContent =
-        "Récupération du cours...";
+        "Récupération des données de marché...";
 
 
     try {
 
         /* -------------------------------------------------
-           RÉCUPÉRATION DU COURS ACTUEL
+           DONNÉES DE MARCHÉ
         ------------------------------------------------- */
 
-        const cours =
+        const marche =
             await recupererCours(
                 donnees.ticker
             );
 
 
-        const nouvellePosition = {
-            entreprise:
-                donnees.entreprise,
-
-            ticker:
-                donnees.ticker,
-
-            montantInvesti:
-                donnees.montantInvesti,
-
-            quantite:
-                donnees.quantite,
-
-            cours,
-
-            courtier:
-                donnees.courtier
-        };
+        const nouvellePosition =
+            construirePosition(
+                donnees,
+                marche
+            );
 
 
         /* -------------------------------------------------
-           MODIFICATION D'UNE POSITION EXISTANTE
+           MODIFICATION
         ------------------------------------------------- */
 
-        if (indexEnModification !== null) {
-
+        if (
+            indexEnModification !== null
+        ) {
             if (
-                positions[indexEnModification]
+                positions[
+                    indexEnModification
+                ]
             ) {
-                positions[indexEnModification] =
+                positions[
+                    indexEnModification
+                ] =
                     nouvellePosition;
             }
 
-            indexEnModification = null;
+            indexEnModification =
+                null;
         }
 
 
         /* -------------------------------------------------
-           AJOUT D'UNE NOUVELLE POSITION
+           AJOUT
         ------------------------------------------------- */
 
         else {
 
             /*
-               On considère comme même ligne :
-               - même ticker
-               - même courtier
+               Une même action détenue chez deux
+               courtiers reste séparée.
 
-               Ainsi, NVDA chez Revolut et NVDA chez
-               Trade Republic restent deux positions
-               distinctes.
+               Même ticker + même courtier =
+               agrégation dans la même position.
             */
 
             const indexExistant =
@@ -1092,55 +1650,41 @@ async function ajouterPosition() {
                 );
 
 
-            /* ---------------------------------------------
-               POSITION DÉJÀ EXISTANTE :
-               CALCUL DU NOUVEAU PRIX MOYEN
-               PAR AGRÉGATION DU CAPITAL INVESTI
-            --------------------------------------------- */
-
             if (indexExistant !== -1) {
-
                 const positionExistante =
-                    positions[indexExistant];
+                    positions[
+                        indexExistant
+                    ];
+
 
                 const nouveauMontantInvesti =
                     Number(
-                        positionExistante.montantInvesti
+                        positionExistante
+                            .montantInvesti
                     ) +
                     donnees.montantInvesti;
 
+
                 const nouvelleQuantite =
                     Number(
-                        positionExistante.quantite
+                        positionExistante
+                            .quantite
                     ) +
                     donnees.quantite;
 
-                positions[indexExistant] = {
-                    entreprise:
-                        donnees.entreprise,
 
-                    ticker:
-                        donnees.ticker,
+                positions[
+                    indexExistant
+                ] = {
+                    ...nouvellePosition,
 
                     montantInvesti:
                         nouveauMontantInvesti,
 
                     quantite:
-                        nouvelleQuantite,
-
-                    cours,
-
-                    courtier:
-                        donnees.courtier
+                        nouvelleQuantite
                 };
-            }
-
-
-            /* ---------------------------------------------
-               NOUVELLE POSITION
-            --------------------------------------------- */
-
-            else {
+            } else {
                 positions.push(
                     nouvellePosition
                 );
@@ -1165,9 +1709,12 @@ async function ajouterPosition() {
 
     } finally {
 
-        ajouterPositionButton.disabled = false;
+        ajouterPositionButton.disabled =
+            false;
 
-        if (indexEnModification !== null) {
+        if (
+            indexEnModification !== null
+        ) {
             ajouterPositionButton.textContent =
                 "Enregistrer les modifications";
         } else {
@@ -1190,22 +1737,21 @@ function modifierPosition(index) {
         return;
     }
 
-    indexEnModification = index;
+    indexEnModification =
+        index;
 
-
-    /* -----------------------------------------------------
-       REMPLISSAGE DU FORMULAIRE
-    ----------------------------------------------------- */
 
     if (nomActionInput) {
         nomActionInput.value =
             position.entreprise;
     }
 
+
     if (tickerInput) {
         tickerInput.value =
             position.ticker;
     }
+
 
     if (courtierSelect) {
         courtierSelect.value =
@@ -1215,9 +1761,13 @@ function modifierPosition(index) {
 
 
     const prixAchatMoyen =
-        position.quantite > 0
-            ? position.montantInvesti /
+        Number(position.quantite) > 0
+            ? Number(
+                position.montantInvesti
+            ) /
+            Number(
                 position.quantite
+            )
             : 0;
 
 
@@ -1260,25 +1810,24 @@ function modifierPosition(index) {
     recalculerPosition();
 
 
-    /* -----------------------------------------------------
-       REMONTER VERS LE FORMULAIRE
-    ----------------------------------------------------- */
-
     if (nomActionInput) {
         nomActionInput.scrollIntoView({
             behavior: "smooth",
             block: "center"
         });
 
-        setTimeout(() => {
-            nomActionInput.focus();
-        }, 400);
+        setTimeout(
+            () => {
+                nomActionInput.focus();
+            },
+            400
+        );
     }
 }
 
 
 /* =========================================================
-   SUPPRESSION D'UNE POSITION
+   SUPPRESSION
 ========================================================= */
 
 function supprimerPosition(index) {
@@ -1293,32 +1842,29 @@ function supprimerPosition(index) {
         position.entreprise ||
         position.ticker;
 
+
     const confirmation =
         confirm(
             `Supprimer la position ${entreprise} (${position.ticker}) ?`
         );
 
+
     if (!confirmation) {
         return;
     }
 
-    positions.splice(index, 1);
+
+    positions.splice(
+        index,
+        1
+    );
 
 
-    /* -----------------------------------------------------
-       SI ON MODIFIAIT CETTE POSITION
-    ----------------------------------------------------- */
-
-    if (indexEnModification === index) {
+    if (
+        indexEnModification === index
+    ) {
         reinitialiserFormulaire();
-    }
-
-    /*
-       Si une position située avant celle en cours
-       de modification est supprimée, son index change.
-    */
-
-    else if (
+    } else if (
         indexEnModification !== null &&
         index < indexEnModification
     ) {
@@ -1332,13 +1878,16 @@ function supprimerPosition(index) {
 
 
 /* =========================================================
-   ACTUALISATION DES COURS
+   ACTUALISATION DE TOUS LES COURS
 ========================================================= */
 
 async function actualiserTousLesCours() {
-    if (positions.length === 0) {
+    if (
+        positions.length === 0
+    ) {
         return;
     }
+
 
     const tickersUniques = [
         ...new Set(
@@ -1350,14 +1899,16 @@ async function actualiserTousLesCours() {
     ];
 
 
-    const coursParTicker = {};
+    const marcheParTicker = {};
 
 
     for (
         const ticker of tickersUniques
     ) {
         try {
-            coursParTicker[ticker] =
+            marcheParTicker[
+                ticker
+            ] =
                 await recupererCours(
                     ticker
                 );
@@ -1370,30 +1921,71 @@ async function actualiserTousLesCours() {
     }
 
 
-    positions = positions.map(
-        position => {
+    positions =
+        positions.map(
+            position => {
 
-            const nouveauCours =
-                coursParTicker[
-                    position.ticker
-                ];
+                const marche =
+                    marcheParTicker[
+                        position.ticker
+                    ];
 
-            if (
-                Number.isFinite(
-                    nouveauCours
-                ) &&
-                nouveauCours > 0
-            ) {
+
+                if (!marche) {
+                    return position;
+                }
+
+
                 return {
                     ...position,
-                    cours:
-                        nouveauCours
+
+                    coursOriginal:
+                        marche.coursOriginal,
+
+                    deviseOriginale:
+                        marche.deviseOriginale,
+
+                    deviseStatus:
+                        marche.deviseStatus,
+
+                    coursEUR:
+                        marche.coursEUR,
+
+                    fxRateToEUR:
+                        marche.fxRateToEUR,
+
+                    fxDate:
+                        marche.fxDate,
+
+                    fxProvider:
+                        marche.fxProvider,
+
+                    fxStatus:
+                        marche.fxStatus,
+
+                    brokerRateConfirmed:
+                        marche.brokerRateConfirmed,
+
+                    brokerRate:
+                        marche.brokerRate,
+
+                    brokerRateMessage:
+                        marche.brokerRateMessage,
+
+                    companyName:
+                        marche.companyName,
+
+                    exchange:
+                        marche.exchange,
+
+                    country:
+                        marche.country,
+
+                    lastMarketTimestamp:
+                        marche.lastMarketTimestamp
                 };
             }
-
-            return position;
-        }
-    );
+        );
 
 
     sauvegarderPositions();
@@ -1402,7 +1994,7 @@ async function actualiserTousLesCours() {
 
 
 /* =========================================================
-   GESTION DES BOUTONS MODIFIER / SUPPRIMER
+   BOUTONS MODIFIER / SUPPRIMER
 ========================================================= */
 
 if (listePositions) {
@@ -1416,16 +2008,21 @@ if (listePositions) {
                     ".modifier-position"
                 );
 
+
             if (boutonModifier) {
                 const index =
                     Number(
-                        boutonModifier.dataset.index
+                        boutonModifier
+                            .dataset
+                            .index
                     );
 
                 if (
                     Number.isInteger(index)
                 ) {
-                    modifierPosition(index);
+                    modifierPosition(
+                        index
+                    );
                 }
 
                 return;
@@ -1437,16 +2034,21 @@ if (listePositions) {
                     ".supprimer-position"
                 );
 
+
             if (boutonSupprimer) {
                 const index =
                     Number(
-                        boutonSupprimer.dataset.index
+                        boutonSupprimer
+                            .dataset
+                            .index
                     );
 
                 if (
                     Number.isInteger(index)
                 ) {
-                    supprimerPosition(index);
+                    supprimerPosition(
+                        index
+                    );
                 }
             }
         }
@@ -1467,20 +2069,17 @@ if (ajouterPositionButton) {
 
 
 if (tickerInput) {
-
     tickerInput.addEventListener(
         "input",
         () => {
 
-            /*
-               Le ticker est automatiquement
-               converti en majuscules.
-            */
-
             tickerInput.value =
                 tickerInput.value
                     .toUpperCase()
-                    .replace(/\s+/g, "");
+                    .replace(
+                        /\s+/g,
+                        ""
+                    );
 
             mettreAJourInformationFraction();
         }
@@ -1522,7 +2121,9 @@ if (quantiteInput) {
                     ? modeSaisieSelect.value
                     : "quantite";
 
-            if (mode === "quantite") {
+            if (
+                mode === "quantite"
+            ) {
                 recalculerPosition();
             }
         }
@@ -1540,7 +2141,9 @@ if (montantInvestiInput) {
                     ? modeSaisieSelect.value
                     : "quantite";
 
-            if (mode === "montant") {
+            if (
+                mode === "montant"
+            ) {
                 recalculerPosition();
             }
         }
@@ -1568,13 +2171,15 @@ champsFormulaire.forEach(
             "keydown",
             event => {
 
-                if (event.key === "Enter") {
-
+                if (
+                    event.key === "Enter"
+                ) {
                     event.preventDefault();
 
                     if (
                         ajouterPositionButton &&
-                        !ajouterPositionButton.disabled
+                        !ajouterPositionButton
+                            .disabled
                     ) {
                         ajouterPosition();
                     }
@@ -1586,7 +2191,7 @@ champsFormulaire.forEach(
 
 
 /* =========================================================
-   ACTUALISATION LORSQUE L'APPLICATION REDEVIENT VISIBLE
+   RETOUR SUR L'APPLICATION
 ========================================================= */
 
 document.addEventListener(
@@ -1597,15 +2202,6 @@ document.addEventListener(
             document.visibilityState ===
             "visible"
         ) {
-            /*
-               On réaffiche immédiatement les données
-               déjà disponibles.
-
-               On ne lance pas automatiquement une
-               requête réseau à chaque retour dans
-               l'onglet afin d'éviter des appels inutiles.
-            */
-
             afficherPositions();
         }
     }
@@ -1613,11 +2209,10 @@ document.addEventListener(
 
 
 /* =========================================================
-   INITIALISATION DE L'APPLICATION
+   INITIALISATION
 ========================================================= */
 
 function initialiserApplication() {
-
     nettoyerPositions();
     sauvegarderPositions();
 
@@ -1641,7 +2236,6 @@ initialiserApplication();
 
 /* =========================================================
    FONCTIONS ACCESSIBLES DEPUIS LA CONSOLE
-   (UTILE POUR TESTER)
 ========================================================= */
 
 window.actualiserTousLesCours =
