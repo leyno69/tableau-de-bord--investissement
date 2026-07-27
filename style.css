@@ -1,98 +1,401 @@
+/* =========================================================
+   TABLEAU DE BORD D'INVESTISSEMENT
+   STYLE.CSS
+========================================================= */
+
+
+/* =========================================================
+   BASE
+========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f6f9;
     margin: 0;
     padding: 20px;
+    color: #222;
 }
+
+
+/* =========================================================
+   TITRES
+========================================================= */
 
 h1 {
     color: #1f4e79;
     text-align: center;
+    margin: 10px 0 30px;
 }
 
 h2 {
     color: #333;
-    margin-top: 30px;
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+h3 {
+    margin: 0;
+    color: #222;
 }
 
 p {
     color: #555;
 }
 
+
+/* =========================================================
+   SECTIONS
+========================================================= */
+
 section {
     background-color: white;
     padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin: 0 auto 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    max-width: 1100px;
 }
+
+
+/* =========================================================
+   FORMULAIRE PORTEFEUILLE
+========================================================= */
+
 .portfolio-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px 16px;
-  align-items: end;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 16px;
+    align-items: end;
+    margin-bottom: 24px;
 }
 
 .form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-field.full-width {
+    grid-column: 1 / -1;
 }
 
 .form-field label {
-  display: block;
-  margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #333;
 }
 
-.form-field input {
-  width: 100%;
-  box-sizing: border-box;
+.form-field input,
+.form-field select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccd3da;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: white;
+    color: #222;
 }
 
-@media (max-width: 600px) {
-  .portfolio-form {
-    grid-template-columns: 1fr;
-  }
-}
-.portfolio-form {
-  gap: 10px 14px;
+.form-field input:focus,
+.form-field select:focus {
+    outline: none;
+    border-color: #1f4e79;
+    box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.12);
 }
 
-.form-field {
-  gap: 4px;
+
+/* =========================================================
+   INFORMATIONS FRACTIONS / CALCUL
+========================================================= */
+
+.fraction-info,
+.calcul-position {
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background-color: #f7f9fb;
+    border: 1px solid #e0e5ea;
+    color: #444;
 }
 
-.form-field label {
-  font-size: 0.95rem;
+.fraction-info strong {
+    color: #222;
 }
 
-.form-field input {
-  padding: 8px 10px;
-}
+
+/* =========================================================
+   BOUTON PRINCIPAL
+========================================================= */
 
 #ajouterPosition {
-  margin-top: 4px;
-}
-#listePositions > div {
-  padding: 12px 0;
-}
-
-#listePositions > div h3 {
-  margin: 0 0 10px;
-}
-
-#listePositions > div p {
-  margin: 6px 0;
-  line-height: 1.35;
+    grid-column: 1 / -1;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    background-color: #1f4e79;
+    color: white;
+    transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
-#listePositions > div button {
-  margin-top: 8px;
+#ajouterPosition:hover {
+    transform: translateY(-1px);
 }
 
-#listePositions > div hr {
-  margin: 14px 0 4px;
+#ajouterPosition:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
 }
-#listePositions > div hr {
-  display: none;
+
+
+/* =========================================================
+   LISTE DES POSITIONS
+========================================================= */
+
+#listePositions {
+    display: grid;
+    gap: 14px;
+}
+
+.portfolio-empty {
+    padding: 18px;
+    border-radius: 10px;
+    background-color: #f7f9fb;
+    border: 1px dashed #ccd3da;
+}
+
+.portfolio-empty p {
+    margin: 0;
+}
+
+
+/* =========================================================
+   CARTE D'UNE POSITION
+========================================================= */
+
+.position-card {
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #e2e7ec;
+    background-color: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.position-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.position-header h3 {
+    font-size: 1.1rem;
+}
+
+.position-ticker {
+    margin: 4px 0 0;
+    font-weight: 700;
+    color: #1f4e79;
+}
+
+.courtier-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background-color: #eef3f7;
+    color: #333;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   DÉTAILS D'UNE POSITION
+========================================================= */
+
+.position-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 18px;
+}
+
+.position-details p {
+    margin: 0;
+    line-height: 1.4;
+}
+
+.position-details strong {
+    color: #333;
+}
+
+
+/* =========================================================
+   GAINS / PERTES
+========================================================= */
+
+.positif {
+    color: #16803a !important;
+}
+
+.negatif {
+    color: #b42318 !important;
+}
+
+.neutre {
+    color: #555 !important;
+}
+
+
+/* =========================================================
+   ACTIONS DES CARTES
+========================================================= */
+
+.position-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+
+.position-actions button {
+    border: none;
+    border-radius: 7px;
+    padding: 9px 13px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.modifier-position {
+    background-color: #eef3f7;
+    color: #1f4e79;
+}
+
+.supprimer-position {
+    background-color: #fdecec;
+    color: #a61b1b;
+}
+
+
+/* =========================================================
+   RÉSUMÉ DU PORTEFEUILLE
+========================================================= */
+
+.portfolio-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.portfolio-summary p {
+    margin: 0;
+    padding: 12px;
+    border-radius: 9px;
+    background-color: #f7f9fb;
+    border: 1px solid #e2e7ec;
+}
+
+.portfolio-summary strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+
+/* =========================================================
+   SÉPARATEUR
+========================================================= */
+
+hr {
+    border: none;
+    border-top: 1px solid #e2e7ec;
+    margin: 24px 0 16px;
+}
+
+
+/* =========================================================
+   TABLETTE
+========================================================= */
+
+@media (max-width: 900px) {
+    body {
+        padding: 14px;
+    }
+
+    section {
+        padding: 18px;
+    }
+
+    .portfolio-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+        margin-bottom: 20px;
+    }
+
+    section {
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .portfolio-form {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .form-field.full-width,
+    #ajouterPosition {
+        grid-column: auto;
+    }
+
+    .position-header {
+        flex-direction: column;
+    }
+
+    .position-details {
+        grid-template-columns: 1fr;
+        gap: 7px;
+    }
+
+    .portfolio-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .position-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .position-actions button {
+        width: 100%;
+    }
 }
