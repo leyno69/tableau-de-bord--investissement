@@ -69,6 +69,7 @@ function afficherPositions() {
             <p>Valeur actuelle : ${valeurActuelle.toFixed(2)} €</p>
             <p>Gain / Perte : ${gain.toFixed(2)} €</p>
             <p>Rendement : ${rendement.toFixed(2)} %</p>
+            <button onclick="modifierPosition(${index})">Modifier</button>
             <button onclick="supprimerPosition(${index})">Supprimer</button>
             <hr>
         `;
