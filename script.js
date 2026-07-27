@@ -139,7 +139,29 @@ async function ajouterPosition() {
         ajouterPositionButton.textContent = "Ajouter la position";
     }
 }
+function modifierPosition(index) {
+  const position = positions[index];
 
+  nomActionInput.value = position.entreprise;
+  tickerInput.value = position.ticker;
+
+  const prixAchatMoyen =
+    position.quantite > 0
+      ? position.montantInvesti / position.quantite
+      : 0;
+
+  prixAchatInput.value = prixAchatMoyen.toFixed(2);
+  quantiteInput.value = position.quantite;
+
+  positions.splice(index, 1);
+  sauvegarderPositions();
+  afficherPositions();
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
 function supprimerPosition(index) {
     positions.splice(index, 1);
     sauvegarderPositions();
