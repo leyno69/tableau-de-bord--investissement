@@ -18,21 +18,31 @@
 <section>
     <h2>Portefeuille</h2>
 
-    <div>
+   <div class="portfolio-form">
+
+    <div class="form-field">
         <label for="nomAction">Entreprise</label>
         <input type="text" id="nomAction" placeholder="Ex. NVIDIA">
+    </div>
 
+    <div class="form-field">
         <label for="ticker">Ticker</label>
         <input type="text" id="ticker" placeholder="Ex. NVDA">
+    </div>
 
+    <div class="form-field">
         <label for="montantInvesti">Montant investi (€)</label>
         <input type="number" id="montantInvesti" value="0" step="0.01">
-
-        <label for="quantite">Nombre d’actions</label>
-<input type="number" id="quantite" value="0" step="0.0001">
-
-        <button id="ajouterPosition">Ajouter la position</button>
     </div>
+
+    <div class="form-field">
+        <label for="quantite">Nombre d’actions</label>
+        <input type="number" id="quantite" value="0" step="0.0001">
+    </div>
+
+    <button id="ajouterPosition">Ajouter la position</button>
+
+</div>
 
     <div id="listePositions"></div>
 
