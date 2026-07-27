@@ -6,6 +6,7 @@
     <title>Tableau de bord d'investissement</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <h1>Tableau de bord d'investissement</h1>
@@ -15,50 +16,134 @@
         <p>Bienvenue sur votre tableau de bord personnel.</p>
     </section>
 
-<section>
-    <h2>Portefeuille</h2>
+    <section>
+        <h2>Portefeuille</h2>
 
-   <div class="portfolio-form">
+        <div class="portfolio-form">
 
-    <div class="form-field">
-        <label for="nomAction">Entreprise</label>
-        <input type="text" id="nomAction" placeholder="Ex. NVIDIA">
-    </div>
+            <div class="form-field">
+                <label for="courtier">Courtier</label>
+                <select id="courtier">
+                    <option value="trade-republic">Trade Republic</option>
+                    <option value="revolut">Revolut</option>
+                </select>
+            </div>
 
-    <div class="form-field">
-        <label for="ticker">Ticker</label>
-        <input type="text" id="ticker" placeholder="Ex. NVDA">
-    </div>
+            <div class="form-field">
+                <label for="nomAction">Entreprise</label>
+                <input
+                    type="text"
+                    id="nomAction"
+                    placeholder="Ex. NVIDIA"
+                    autocomplete="off"
+                >
+            </div>
 
-    <div class="form-field">
-    <label for="prixAchat">Prix d’achat moyen (€)</label>
-    <input type="number" id="prixAchat" value="0" step="0.01">
-</div>
+            <div class="form-field">
+                <label for="ticker">Ticker</label>
+                <input
+                    type="text"
+                    id="ticker"
+                    placeholder="Ex. NVDA"
+                    autocomplete="off"
+                >
+            </div>
 
-    <div class="form-field">
-        <label for="quantite">Nombre d’actions</label>
-        <input type="number" id="quantite" value="0" step="0.0001">
-    </div>
+            <div class="form-field">
+                <label for="prixAchat">Prix d’achat moyen (€)</label>
+                <input
+                    type="number"
+                    id="prixAchat"
+                    value="0"
+                    min="0"
+                    step="0.0001"
+                >
+            </div>
 
-    <button id="ajouterPosition">Ajouter la position</button>
+            <div class="form-field">
+                <label for="modeSaisie">Mode de saisie</label>
+                <select id="modeSaisie">
+                    <option value="quantite">Par quantité d’actions</option>
+                    <option value="montant">Par montant investi</option>
+                </select>
+            </div>
 
-</div>
+            <div class="form-field" id="champQuantite">
+                <label for="quantite">Nombre d’actions</label>
+                <input
+                    type="number"
+                    id="quantite"
+                    value="0"
+                    min="0"
+                    step="0.0001"
+                >
+            </div>
 
-    <div id="listePositions"></div>
+            <div class="form-field" id="champMontant">
+                <label for="montantInvesti">Montant investi (€)</label>
+                <input
+                    type="number"
+                    id="montantInvesti"
+                    value="0"
+                    min="0"
+                    step="0.01"
+                >
+            </div>
 
-    <hr>
+            <div class="form-field full-width">
+                <div id="fractionInfo" class="fraction-info">
+                    <strong>Fractionnement :</strong>
+                    <span id="fractionStatus">Information non vérifiée</span>
+                </div>
+            </div>
 
-    <p><strong>Total investi :</strong> <span id="totalInvesti">0,00 €</span></p>
-    <p><strong>Valeur totale :</strong> <span id="totalValeur">0,00 €</span></p>
-    <p><strong>Gain / Perte total :</strong> <span id="totalGain">0,00 €</span></p>
-    <p><strong>Rendement total :</strong> <span id="totalRendement">0,00 %</span></p>
-</section>
+            <div class="form-field full-width">
+                <p id="calculPosition" class="calcul-position">
+                    Montant investi calculé : 0,00 €
+                </p>
+            </div>
+
+            <button id="ajouterPosition">
+                Ajouter la position
+            </button>
+
+        </div>
+
+        <div id="listePositions"></div>
+
+        <hr>
+
+        <div class="portfolio-summary">
+            <p>
+                <strong>Total investi :</strong>
+                <span id="totalInvesti">0,00 €</span>
+            </p>
+
+            <p>
+                <strong>Valeur totale :</strong>
+                <span id="totalValeur">0,00 €</span>
+            </p>
+
+            <p>
+                <strong>Gain / Perte total :</strong>
+                <span id="totalGain">0,00 €</span>
+            </p>
+
+            <p>
+                <strong>Rendement total :</strong>
+                <span id="totalRendement">0,00 %</span>
+            </p>
+        </div>
+    </section>
 
     <section>
         <h2>Radar quotidien</h2>
-        <p>Cette section affichera les actualités importantes des marchés.</p>
+        <p>
+            Cette section affichera les actualités importantes des marchés.
+        </p>
     </section>
 
-<script src="script.js"></script> 
+    <script src="script.js"></script>
+
 </body>
 </html>
