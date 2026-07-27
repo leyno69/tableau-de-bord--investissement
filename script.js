@@ -11,7 +11,13 @@ const totalGainElement = document.getElementById("totalGain");
 const totalRendementElement = document.getElementById("totalRendement");
 
 let positions = JSON.parse(localStorage.getItem("positions")) || [];
+positions = positions.filter(
+  position =>
+    typeof position.cours === "number" &&
+    typeof position.quantite === "number"
+);
 
+sauvegarderPositions();
 function sauvegarderPositions() {
     localStorage.setItem("positions", JSON.stringify(positions));
 }
