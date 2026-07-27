@@ -49,7 +49,7 @@ function afficherPositions() {
     positions.forEach((position, index) => {
         const valeurActuelle = position.quantite * position.cours;
         const gain = valeurActuelle - position.montantInvesti;
-
+        const prixAchatMoyen = position.montantInvesti / position.quantite;
         const rendement =
             position.montantInvesti > 0
                 ? (gain / position.montantInvesti) * 100
@@ -65,6 +65,7 @@ function afficherPositions() {
             <p>Nombre d'actions : ${position.quantite}</p>
             <p>Cours actuel : ${position.cours.toFixed(2)} €</p>
             <p>Investi : ${position.montantInvesti.toFixed(2)} €</p>
+            <p>Prix d'achat moyen : ${prixAchatMoyen.toFixed(2)} € / action</p>
             <p>Valeur actuelle : ${valeurActuelle.toFixed(2)} €</p>
             <p>Gain / Perte : ${gain.toFixed(2)} €</p>
             <p>Rendement : ${rendement.toFixed(2)} %</p>
