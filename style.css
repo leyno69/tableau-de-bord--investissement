@@ -73,3 +73,23 @@ section {
 #ajouterPosition {
   margin-top: 4px;
 }
+#listePositions > div {
+  padding: 12px 0;
+}
+
+#listePositions > div h3 {
+  margin: 0 0 10px;
+}
+
+#listePositions > div p {
+  margin: 6px 0;
+  line-height: 1.35;
+}
+
+#listePositions > div button {
+  margin-top: 8px;
+}
+
+#listePositions > div hr {
+  margin: 14px 0 4px;
+}
