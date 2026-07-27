@@ -93,3 +93,6 @@ section {
 #listePositions > div hr {
   margin: 14px 0 4px;
 }
+#listePositions > div hr {
+  display: none;
+}
