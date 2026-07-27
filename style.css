@@ -54,3 +54,22 @@ section {
     grid-template-columns: 1fr;
   }
 }
+.portfolio-form {
+  gap: 10px 14px;
+}
+
+.form-field {
+  gap: 4px;
+}
+
+.form-field label {
+  font-size: 0.95rem;
+}
+
+.form-field input {
+  padding: 8px 10px;
+}
+
+#ajouterPosition {
+  margin-top: 4px;
+}
