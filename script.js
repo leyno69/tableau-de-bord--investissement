@@ -11,6 +11,7 @@ const totalGainElement = document.getElementById("totalGain");
 const totalRendementElement = document.getElementById("totalRendement");
 
 let positions = JSON.parse(localStorage.getItem("positions")) || [];
+let indexEnModification = null;
 positions = positions.filter(
   position =>
     typeof position.cours === "number" &&
@@ -116,13 +117,20 @@ async function ajouterPosition() {
     try {
         const cours = await recupererCours(ticker);
 
-        positions.push({
-            entreprise,
-            ticker,
-            montantInvesti,
-            quantite,
-            cours
-        });
+        const nouvellePosition = {
+  entreprise,
+  ticker,
+  montantInvesti,
+  quantite,
+  cours
+};
+
+if (indexEnModification !== null) {
+  positions[indexEnModification] = nouvellePosition;
+  indexEnModification = null;
+} else {
+  positions.push(nouvellePosition);
+}
 
         sauvegarderPositions();
         afficherPositions();
@@ -136,12 +144,16 @@ async function ajouterPosition() {
     console.error(error);
 } finally {
         ajouterPositionButton.disabled = false;
-        ajouterPositionButton.textContent = "Ajouter la position";
+        ajouterPositionButton.textContent =
+  indexEnModification !== null
+    ? "Enregistrer les modifications"
+    : "Ajouter la position";
     }
 }
 function modifierPosition(index) {
   const position = positions[index];
-
+indexEnModification = index;
+ajouterPositionButton.textContent = "Enregistrer les modifications";
   nomActionInput.value = position.entreprise;
   tickerInput.value = position.ticker;
 
@@ -152,11 +164,6 @@ function modifierPosition(index) {
 
   prixAchatInput.value = prixAchatMoyen.toFixed(2);
   quantiteInput.value = position.quantite;
-
-  positions.splice(index, 1);
-  sauvegarderPositions();
-  afficherPositions();
-
   window.scrollTo({
     top: 0,
     behavior: "smooth"
