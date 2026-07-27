@@ -129,7 +129,29 @@ if (indexEnModification !== null) {
   positions[indexEnModification] = nouvellePosition;
   indexEnModification = null;
 } else {
-  positions.push(nouvellePosition);
+  const indexExistant = positions.findIndex(
+    position => position.ticker === ticker
+  );
+
+  if (indexExistant !== -1) {
+    const positionExistante = positions[indexExistant];
+
+    const nouveauMontantInvesti =
+      positionExistante.montantInvesti + montantInvesti;
+
+    const nouvelleQuantite =
+      positionExistante.quantite + quantite;
+
+    positions[indexExistant] = {
+      entreprise,
+      ticker,
+      montantInvesti: nouveauMontantInvesti,
+      quantite: nouvelleQuantite,
+      cours
+    };
+  } else {
+    positions.push(nouvellePosition);
+  }
 }
 
         sauvegarderPositions();
