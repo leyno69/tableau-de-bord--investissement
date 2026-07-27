@@ -122,10 +122,9 @@ async function ajouterPosition() {
         montantInvestiInput.value = "0";
         quantiteInput.value = "0";
    } catch (error) {
-    alert(`Erreur : ${error.message}`);
+   alert(`Erreur : ${error.message}`);
     console.error(error);
-}
-    finally {
+} finally {
         ajouterPositionButton.disabled = false;
         ajouterPositionButton.textContent = "Ajouter la position";
     }
