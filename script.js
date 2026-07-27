@@ -121,9 +121,11 @@ async function ajouterPosition() {
         tickerInput.value = "";
         montantInvestiInput.value = "0";
         quantiteInput.value = "0";
-    } catch (error) {
-        alert("Impossible de récupérer le cours de ce ticker.");
-    } finally {
+   } catch (error) {
+    alert(`Erreur : ${error.message}`);
+    console.error(error);
+}
+    finally {
         ajouterPositionButton.disabled = false;
         ajouterPositionButton.textContent = "Ajouter la position";
     }
