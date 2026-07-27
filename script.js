@@ -1,6 +1,6 @@
 const nomActionInput = document.getElementById("nomAction");
 const tickerInput = document.getElementById("ticker");
-const montantInvestiInput = document.getElementById("montantInvesti");
+const prixAchatInput = document.getElementById("prixAchat");
 const quantiteInput = document.getElementById("quantite");
 const ajouterPositionButton = document.getElementById("ajouterPosition");
 
@@ -92,13 +92,15 @@ function afficherPositions() {
 async function ajouterPosition() {
     const entreprise = nomActionInput.value.trim();
     const ticker = tickerInput.value.trim().toUpperCase();
-    const montantInvesti = parseFloat(montantInvestiInput.value);
+    const prixAchat = parseFloat(prixAchatInput.value);
     const quantite = parseFloat(quantiteInput.value);
-
+    const montantInvesti = prixAchat * quantite;
     if (
         entreprise === "" ||
         ticker === "" ||
-        isNaN(montantInvesti) ||
+        isNaN(prixAchat) ||
+    prixAchat <= 0 ||
+      isNaN(montantInvesti) ||
         montantInvesti <= 0 ||
         isNaN(quantite) ||
         quantite <= 0
@@ -126,7 +128,7 @@ async function ajouterPosition() {
 
         nomActionInput.value = "";
         tickerInput.value = "";
-        montantInvestiInput.value = "0";
+        prixAchatInput.value = "0";
         quantiteInput.value = "0";
    } catch (error) {
    alert(`Erreur : ${error.message}`);
