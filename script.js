@@ -1130,23 +1130,34 @@ function recalculerPositions() {
 
 function lireFormulaireTransaction() {
     const entreprise =
-        nomActionInput.value.trim();
+        nomActionInput
+            ? nomActionInput.value.trim()
+            : "";
 
     const ticker =
-        tickerInput.value
-            .trim()
-            .toUpperCase();
+        tickerInput
+            ? tickerInput.value
+                .trim()
+                .toUpperCase()
+            : "";
 
     const courtier =
-        courtierSelect.value;
+        courtierSelect
+            ? courtierSelect.value
+            : "trade-republic";
 
     const type =
-        typeTransactionSelect.value;
+        typeTransactionSelect
+            ? typeTransactionSelect.value
+            : "achat";
 
     const modeExecution =
-        modeExecutionSelect.value;
+        modeExecutionSelect
+            ? modeExecutionSelect.value
+            : "ordre-classique";
 
     const date =
+        dateTransactionInput &&
         dateTransactionInput.value
             ? new Date(
                 dateTransactionInput.value
@@ -1154,30 +1165,44 @@ function lireFormulaireTransaction() {
             : new Date().toISOString();
 
     const prixExecution =
-        parseFloat(
-            prixAchatInput.value
-        );
+        prixAchatInput
+            ? parseFloat(
+                prixAchatInput.value
+            )
+            : NaN;
 
     const mode =
-        modeSaisieSelect.value;
+        modeSaisieSelect
+            ? modeSaisieSelect.value
+            : "quantite";
 
     const frais =
-        parseFloat(
-            fraisTransactionInput.value
-        );
+        fraisTransactionInput
+            ? parseFloat(
+                fraisTransactionInput.value
+            )
+            : 0;
 
     const sourceFrais =
-        sourceFraisSelect.value;
+        sourceFraisSelect
+            ? sourceFraisSelect.value
+            : "inconnu";
 
     let quantite = NaN;
     let montantBrut = NaN;
 
 
+    /* -----------------------------------------------------
+       SAISIE PAR MONTANT
+    ----------------------------------------------------- */
+
     if (mode === "montant") {
         montantBrut =
-            parseFloat(
-                montantInvestiInput.value
-            );
+            montantInvestiInput
+                ? parseFloat(
+                    montantInvestiInput.value
+                )
+                : NaN;
 
         if (
             Number.isFinite(prixExecution) &&
@@ -1189,11 +1214,20 @@ function lireFormulaireTransaction() {
                 montantBrut /
                 prixExecution;
         }
-    } else {
+    }
+
+
+    /* -----------------------------------------------------
+       SAISIE PAR QUANTITÉ
+    ----------------------------------------------------- */
+
+    else {
         quantite =
-            parseFloat(
-                quantiteInput.value
-            );
+            quantiteInput
+                ? parseFloat(
+                    quantiteInput.value
+                )
+                : NaN;
 
         if (
             Number.isFinite(prixExecution) &&
@@ -1286,6 +1320,10 @@ function validerTransaction(donnees) {
     }
 
 
+    /* -----------------------------------------------------
+       CONTRÔLE D'UNE VENTE
+    ----------------------------------------------------- */
+
     if (donnees.type === "vente") {
         const position =
             positions.find(
@@ -1303,24 +1341,33 @@ function validerTransaction(donnees) {
                 )
                 : 0;
 
-
         if (
             donnees.quantite >
             quantiteDisponible + 1e-8
         ) {
             throw new Error(
-                `Vente impossible : seulement ${formatQuantite(quantiteDisponible)} action(s) disponible(s) chez ${nomCourtier(donnees.courtier)}.`
+                `Vente impossible : seulement ${formatQuantite(
+                    quantiteDisponible
+                )} action(s) disponible(s) chez ${nomCourtier(
+                    donnees.courtier
+                )}.`
             );
         }
     }
+
+    return true;
 }
 
 
 /* =========================================================
-   ENREGISTREMENT TRANSACTION
+   ENREGISTREMENT D'UNE TRANSACTION
 ========================================================= */
 
 async function enregistrerTransaction() {
+    if (!ajouterPositionButton) {
+        return;
+    }
+
     const donnees =
         lireFormulaireTransaction();
 
@@ -1356,24 +1403,32 @@ async function enregistrerTransaction() {
         const coutTotal =
             donnees.type === "achat"
                 ? donnees.montantBrut +
-                  frais
+                    frais
                 : null;
 
 
         const produitNet =
             donnees.type === "vente"
                 ? donnees.montantBrut -
-                  frais
+                    frais
+                : null;
+
+
+        const ancienId =
+            indexTransactionEnModification !== null &&
+            transactions[
+                indexTransactionEnModification
+            ]
+                ? transactions[
+                    indexTransactionEnModification
+                ].id
                 : null;
 
 
         const transaction = {
             id:
-                indexTransactionEnModification !== null
-                    ? transactions[
-                        indexTransactionEnModification
-                    ].id
-                    : genererIdTransaction(),
+                ancienId ||
+                genererIdTransaction(),
 
             type:
                 donnees.type,
@@ -1406,8 +1461,7 @@ async function enregistrerTransaction() {
                     donnees.montantBrut.toFixed(8)
                 ),
 
-            frais:
-                frais,
+            frais,
 
             sourceFrais:
                 donnees.sourceFrais,
@@ -1460,17 +1514,27 @@ async function enregistrerTransaction() {
         };
 
 
+        /* -------------------------------------------------
+           MODIFICATION
+        ------------------------------------------------- */
+
         if (
             indexTransactionEnModification !== null
         ) {
             transactions[
                 indexTransactionEnModification
-            ] =
-                transaction;
+            ] = transaction;
 
             indexTransactionEnModification =
                 null;
-        } else {
+        }
+
+
+        /* -------------------------------------------------
+           NOUVELLE TRANSACTION
+        ------------------------------------------------- */
+
+        else {
             transactions.push(
                 transaction
             );
@@ -1478,6 +1542,7 @@ async function enregistrerTransaction() {
 
 
         sauvegarderTransactions();
+
         recalculerPositions();
 
         afficherPositions();
@@ -1486,11 +1551,15 @@ async function enregistrerTransaction() {
         reinitialiserFormulaire();
 
     } catch (error) {
-        console.error(error);
+        console.error(
+            "Erreur d'enregistrement :",
+            error
+        );
 
         alert(
             `Erreur : ${error.message}`
         );
+
     } finally {
         ajouterPositionButton.disabled =
             false;
@@ -1504,47 +1573,101 @@ async function enregistrerTransaction() {
 
 
 /* =========================================================
-   AFFICHAGE POSITIONS
+   AFFICHAGE DES POSITIONS
 ========================================================= */
 
 function afficherPositions() {
+    if (!listePositions) {
+        return;
+    }
+
     listePositions.innerHTML = "";
 
     recalculerPositions();
 
 
-    let totalInvesti = 0;
-    let totalValeur = 0;
+    /* =====================================================
+       TOTAUX
+    ===================================================== */
 
-    let valorisationComplete =
-        true;
+    let totalCapitalRestant = 0;
 
+    let totalValeurActuelle = 0;
+
+    let totalGainNonRealise = 0;
+
+    let totalGainsRealises = 0;
+
+    let valorisationComplete = true;
+
+
+    /* =====================================================
+       PORTEFEUILLE VIDE
+    ===================================================== */
 
     if (positions.length === 0) {
         listePositions.innerHTML = `
             <div class="portfolio-empty">
-                <p>Aucune position ouverte.</p>
+                <p>
+                    Aucune position ouverte.
+                </p>
             </div>
         `;
     }
 
 
+    /* =====================================================
+       CARTES DES POSITIONS
+    ===================================================== */
+
     positions.forEach(
         position => {
 
-            totalInvesti +=
-                position.coutAcquisitionNet;
+            const capitalRestant =
+                Number(
+                    position.coutAcquisitionNet
+                ) || 0;
+
+
+            const gainsRealises =
+                Number(
+                    position.gainsRealises
+                ) || 0;
+
+
+            totalCapitalRestant +=
+                capitalRestant;
+
+
+            totalGainsRealises +=
+                gainsRealises;
+
+
+            const valeurActuelle =
+                Number(
+                    position.valeurActuelle
+                );
+
+
+            const gainNonRealise =
+                Number(
+                    position.gainNonRealise
+                );
 
 
             if (
                 Number.isFinite(
-                    Number(
-                        position.valeurActuelle
-                    )
+                    valeurActuelle
+                ) &&
+                Number.isFinite(
+                    gainNonRealise
                 )
             ) {
-                totalValeur +=
-                    position.valeurActuelle;
+                totalValeurActuelle +=
+                    valeurActuelle;
+
+                totalGainNonRealise +=
+                    gainNonRealise;
             } else {
                 valorisationComplete =
                     false;
@@ -1552,9 +1675,17 @@ function afficherPositions() {
 
 
             const classeGain =
-                position.gainNonRealise > 0
+                gainNonRealise > 0
                     ? "positif"
-                    : position.gainNonRealise < 0
+                    : gainNonRealise < 0
+                        ? "negatif"
+                        : "neutre";
+
+
+            const classeGainRealise =
+                gainsRealises > 0
+                    ? "positif"
+                    : gainsRealises < 0
                         ? "negatif"
                         : "neutre";
 
@@ -1564,6 +1695,7 @@ function afficherPositions() {
                     "div"
                 );
 
+
             carte.className =
                 "position-card";
 
@@ -1572,17 +1704,30 @@ function afficherPositions() {
                 <div class="position-header">
 
                     <div>
+
                         <h3>
-                            ${echapperHTML(position.entreprise)}
+                            ${echapperHTML(
+                                position.entreprise
+                            )}
                         </h3>
 
                         <p class="position-ticker">
-                            ${echapperHTML(position.ticker)}
+                            ${echapperHTML(
+                                position.ticker
+                            )}
                         </p>
+
                     </div>
 
+
                     <span class="courtier-badge">
-                        ${echapperHTML(nomCourtier(position.courtier))}
+
+                        ${echapperHTML(
+                            nomCourtier(
+                                position.courtier
+                            )
+                        )}
+
                     </span>
 
                 </div>
@@ -1591,84 +1736,174 @@ function afficherPositions() {
                 <div class="position-details">
 
                     <p>
-                        <strong>Quantité détenue :</strong>
-                        ${formatQuantite(position.quantite)}
+                        <strong>
+                            Quantité détenue :
+                        </strong>
+
+                        ${formatQuantite(
+                            position.quantite
+                        )}
                     </p>
 
-                    <p>
-                        <strong>PRU net de frais :</strong>
-                        ${formatEuro(position.pru)}
-                    </p>
 
                     <p>
-                        <strong>Capital restant investi :</strong>
-                        ${formatEuro(position.coutAcquisitionNet)}
+                        <strong>
+                            PRU net de frais :
+                        </strong>
+
+                        ${formatEuro(
+                            position.pru
+                        )}
                     </p>
 
-                    <p>
-                        <strong>Frais cumulés :</strong>
-                        ${formatEuro(position.fraisCumules)}
-                    </p>
 
                     <p>
-                        <strong>Nombre de transactions :</strong>
+                        <strong>
+                            Capital restant investi :
+                        </strong>
+
+                        ${formatEuro(
+                            position.coutAcquisitionNet
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Frais cumulés :
+                        </strong>
+
+                        ${formatEuro(
+                            position.fraisCumules
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Nombre de transactions :
+                        </strong>
+
                         ${position.nombreTransactions}
                     </p>
 
+
                     <p>
-                        <strong>Cours d’origine :</strong>
+                        <strong>
+                            Cours d’origine :
+                        </strong>
+
                         ${formatMonnaie(
                             position.coursOriginal,
                             position.deviseOriginale
                         )}
                     </p>
 
-                    <p>
-                        <strong>Cours de référence EUR :</strong>
-                        ${formatEuro(position.coursEUR)}
-                    </p>
 
                     <p>
-                        <strong>Taux FX :</strong>
+                        <strong>
+                            Cours de référence EUR :
+                        </strong>
+
+                        ${formatEuro(
+                            position.coursEUR
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Taux FX :
+                        </strong>
+
                         ${
-                            position.fxRateToEUR
-                                ? formatTaux(position.fxRateToEUR)
+                            Number.isFinite(
+                                Number(
+                                    position.fxRateToEUR
+                                )
+                            )
+                                ? formatTaux(
+                                    position.fxRateToEUR
+                                )
                                 : "—"
                         }
                     </p>
 
-                    <p>
-                        <strong>Source FX :</strong>
-                        ${echapperHTML(position.fxProvider || "—")}
-                    </p>
 
                     <p>
-                        <strong>Taux courtier exact :</strong>
+                        <strong>
+                            Source FX :
+                        </strong>
+
+                        ${echapperHTML(
+                            position.fxProvider ||
+                            "—"
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Taux courtier exact :
+                        </strong>
+
                         ${
                             position.brokerRateConfirmed
-                                ? formatTaux(position.brokerRate)
+                                ? formatTaux(
+                                    position.brokerRate
+                                )
                                 : "Impossible à confirmer"
                         }
                     </p>
 
-                    <p>
-                        <strong>Valeur actuelle :</strong>
-                        ${formatEuro(position.valeurActuelle)}
-                    </p>
-
-                    <p class="${classeGain}">
-                        <strong>Gain / Perte non réalisé :</strong>
-                        ${formatEuro(position.gainNonRealise)}
-                    </p>
-
-                    <p class="${classeGain}">
-                        <strong>Rendement non réalisé :</strong>
-                        ${formatPourcentage(position.rendement)}
-                    </p>
 
                     <p>
-                        <strong>Gains réalisés cumulés :</strong>
-                        ${formatEuro(position.gainsRealises)}
+                        <strong>
+                            Valeur actuelle :
+                        </strong>
+
+                        ${formatEuro(
+                            position.valeurActuelle
+                        )}
+                    </p>
+
+
+                    <p class="${classeGain}">
+
+                        <strong>
+                            Gain / Perte non réalisé :
+                        </strong>
+
+                        ${formatEuro(
+                            position.gainNonRealise
+                        )}
+
+                    </p>
+
+
+                    <p class="${classeGain}">
+
+                        <strong>
+                            Rendement non réalisé :
+                        </strong>
+
+                        ${formatPourcentage(
+                            position.rendement
+                        )}
+
+                    </p>
+
+
+                    <p class="${classeGainRealise}">
+
+                        <strong>
+                            Gains réalisés cumulés :
+                        </strong>
+
+                        ${formatEuro(
+                            position.gainsRealises
+                        )}
+
                     </p>
 
                 </div>
@@ -1682,58 +1917,176 @@ function afficherPositions() {
     );
 
 
-    const totalGain =
+    /* =====================================================
+       PERFORMANCE TOTALE
+    ===================================================== */
+
+    const performanceTotale =
         valorisationComplete
-            ? totalValeur -
-              totalInvesti
+            ? totalGainNonRealise +
+                totalGainsRealises
             : null;
 
 
-    const rendement =
-        valorisationComplete &&
-        totalInvesti > 0
-            ? (
-                totalGain /
-                totalInvesti
-            ) * 100
-            : null;
+    /* =====================================================
+       CAPITAL RESTANT
+    ===================================================== */
+
+    if (totalInvestiElement) {
+        totalInvestiElement.textContent =
+            formatEuro(
+                totalCapitalRestant
+            );
+    }
 
 
-    totalInvestiElement.textContent =
-        formatEuro(totalInvesti);
+    /* =====================================================
+       VALEUR ACTUELLE
+    ===================================================== */
+
+    if (totalValeurElement) {
+        totalValeurElement.textContent =
+            valorisationComplete
+                ? formatEuro(
+                    totalValeurActuelle
+                )
+                : "Partiellement indisponible";
+    }
 
 
-    totalValeurElement.textContent =
-        valorisationComplete
-            ? formatEuro(totalValeur)
-            : "Partiellement indisponible";
+    /* =====================================================
+       PERFORMANCE
+    ===================================================== */
+
+    if (totalGainElement) {
+
+        const classeLatente =
+            totalGainNonRealise > 0
+                ? "positif"
+                : totalGainNonRealise < 0
+                    ? "negatif"
+                    : "neutre";
 
 
-    totalGainElement.textContent =
-        valorisationComplete
-            ? formatEuro(totalGain)
-            : "Impossible à confirmer";
+        const classeRealisee =
+            totalGainsRealises > 0
+                ? "positif"
+                : totalGainsRealises < 0
+                    ? "negatif"
+                    : "neutre";
 
 
-    totalRendementElement.textContent =
-        valorisationComplete
-            ? formatPourcentage(rendement)
-            : "Impossible à confirmer";
+        const classeTotale =
+            performanceTotale > 0
+                ? "positif"
+                : performanceTotale < 0
+                    ? "negatif"
+                    : "neutre";
+
+
+        totalGainElement.innerHTML = `
+            <div class="summary-performance">
+
+                <div>
+
+                    <strong>
+                        Gain / Perte non réalisé
+                    </strong>
+
+                    <div class="${classeLatente}">
+                        ${
+                            valorisationComplete
+                                ? formatEuro(
+                                    totalGainNonRealise
+                                )
+                                : "Impossible à confirmer"
+                        }
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Gains réalisés cumulés
+                    </strong>
+
+                    <div class="${classeRealisee}">
+                        ${formatEuro(
+                            totalGainsRealises
+                        )}
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Performance totale
+                    </strong>
+
+                    <div class="${classeTotale}">
+                        ${
+                            performanceTotale !== null
+                                ? formatEuro(
+                                    performanceTotale
+                                )
+                                : "Impossible à confirmer"
+                        }
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+    }
+
+
+    /* =====================================================
+       RENDEMENT TOTAL
+
+       IMPORTANT :
+       On ne fabrique volontairement pas encore
+       un rendement global.
+
+       Avec des achats et ventes à différentes dates,
+       un simple :
+           performance / capital restant
+       serait potentiellement trompeur.
+
+       Nous intégrerons ensuite une méthode adaptée.
+    ===================================================== */
+
+    if (totalRendementElement) {
+        totalRendementElement.textContent =
+            "Méthode de rendement global à définir";
+    }
 }
 
 
 /* =========================================================
-   AFFICHAGE HISTORIQUE TRANSACTIONS
+   AFFICHAGE HISTORIQUE DES TRANSACTIONS
 ========================================================= */
 
 function afficherTransactions() {
-    listeTransactions.innerHTML = "";
+    if (!listeTransactions) {
+        return;
+    }
+
+    listeTransactions.innerHTML =
+        "";
 
 
     if (transactions.length === 0) {
         listeTransactions.innerHTML = `
             <div class="portfolio-empty">
-                <p>Aucune transaction enregistrée.</p>
+
+                <p>
+                    Aucune transaction enregistrée.
+                </p>
+
             </div>
         `;
 
@@ -1761,12 +2114,16 @@ function afficherTransactions() {
 
 
     transactionsTriees.forEach(
-        ({ transaction, index }) => {
+        ({
+            transaction,
+            index
+        }) => {
 
             const carte =
                 document.createElement(
                     "div"
                 );
+
 
             carte.className =
                 "position-card transaction-card";
@@ -1788,18 +2145,31 @@ function afficherTransactions() {
                 <div class="position-header">
 
                     <div>
+
                         <h3>
                             ${typeLabel} —
-                            ${echapperHTML(transaction.entreprise)}
+                            ${echapperHTML(
+                                transaction.entreprise
+                            )}
                         </h3>
 
                         <p class="position-ticker">
-                            ${echapperHTML(transaction.ticker)}
+                            ${echapperHTML(
+                                transaction.ticker
+                            )}
                         </p>
+
                     </div>
 
+
                     <span class="courtier-badge">
-                        ${echapperHTML(nomCourtier(transaction.courtier))}
+
+                        ${echapperHTML(
+                            nomCourtier(
+                                transaction.courtier
+                            )
+                        )}
+
                     </span>
 
                 </div>
@@ -1809,52 +2179,107 @@ function afficherTransactions() {
 
                     <p>
                         <strong>Date :</strong>
-                        ${formatDateHeure(transaction.date)}
+
+                        ${formatDateHeure(
+                            transaction.date
+                        )}
                     </p>
+
+
+                    <p>
+                        <strong>Type :</strong>
+
+                        ${typeLabel}
+                    </p>
+
 
                     <p>
                         <strong>Mode :</strong>
-                        ${echapperHTML(transaction.modeExecution)}
+
+                        ${echapperHTML(
+                            transaction.modeExecution
+                        )}
                     </p>
+
 
                     <p>
                         <strong>Quantité :</strong>
-                        ${formatQuantite(transaction.quantite)}
+
+                        ${formatQuantite(
+                            transaction.quantite
+                        )}
                     </p>
+
 
                     <p>
                         <strong>Prix d’exécution :</strong>
-                        ${formatEuro(transaction.prixExecution)}
+
+                        ${formatEuro(
+                            transaction.prixExecution
+                        )}
                     </p>
+
 
                     <p>
                         <strong>Montant brut :</strong>
-                        ${formatEuro(transaction.montantBrut)}
+
+                        ${formatEuro(
+                            transaction.montantBrut
+                        )}
                     </p>
+
 
                     <p>
                         <strong>Frais :</strong>
-                        ${formatEuro(transaction.frais)}
+
+                        ${formatEuro(
+                            transaction.frais
+                        )}
                     </p>
 
+
                     <p>
-                        <strong>${transaction.type === "achat" ? "Coût total" : "Produit net"} :</strong>
-                        ${formatEuro(montantNet)}
+                        <strong>
+                            ${
+                                transaction.type === "achat"
+                                    ? "Coût total"
+                                    : "Produit net"
+                            } :
+                        </strong>
+
+                        ${formatEuro(
+                            montantNet
+                        )}
                     </p>
+
 
                     <p>
                         <strong>Source frais :</strong>
-                        ${echapperHTML(transaction.sourceFrais)}
+
+                        ${echapperHTML(
+                            transaction.sourceFrais ||
+                            "inconnu"
+                        )}
                     </p>
+
 
                     <p>
                         <strong>Source transaction :</strong>
-                        ${echapperHTML(transaction.sourceTransaction)}
+
+                        ${echapperHTML(
+                            transaction.sourceTransaction ||
+                            "—"
+                        )}
                     </p>
+
 
                     <p>
                         <strong>Qualité :</strong>
-                        ${echapperHTML(transaction.qualiteTransaction)}
+
+                        ${echapperHTML(
+                            transaction.qualiteTransaction ||
+                            "—"
+                        )}
                     </p>
 
                 </div>
@@ -1869,6 +2294,7 @@ function afficherTransactions() {
                     >
                         Modifier
                     </button>
+
 
                     <button
                         type="button"
@@ -1891,12 +2317,13 @@ function afficherTransactions() {
 
 
 /* =========================================================
-   MODIFIER TRANSACTION
+   MODIFIER UNE TRANSACTION
 ========================================================= */
 
 function modifierTransaction(index) {
     const tx =
         transactions[index];
+
 
     if (!tx) {
         return;
@@ -1907,53 +2334,93 @@ function modifierTransaction(index) {
         index;
 
 
-    courtierSelect.value =
-        tx.courtier;
-
-    typeTransactionSelect.value =
-        tx.type;
-
-    modeExecutionSelect.value =
-        tx.modeExecution;
-
-    nomActionInput.value =
-        tx.entreprise;
-
-    tickerInput.value =
-        tx.ticker;
-
-    prixAchatInput.value =
-        Number(
-            tx.prixExecution
-        ).toFixed(4);
-
-    modeSaisieSelect.value =
-        "quantite";
-
-    quantiteInput.value =
-        tx.quantite;
-
-    montantInvestiInput.value =
-        Number(
-            tx.montantBrut
-        ).toFixed(2);
-
-    fraisTransactionInput.value =
-        Number(
-            tx.frais
-        ).toFixed(2);
-
-    sourceFraisSelect.value =
-        tx.sourceFrais;
+    if (courtierSelect) {
+        courtierSelect.value =
+            tx.courtier;
+    }
 
 
-    if (tx.date) {
+    if (typeTransactionSelect) {
+        typeTransactionSelect.value =
+            tx.type;
+    }
+
+
+    if (modeExecutionSelect) {
+        modeExecutionSelect.value =
+            tx.modeExecution;
+    }
+
+
+    if (nomActionInput) {
+        nomActionInput.value =
+            tx.entreprise;
+    }
+
+
+    if (tickerInput) {
+        tickerInput.value =
+            tx.ticker;
+    }
+
+
+    if (prixAchatInput) {
+        prixAchatInput.value =
+            Number(
+                tx.prixExecution
+            ).toFixed(4);
+    }
+
+
+    if (modeSaisieSelect) {
+        modeSaisieSelect.value =
+            "quantite";
+    }
+
+
+    if (quantiteInput) {
+        quantiteInput.value =
+            tx.quantite;
+    }
+
+
+    if (montantInvestiInput) {
+        montantInvestiInput.value =
+            Number(
+                tx.montantBrut
+            ).toFixed(2);
+    }
+
+
+    if (fraisTransactionInput) {
+        fraisTransactionInput.value =
+            Number(
+                tx.frais
+            ).toFixed(2);
+    }
+
+
+    if (sourceFraisSelect) {
+        sourceFraisSelect.value =
+            tx.sourceFrais ||
+            "inconnu";
+    }
+
+
+    if (
+        dateTransactionInput &&
+        tx.date
+    ) {
         const date =
-            new Date(tx.date);
+            new Date(
+                tx.date
+            );
+
 
         const decalage =
             date.getTimezoneOffset() *
             60000;
+
 
         dateTransactionInput.value =
             new Date(
@@ -1965,28 +2432,36 @@ function modifierTransaction(index) {
     }
 
 
-    ajouterPositionButton.textContent =
-        "Enregistrer les modifications";
+    if (ajouterPositionButton) {
+        ajouterPositionButton.textContent =
+            "Enregistrer les modifications";
+    }
 
 
     mettreAJourModeSaisie();
+
+    mettreAJourInformationFraction();
+
     recalculerTransaction();
 
 
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
+    if (nomActionInput) {
+        nomActionInput.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+    }
 }
 
 
 /* =========================================================
-   SUPPRIMER TRANSACTION
+   SUPPRIMER UNE TRANSACTION
 ========================================================= */
 
 function supprimerTransaction(index) {
     const tx =
         transactions[index];
+
 
     if (!tx) {
         return;
@@ -2015,9 +2490,11 @@ function supprimerTransaction(index) {
 
 
     sauvegarderTransactions();
+
     recalculerPositions();
 
     afficherPositions();
+
     afficherTransactions();
 
     reinitialiserFormulaire();
@@ -2025,164 +2502,355 @@ function supprimerTransaction(index) {
 
 
 /* =========================================================
-   RÉINITIALISER FORMULAIRE
+   RÉINITIALISATION DU FORMULAIRE
 ========================================================= */
 
 function reinitialiserFormulaire() {
-    nomActionInput.value = "";
-    tickerInput.value = "";
+    if (nomActionInput) {
+        nomActionInput.value =
+            "";
+    }
 
-    prixAchatInput.value = "0";
-    quantiteInput.value = "0";
-    montantInvestiInput.value = "0";
 
-    modeSaisieSelect.value =
-        "quantite";
+    if (tickerInput) {
+        tickerInput.value =
+            "";
+    }
 
-    typeTransactionSelect.value =
-        "achat";
+
+    if (prixAchatInput) {
+        prixAchatInput.value =
+            "0";
+    }
+
+
+    if (quantiteInput) {
+        quantiteInput.value =
+            "0";
+    }
+
+
+    if (montantInvestiInput) {
+        montantInvestiInput.value =
+            "0";
+    }
+
+
+    if (modeSaisieSelect) {
+        modeSaisieSelect.value =
+            "quantite";
+    }
+
+
+    if (typeTransactionSelect) {
+        typeTransactionSelect.value =
+            "achat";
+    }
+
 
     indexTransactionEnModification =
         null;
 
 
+    /*
+       On remet la date à maintenant.
+    */
+
+    if (dateTransactionInput) {
+        dateTransactionInput.value =
+            "";
+    }
+
+
     initialiserDateTransaction();
+
     determinerFraisAutomatiques();
 
     mettreAJourModeSaisie();
+
     mettreAJourInformationFraction();
 
 
-    calculPosition.textContent =
-        "Renseignez la transaction.";
+    if (calculPosition) {
+        calculPosition.textContent =
+            "Renseignez la transaction.";
+    }
 
 
-    ajouterPositionButton.textContent =
-        "Enregistrer la transaction";
+    if (ajouterPositionButton) {
+        ajouterPositionButton.textContent =
+            "Enregistrer la transaction";
+    }
 }
 
 
 /* =========================================================
-   ÉVÉNEMENTS
+   ÉVÉNEMENT BOUTON PRINCIPAL
 ========================================================= */
 
-ajouterPositionButton.addEventListener(
-    "click",
-    enregistrerTransaction
-);
-
-
-modeSaisieSelect.addEventListener(
-    "change",
-    mettreAJourModeSaisie
-);
-
-
-courtierSelect.addEventListener(
-    "change",
-    () => {
-        determinerFraisAutomatiques();
-        mettreAJourInformationFraction();
-        recalculerTransaction();
-    }
-);
-
-
-modeExecutionSelect.addEventListener(
-    "change",
-    () => {
-        determinerFraisAutomatiques();
-        recalculerTransaction();
-    }
-);
-
-
-typeTransactionSelect.addEventListener(
-    "change",
-    recalculerTransaction
-);
-
-
-tickerInput.addEventListener(
-    "input",
-    () => {
-        tickerInput.value =
-            tickerInput.value
-                .toUpperCase()
-                .replace(/\s+/g, "");
-
-        mettreAJourInformationFraction();
-    }
-);
-
-
-prixAchatInput.addEventListener(
-    "input",
-    recalculerTransaction
-);
-
-
-quantiteInput.addEventListener(
-    "input",
-    recalculerTransaction
-);
-
-
-montantInvestiInput.addEventListener(
-    "input",
-    recalculerTransaction
-);
-
-
-fraisTransactionInput.addEventListener(
-    "input",
-    () => {
-        sourceFraisSelect.value =
-            "manuel";
-
-        recalculerTransaction();
-    }
-);
+if (ajouterPositionButton) {
+    ajouterPositionButton.addEventListener(
+        "click",
+        enregistrerTransaction
+    );
+}
 
 
 /* =========================================================
-   ACTIONS HISTORIQUE
+   MODE DE SAISIE
 ========================================================= */
 
-listeTransactions.addEventListener(
-    "click",
-    event => {
-
-        const boutonModifier =
-            event.target.closest(
-                ".modifier-transaction"
-            );
+if (modeSaisieSelect) {
+    modeSaisieSelect.addEventListener(
+        "change",
+        mettreAJourModeSaisie
+    );
+}
 
 
-        if (boutonModifier) {
-            modifierTransaction(
-                Number(
-                    boutonModifier.dataset.index
-                )
-            );
+/* =========================================================
+   COURTIER
+========================================================= */
 
-            return;
+if (courtierSelect) {
+    courtierSelect.addEventListener(
+        "change",
+        () => {
+
+            determinerFraisAutomatiques();
+
+            mettreAJourInformationFraction();
+
+            recalculerTransaction();
         }
+    );
+}
 
 
-        const boutonSupprimer =
-            event.target.closest(
-                ".supprimer-transaction"
-            );
+/* =========================================================
+   MODE D'EXÉCUTION
+========================================================= */
 
+if (modeExecutionSelect) {
+    modeExecutionSelect.addEventListener(
+        "change",
+        () => {
 
-        if (boutonSupprimer) {
-            supprimerTransaction(
-                Number(
-                    boutonSupprimer.dataset.index
-                )
-            );
+            determinerFraisAutomatiques();
+
+            recalculerTransaction();
         }
+    );
+}
+
+
+/* =========================================================
+   TYPE DE TRANSACTION
+========================================================= */
+
+if (typeTransactionSelect) {
+    typeTransactionSelect.addEventListener(
+        "change",
+        recalculerTransaction
+    );
+}
+
+
+/* =========================================================
+   TICKER
+========================================================= */
+
+if (tickerInput) {
+    tickerInput.addEventListener(
+        "input",
+        () => {
+
+            tickerInput.value =
+                tickerInput.value
+                    .toUpperCase()
+                    .replace(
+                        /\s+/g,
+                        ""
+                    );
+
+
+            mettreAJourInformationFraction();
+        }
+    );
+}
+
+
+/* =========================================================
+   PRIX
+========================================================= */
+
+if (prixAchatInput) {
+    prixAchatInput.addEventListener(
+        "input",
+        recalculerTransaction
+    );
+}
+
+
+/* =========================================================
+   QUANTITÉ
+========================================================= */
+
+if (quantiteInput) {
+    quantiteInput.addEventListener(
+        "input",
+        () => {
+
+            if (
+                !modeSaisieSelect ||
+                modeSaisieSelect.value ===
+                    "quantite"
+            ) {
+                recalculerTransaction();
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   MONTANT
+========================================================= */
+
+if (montantInvestiInput) {
+    montantInvestiInput.addEventListener(
+        "input",
+        () => {
+
+            if (
+                modeSaisieSelect &&
+                modeSaisieSelect.value ===
+                    "montant"
+            ) {
+                recalculerTransaction();
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   FRAIS MANUELS
+========================================================= */
+
+if (fraisTransactionInput) {
+    fraisTransactionInput.addEventListener(
+        "input",
+        () => {
+
+            if (sourceFraisSelect) {
+                sourceFraisSelect.value =
+                    "manuel";
+            }
+
+            recalculerTransaction();
+        }
+    );
+}
+
+
+/* =========================================================
+   HISTORIQUE :
+   MODIFIER / SUPPRIMER
+========================================================= */
+
+if (listeTransactions) {
+    listeTransactions.addEventListener(
+        "click",
+        event => {
+
+            const boutonModifier =
+                event.target.closest(
+                    ".modifier-transaction"
+                );
+
+
+            if (boutonModifier) {
+                const index =
+                    Number(
+                        boutonModifier.dataset.index
+                    );
+
+
+                if (
+                    Number.isInteger(index)
+                ) {
+                    modifierTransaction(
+                        index
+                    );
+                }
+
+                return;
+            }
+
+
+            const boutonSupprimer =
+                event.target.closest(
+                    ".supprimer-transaction"
+                );
+
+
+            if (boutonSupprimer) {
+                const index =
+                    Number(
+                        boutonSupprimer.dataset.index
+                    );
+
+
+                if (
+                    Number.isInteger(index)
+                ) {
+                    supprimerTransaction(
+                        index
+                    );
+                }
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   TOUCHE ENTRÉE
+========================================================= */
+
+const champsTransaction = [
+    nomActionInput,
+    tickerInput,
+    prixAchatInput,
+    quantiteInput,
+    montantInvestiInput,
+    fraisTransactionInput
+].filter(Boolean);
+
+
+champsTransaction.forEach(
+    champ => {
+
+        champ.addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key === "Enter"
+                ) {
+                    event.preventDefault();
+
+
+                    if (
+                        ajouterPositionButton &&
+                        !ajouterPositionButton.disabled
+                    ) {
+                        enregistrerTransaction();
+                    }
+                }
+            }
+        );
     }
 );
 
@@ -2192,29 +2860,53 @@ listeTransactions.addEventListener(
 ========================================================= */
 
 function initialiserApplication() {
+
     chargerTransactions();
+
     migrerAnciennesPositionsSiNecessaire();
 
     recalculerPositions();
 
     initialiserDateTransaction();
+
     determinerFraisAutomatiques();
 
     mettreAJourModeSaisie();
+
     mettreAJourInformationFraction();
 
     afficherPositions();
+
     afficherTransactions();
 
+
     console.log(
-        "Application initialisée avec architecture transactions -> positions."
+        "Application initialisée — architecture transactions -> positions."
     );
 }
 
+
+/* =========================================================
+   DÉMARRAGE
+========================================================= */
 
 initialiserApplication();
 
 
 /* =========================================================
-   FIN SCRIPT.JS
+   OUTILS ACCESSIBLES DEPUIS LA CONSOLE
+========================================================= */
+
+window.recalculerPositions =
+    recalculerPositions;
+
+window.modifierTransaction =
+    modifierTransaction;
+
+window.supprimerTransaction =
+    supprimerTransaction;
+
+
+/* =========================================================
+   FIN DU BLOC 2/2
 ========================================================= */
