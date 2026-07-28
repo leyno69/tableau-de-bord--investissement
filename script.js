@@ -5192,3 +5192,3806 @@ window.transactionEstTest =
    FIN DU BLOC 2/2
    FIN DU SCRIPT.JS
 ========================================================= */
+/* =========================================================
+   TABLEAU DE BORD D'INVESTISSEMENT
+   SCRIPT.JS — BLOC 2/2
+
+   VERSION CONSOLIDÉE :
+   - transactions réelles / test
+   - portefeuille réel uniquement
+   - dates fiabilisées
+   - frais
+   - historique complet
+   - performances réalisées / non réalisées
+   - moteur XIRR sécurisé
+========================================================= */
+
+
+/* =========================================================
+   LECTURE FORMULAIRE
+========================================================= */
+
+function lireFormulaireTransaction() {
+
+    const statutTransaction =
+        statutTransactionSelect
+            ? statutTransactionSelect.value
+            : "reelle";
+
+
+    const entreprise =
+        nomActionInput
+            ? nomActionInput.value.trim()
+            : "";
+
+
+    const ticker =
+        tickerInput
+            ? tickerInput.value
+                .trim()
+                .toUpperCase()
+            : "";
+
+
+    const courtier =
+        courtierSelect
+            ? courtierSelect.value
+            : "trade-republic";
+
+
+    const type =
+        typeTransactionSelect
+            ? typeTransactionSelect.value
+            : "achat";
+
+
+    const modeExecution =
+        modeExecutionSelect
+            ? modeExecutionSelect.value
+            : "ordre-classique";
+
+
+    /* -----------------------------------------------------
+       DATE
+    ----------------------------------------------------- */
+
+    let date = null;
+
+    let dateStatus =
+        "date-inconnue";
+
+    let dateSource =
+        "inconnue";
+
+
+    if (
+        dateTransactionInput &&
+        dateTransactionInput.value
+    ) {
+
+        const dateSaisie =
+            new Date(
+                dateTransactionInput.value
+            );
+
+
+        if (
+            !Number.isNaN(
+                dateSaisie.getTime()
+            )
+        ) {
+
+            date =
+                dateSaisie.toISOString();
+
+
+            dateStatus =
+                "declaree-utilisateur";
+
+
+            dateSource =
+                "saisie-utilisateur";
+        }
+    }
+
+
+    /* -----------------------------------------------------
+       PRIX
+    ----------------------------------------------------- */
+
+    const prixExecution =
+        prixAchatInput
+            ? parseFloat(
+                prixAchatInput.value
+            )
+            : NaN;
+
+
+    /* -----------------------------------------------------
+       MODE DE SAISIE
+    ----------------------------------------------------- */
+
+    const mode =
+        modeSaisieSelect
+            ? modeSaisieSelect.value
+            : "quantite";
+
+
+    /* -----------------------------------------------------
+       FRAIS
+    ----------------------------------------------------- */
+
+    const frais =
+        fraisTransactionInput
+            ? parseFloat(
+                fraisTransactionInput.value
+            )
+            : 0;
+
+
+    const sourceFrais =
+        sourceFraisSelect
+            ? sourceFraisSelect.value
+            : "inconnu";
+
+
+    let quantite =
+        NaN;
+
+
+    let montantBrut =
+        NaN;
+
+
+    /* =====================================================
+       SAISIE PAR MONTANT
+    ===================================================== */
+
+    if (
+        mode ===
+        "montant"
+    ) {
+
+        montantBrut =
+            montantInvestiInput
+                ? parseFloat(
+                    montantInvestiInput.value
+                )
+                : NaN;
+
+
+        if (
+            Number.isFinite(
+                prixExecution
+            ) &&
+            prixExecution > 0 &&
+            Number.isFinite(
+                montantBrut
+            ) &&
+            montantBrut > 0
+        ) {
+
+            quantite =
+                montantBrut /
+                prixExecution;
+        }
+    }
+
+
+    /* =====================================================
+       SAISIE PAR QUANTITÉ
+    ===================================================== */
+
+    else {
+
+        quantite =
+            quantiteInput
+                ? parseFloat(
+                    quantiteInput.value
+                )
+                : NaN;
+
+
+        if (
+            Number.isFinite(
+                prixExecution
+            ) &&
+            prixExecution > 0 &&
+            Number.isFinite(
+                quantite
+            ) &&
+            quantite > 0
+        ) {
+
+            montantBrut =
+                prixExecution *
+                quantite;
+        }
+    }
+
+
+    return {
+
+        statutTransaction,
+
+        entreprise,
+
+        ticker,
+
+        courtier,
+
+        type,
+
+        modeExecution,
+
+        date,
+
+        dateStatus,
+
+        dateSource,
+
+        prixExecution,
+
+        quantite,
+
+        montantBrut,
+
+        frais,
+
+        sourceFrais
+    };
+}
+
+
+/* =========================================================
+   VALIDATION
+========================================================= */
+
+function validerTransaction(
+    donnees
+) {
+
+    if (
+        donnees.statutTransaction !==
+            "reelle" &&
+        donnees.statutTransaction !==
+            "test"
+    ) {
+
+        throw new Error(
+            "Le statut de la transaction est invalide."
+        );
+    }
+
+
+    if (
+        !donnees.entreprise
+    ) {
+
+        throw new Error(
+            "Indiquez le nom de l’entreprise."
+        );
+    }
+
+
+    if (
+        !donnees.ticker
+    ) {
+
+        throw new Error(
+            "Indiquez le ticker."
+        );
+    }
+
+
+    if (
+        !Number.isFinite(
+            donnees.prixExecution
+        ) ||
+        donnees.prixExecution <= 0
+    ) {
+
+        throw new Error(
+            "Le prix d’exécution doit être supérieur à 0."
+        );
+    }
+
+
+    if (
+        !Number.isFinite(
+            donnees.quantite
+        ) ||
+        donnees.quantite <= 0
+    ) {
+
+        throw new Error(
+            "La quantité doit être supérieure à 0."
+        );
+    }
+
+
+    if (
+        !Number.isFinite(
+            donnees.montantBrut
+        ) ||
+        donnees.montantBrut <= 0
+    ) {
+
+        throw new Error(
+            "Le montant brut doit être supérieur à 0."
+        );
+    }
+
+
+    if (
+        !Number.isFinite(
+            donnees.frais
+        ) ||
+        donnees.frais < 0
+    ) {
+
+        throw new Error(
+            "Les frais doivent être supérieurs ou égaux à 0."
+        );
+    }
+
+
+    /* =====================================================
+       CONTRÔLE D'UNE VENTE RÉELLE
+    ===================================================== */
+
+    if (
+        donnees.type ===
+            "vente" &&
+        donnees.statutTransaction ===
+            "reelle"
+    ) {
+
+        recalculerPositions();
+
+
+        const position =
+            positions.find(
+                position =>
+                    position.ticker ===
+                        donnees.ticker &&
+                    position.courtier ===
+                        donnees.courtier
+            );
+
+
+        const quantiteDisponible =
+            position
+                ? Number(
+                    position.quantite
+                )
+                : 0;
+
+
+        if (
+            indexTransactionEnModification ===
+                null &&
+            donnees.quantite >
+                quantiteDisponible +
+                    1e-8
+        ) {
+
+            throw new Error(
+                `Vente impossible : seulement ${formatQuantite(
+                    quantiteDisponible
+                )} action(s) disponible(s) chez ${nomCourtier(
+                    donnees.courtier
+                )}.`
+            );
+        }
+    }
+
+
+    return true;
+}
+
+
+/* =========================================================
+   ENREGISTREMENT D'UNE TRANSACTION
+========================================================= */
+
+async function enregistrerTransaction() {
+
+    if (
+        !ajouterPositionButton
+    ) {
+        return;
+    }
+
+
+    const donnees =
+        lireFormulaireTransaction();
+
+
+    try {
+
+        validerTransaction(
+            donnees
+        );
+
+    } catch (error) {
+
+        alert(
+            error.message
+        );
+
+        return;
+    }
+
+
+    ajouterPositionButton.disabled =
+        true;
+
+
+    ajouterPositionButton.textContent =
+        "Récupération des données de marché...";
+
+
+    try {
+
+        const marche =
+            await recupererDonneesMarche(
+                donnees.ticker
+            );
+
+
+        const frais =
+            Number(
+                donnees.frais
+            );
+
+
+        const coutTotal =
+            donnees.type ===
+                "achat"
+                ? donnees.montantBrut +
+                    frais
+                : null;
+
+
+        const produitNet =
+            donnees.type ===
+                "vente"
+                ? donnees.montantBrut -
+                    frais
+                : null;
+
+
+        const transactionExistante =
+            indexTransactionEnModification !==
+                null
+                ? transactions[
+                    indexTransactionEnModification
+                ]
+                : null;
+
+
+        const transaction = {
+
+            id:
+                transactionExistante?.id ||
+                genererIdTransaction(),
+
+
+            statutTransaction:
+                donnees.statutTransaction,
+
+
+            type:
+                donnees.type,
+
+
+            courtier:
+                donnees.courtier,
+
+
+            modeExecution:
+                donnees.modeExecution,
+
+
+            date:
+                donnees.date,
+
+
+            dateStatus:
+                donnees.dateStatus,
+
+
+            dateSource:
+                donnees.dateSource,
+
+
+            entreprise:
+                donnees.entreprise,
+
+
+            ticker:
+                donnees.ticker,
+
+
+            prixExecution:
+                donnees.prixExecution,
+
+
+            quantite:
+                Number(
+                    donnees.quantite
+                        .toFixed(8)
+                ),
+
+
+            montantBrut:
+                Number(
+                    donnees.montantBrut
+                        .toFixed(8)
+                ),
+
+
+            frais,
+
+
+            sourceFrais:
+                donnees.sourceFrais,
+
+
+            coutTotal,
+
+
+            produitNet,
+
+
+            sourceTransaction:
+                transactionExistante
+                    ? (
+                        transactionExistante
+                            .sourceTransaction ||
+                        "saisie-manuelle"
+                    )
+                    : "saisie-manuelle",
+
+
+            qualiteTransaction:
+                transactionExistante
+                    ? (
+                        transactionExistante
+                            .qualiteTransaction ||
+                        "declaree-utilisateur"
+                    )
+                    : "declaree-utilisateur",
+
+
+            coursOriginal:
+                marche.coursOriginal,
+
+
+            deviseOriginale:
+                marche.deviseOriginale,
+
+
+            coursEUR:
+                marche.coursEUR,
+
+
+            deviseStatus:
+                marche.deviseStatus,
+
+
+            fxRateToEUR:
+                marche.fxRateToEUR,
+
+
+            fxDate:
+                marche.fxDate,
+
+
+            fxProvider:
+                marche.fxProvider,
+
+
+            fxStatus:
+                marche.fxStatus,
+
+
+            brokerRateConfirmed:
+                marche.brokerRateConfirmed,
+
+
+            brokerRate:
+                marche.brokerRate,
+
+
+            brokerRateMessage:
+                marche.brokerRateMessage,
+
+
+            marketTimestamp:
+                marche.timestamp
+        };
+
+
+        /* =================================================
+           MODIFICATION
+        ================================================= */
+
+        if (
+            indexTransactionEnModification !==
+                null
+        ) {
+
+            transactions[
+                indexTransactionEnModification
+            ] =
+                transaction;
+
+
+            indexTransactionEnModification =
+                null;
+
+        } else {
+
+            /* =================================================
+               NOUVELLE TRANSACTION
+            ================================================= */
+
+            transactions.push(
+                transaction
+            );
+        }
+
+
+        sauvegarderTransactions();
+
+
+        recalculerPositions();
+
+
+        afficherPositions();
+
+
+        afficherTransactions();
+
+
+        reinitialiserFormulaire();
+
+    } catch (error) {
+
+        console.error(
+            "Erreur d'enregistrement :",
+            error
+        );
+
+
+        alert(
+            `Erreur : ${error.message}`
+        );
+
+    } finally {
+
+        ajouterPositionButton.disabled =
+            false;
+
+
+        ajouterPositionButton.textContent =
+            indexTransactionEnModification !==
+                null
+                ? "Enregistrer les modifications"
+                : "Enregistrer la transaction";
+    }
+}
+
+
+/* =========================================================
+   MOTEUR XIRR
+========================================================= */
+
+
+/* =========================================================
+   DIFFÉRENCE EN JOURS
+========================================================= */
+
+function differenceJours(
+    dateDepart,
+    dateArrivee
+) {
+
+    const millisecondesParJour =
+        24 *
+        60 *
+        60 *
+        1000;
+
+
+    return (
+        dateArrivee.getTime() -
+        dateDepart.getTime()
+    ) /
+        millisecondesParJour;
+}
+
+
+/* =========================================================
+   VALEUR ACTUALISÉE XIRR
+
+   On recherche le taux r tel que :
+
+   Somme [
+       Flux_i /
+       (1 + r) ^ (jours_i / 365)
+   ] = 0
+========================================================= */
+
+function valeurActualiseeXIRR(
+    flux,
+    taux
+) {
+
+    if (
+        !Array.isArray(
+            flux
+        ) ||
+        flux.length < 2
+    ) {
+
+        return NaN;
+    }
+
+
+    if (
+        !Number.isFinite(
+            taux
+        ) ||
+        taux <= -1
+    ) {
+
+        return NaN;
+    }
+
+
+    const dateReference =
+        flux[0].date;
+
+
+    let resultat =
+        0;
+
+
+    for (
+        const element of flux
+    ) {
+
+        const jours =
+            differenceJours(
+                dateReference,
+                element.date
+            );
+
+
+        const exposant =
+            jours /
+            365;
+
+
+        const denominateur =
+            Math.pow(
+                1 + taux,
+                exposant
+            );
+
+
+        if (
+            !Number.isFinite(
+                denominateur
+            ) ||
+            denominateur === 0
+        ) {
+
+            return NaN;
+        }
+
+
+        resultat +=
+            element.montant /
+            denominateur;
+    }
+
+
+    return resultat;
+}
+
+
+/* =========================================================
+   RECHERCHE DES RACINES XIRR
+
+   Le moteur :
+   - ne suppose pas qu'une racine existe
+   - recherche les changements de signe
+   - utilise ensuite une dichotomie
+   - détecte plusieurs solutions éventuelles
+========================================================= */
+
+function trouverRacinesXIRR(
+    flux
+) {
+
+    const racines =
+        [];
+
+
+    /*
+       Transformation :
+
+       y = ln(1 + taux)
+
+       donc :
+
+       taux = exp(y) - 1
+
+       Cela empêche automatiquement
+       d'aller sous -100 %.
+    */
+
+
+    const yMinimum =
+        Math.log(
+            0.000001
+        );
+
+
+    const yMaximum =
+        Math.log(
+            1001
+        );
+
+
+    const nombreEtapes =
+        2000;
+
+
+    let yPrecedent =
+        yMinimum;
+
+
+    let tauxPrecedent =
+        Math.exp(
+            yPrecedent
+        ) -
+        1;
+
+
+    let valeurPrecedente =
+        valeurActualiseeXIRR(
+            flux,
+            tauxPrecedent
+        );
+
+
+    for (
+        let index = 1;
+        index <= nombreEtapes;
+        index++
+    ) {
+
+        const progression =
+            index /
+            nombreEtapes;
+
+
+        const yActuel =
+            yMinimum +
+            (
+                yMaximum -
+                yMinimum
+            ) *
+            progression;
+
+
+        const tauxActuel =
+            Math.exp(
+                yActuel
+            ) -
+            1;
+
+
+        const valeurActuelle =
+            valeurActualiseeXIRR(
+                flux,
+                tauxActuel
+            );
+
+
+        if (
+            Number.isFinite(
+                valeurPrecedente
+            ) &&
+            Number.isFinite(
+                valeurActuelle
+            )
+        ) {
+
+            if (
+                Math.abs(
+                    valeurActuelle
+                ) <
+                1e-10
+            ) {
+
+                const doublon =
+                    racines.some(
+                        racine =>
+                            Math.abs(
+                                racine -
+                                tauxActuel
+                            ) <
+                            1e-7
+                    );
+
+
+                if (
+                    !doublon
+                ) {
+
+                    racines.push(
+                        tauxActuel
+                    );
+                }
+
+            } else if (
+                valeurPrecedente *
+                    valeurActuelle <
+                0
+            ) {
+
+                let borneBasse =
+                    yPrecedent;
+
+
+                let borneHaute =
+                    yActuel;
+
+
+                let valeurBasse =
+                    valeurPrecedente;
+
+
+                for (
+                    let iteration = 0;
+                    iteration < 120;
+                    iteration++
+                ) {
+
+                    const milieu =
+                        (
+                            borneBasse +
+                            borneHaute
+                        ) /
+                        2;
+
+
+                    const tauxMilieu =
+                        Math.exp(
+                            milieu
+                        ) -
+                        1;
+
+
+                    const valeurMilieu =
+                        valeurActualiseeXIRR(
+                            flux,
+                            tauxMilieu
+                        );
+
+
+                    if (
+                        !Number.isFinite(
+                            valeurMilieu
+                        )
+                    ) {
+
+                        break;
+                    }
+
+
+                    if (
+                        Math.abs(
+                            valeurMilieu
+                        ) <
+                        1e-10
+                    ) {
+
+                        borneBasse =
+                            milieu;
+
+
+                        borneHaute =
+                            milieu;
+
+
+                        break;
+                    }
+
+
+                    if (
+                        valeurBasse *
+                            valeurMilieu <=
+                        0
+                    ) {
+
+                        borneHaute =
+                            milieu;
+
+                    } else {
+
+                        borneBasse =
+                            milieu;
+
+
+                        valeurBasse =
+                            valeurMilieu;
+                    }
+                }
+
+
+                const yRacine =
+                    (
+                        borneBasse +
+                        borneHaute
+                    ) /
+                    2;
+
+
+                const tauxRacine =
+                    Math.exp(
+                        yRacine
+                    ) -
+                    1;
+
+
+                if (
+                    Number.isFinite(
+                        tauxRacine
+                    )
+                ) {
+
+                    const doublon =
+                        racines.some(
+                            racine =>
+                                Math.abs(
+                                    racine -
+                                    tauxRacine
+                                ) <
+                                1e-7
+                        );
+
+
+                    if (
+                        !doublon
+                    ) {
+
+                        racines.push(
+                            tauxRacine
+                        );
+                    }
+                }
+            }
+        }
+
+
+        yPrecedent =
+            yActuel;
+
+
+        valeurPrecedente =
+            valeurActuelle;
+    }
+
+
+    return racines;
+}
+
+
+/* =========================================================
+   CONSTRUCTION DES FLUX XIRR
+========================================================= */
+
+function construireFluxXIRR() {
+
+    /*
+       RÈGLE ABSOLUE :
+       une transaction TEST n'entre jamais
+       dans le XIRR réel.
+    */
+
+    const transactionsReelles =
+        transactions.filter(
+            transactionEstReelle
+        );
+
+
+    if (
+        transactionsReelles.length === 0
+    ) {
+
+        return {
+
+            statut:
+                "indisponible",
+
+            raison:
+                "Aucune transaction réelle.",
+
+            flux:
+                []
+        };
+    }
+
+
+    /* =====================================================
+       CONTRÔLE DES DATES
+    ===================================================== */
+
+    const datesNonFiables =
+        transactionsReelles.filter(
+            transaction =>
+                !dateTransactionEstFiable(
+                    transaction
+                )
+        );
+
+
+    if (
+        datesNonFiables.length > 0
+    ) {
+
+        return {
+
+            statut:
+                "indisponible",
+
+            raison:
+                `${datesNonFiables.length} date(s) de transaction réelle restent à fiabiliser.`,
+
+            flux:
+                []
+        };
+    }
+
+
+    const flux =
+        [];
+
+
+    /* =====================================================
+       FLUX HISTORIQUES
+    ===================================================== */
+
+    for (
+        const transaction of
+        transactionsReelles
+    ) {
+
+        const date =
+            new Date(
+                transaction.date
+            );
+
+
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+
+            return {
+
+                statut:
+                    "indisponible",
+
+                raison:
+                    "Une date de transaction réelle est invalide.",
+
+                flux:
+                    []
+            };
+        }
+
+
+        /* -------------------------------------------------
+           ACHAT
+
+           Sortie d'argent :
+           montant négatif.
+
+           Les frais sont inclus.
+        ------------------------------------------------- */
+
+        if (
+            transaction.type ===
+            "achat"
+        ) {
+
+            const cout =
+                Number(
+                    transaction.coutTotal
+                );
+
+
+            if (
+                !Number.isFinite(
+                    cout
+                ) ||
+                cout <= 0
+            ) {
+
+                return {
+
+                    statut:
+                        "indisponible",
+
+                    raison:
+                        "Le coût total d’un achat réel est invalide.",
+
+                    flux:
+                        []
+                };
+            }
+
+
+            flux.push({
+
+                date,
+
+                montant:
+                    -cout,
+
+                type:
+                    "achat",
+
+                transactionId:
+                    transaction.id
+            });
+        }
+
+
+        /* -------------------------------------------------
+           VENTE
+
+           Entrée d'argent :
+           montant positif.
+
+           Les frais sont déjà déduits.
+        ------------------------------------------------- */
+
+        else if (
+            transaction.type ===
+            "vente"
+        ) {
+
+            const produit =
+                Number(
+                    transaction.produitNet
+                );
+
+
+            if (
+                !Number.isFinite(
+                    produit
+                ) ||
+                produit < 0
+            ) {
+
+                return {
+
+                    statut:
+                        "indisponible",
+
+                    raison:
+                        "Le produit net d’une vente réelle est invalide.",
+
+                    flux:
+                        []
+                };
+            }
+
+
+            flux.push({
+
+                date,
+
+                montant:
+                    produit,
+
+                type:
+                    "vente",
+
+                transactionId:
+                    transaction.id
+            });
+        }
+    }
+
+
+    /* =====================================================
+       VALORISATION FINALE
+    ===================================================== */
+
+    recalculerPositions();
+
+
+    let valeurFinale =
+        0;
+
+
+    for (
+        const position of
+        positions
+    ) {
+
+        if (
+            position.valeurActuelle ===
+            null
+        ) {
+
+            return {
+
+                statut:
+                    "indisponible",
+
+                raison:
+                    "La valorisation actuelle du portefeuille est incomplète.",
+
+                flux:
+                    []
+            };
+        }
+
+
+        const valeur =
+            Number(
+                position.valeurActuelle
+            );
+
+
+        if (
+            !Number.isFinite(
+                valeur
+            ) ||
+            valeur < 0
+        ) {
+
+            return {
+
+                statut:
+                    "indisponible",
+
+                raison:
+                    "Une valorisation actuelle est invalide.",
+
+                flux:
+                    []
+            };
+        }
+
+
+        valeurFinale +=
+            valeur;
+    }
+
+
+    /*
+       La valeur des positions encore ouvertes
+       constitue le dernier flux positif.
+
+       Si toutes les positions sont fermées,
+       valeurFinale peut légitimement être égale à zéro.
+    */
+
+    if (
+        valeurFinale > 0
+    ) {
+
+        flux.push({
+
+            date:
+                new Date(),
+
+            montant:
+                valeurFinale,
+
+            type:
+                "valorisation-finale",
+
+            transactionId:
+                null
+        });
+    }
+
+
+    /* =====================================================
+       TRI CHRONOLOGIQUE
+    ===================================================== */
+
+    flux.sort(
+        (
+            a,
+            b
+        ) =>
+            a.date.getTime() -
+            b.date.getTime()
+    );
+
+
+    /* =====================================================
+       CONTRÔLE DES SIGNES
+    ===================================================== */
+
+    const possedeFluxNegatif =
+        flux.some(
+            element =>
+                element.montant < 0
+        );
+
+
+    const possedeFluxPositif =
+        flux.some(
+            element =>
+                element.montant > 0
+        );
+
+
+    if (
+        !possedeFluxNegatif ||
+        !possedeFluxPositif
+    ) {
+
+        return {
+
+            statut:
+                "indisponible",
+
+            raison:
+                "Les flux réels ne permettent pas encore de calculer un XIRR.",
+
+            flux
+        };
+    }
+
+
+    return {
+
+        statut:
+            "pret",
+
+        raison:
+            null,
+
+        flux,
+
+        valeurFinale
+    };
+}
+
+
+/* =========================================================
+   CALCUL XIRR DU PORTEFEUILLE
+========================================================= */
+
+function calculerXIRRPortefeuille() {
+
+    const preparation =
+        construireFluxXIRR();
+
+
+    if (
+        preparation.statut !==
+        "pret"
+    ) {
+
+        return {
+
+            statut:
+                "indisponible",
+
+            taux:
+                null,
+
+            raison:
+                preparation.raison,
+
+            nombreFlux:
+                preparation.flux.length
+        };
+    }
+
+
+    const racines =
+        trouverRacinesXIRR(
+            preparation.flux
+        );
+
+
+    if (
+        racines.length === 0
+    ) {
+
+        return {
+
+            statut:
+                "indisponible",
+
+            taux:
+                null,
+
+            raison:
+                "Aucune solution XIRR n’a été trouvée dans la plage de calcul contrôlée.",
+
+            nombreFlux:
+                preparation.flux.length
+        };
+    }
+
+
+    /*
+       Certains ensembles de flux peuvent
+       mathématiquement produire plusieurs TRI.
+
+       Dans ce cas on refuse d'en sélectionner
+       arbitrairement un.
+    */
+
+    if (
+        racines.length > 1
+    ) {
+
+        return {
+
+            statut:
+                "ambigu",
+
+            taux:
+                null,
+
+            raison:
+                `${racines.length} solutions XIRR possibles ont été détectées. Aucun taux unique n’est affiché.`,
+
+            nombreFlux:
+                preparation.flux.length
+        };
+    }
+
+
+    const taux =
+        racines[0];
+
+
+    if (
+        !Number.isFinite(
+            taux
+        )
+    ) {
+
+        return {
+
+            statut:
+                "indisponible",
+
+            taux:
+                null,
+
+            raison:
+                "Le résultat XIRR obtenu n’est pas exploitable.",
+
+            nombreFlux:
+                preparation.flux.length
+        };
+    }
+
+
+    return {
+
+        statut:
+            "calcule",
+
+        taux,
+
+        raison:
+            null,
+
+        nombreFlux:
+            preparation.flux.length,
+
+        valeurFinale:
+            preparation.valeurFinale,
+
+        dateCalcul:
+            new Date().toISOString()
+    };
+}
+
+
+/* =========================================================
+   LIBELLÉS DE QUALITÉ DES DATES
+========================================================= */
+
+function libelleStatutDate(
+    transaction
+) {
+
+    if (
+        !transaction ||
+        !transaction.date
+    ) {
+
+        return "Date historique inconnue";
+    }
+
+
+    switch (
+        transaction.dateStatus
+    ) {
+
+        case "confirmee":
+
+            return "Date confirmée";
+
+
+        case "declaree-utilisateur":
+
+            return "Date déclarée par l’utilisateur";
+
+
+        case "a-verifier":
+
+            return "Date à vérifier";
+
+
+        case "date-inconnue":
+
+            return "Date historique inconnue";
+
+
+        default:
+
+            return "Date à vérifier";
+    }
+}
+
+
+/* =========================================================
+   LIBELLÉ STATUT TRANSACTION
+========================================================= */
+
+function libelleStatutTransaction(
+    transaction
+) {
+
+    return transactionEstTest(
+        transaction
+    )
+        ? "TEST"
+        : "RÉELLE";
+}
+
+
+/* =========================================================
+   AFFICHAGE DES POSITIONS
+========================================================= */
+
+function afficherPositions() {
+
+    if (
+        !listePositions
+    ) {
+
+        return;
+    }
+
+
+    listePositions.innerHTML =
+        "";
+
+
+    recalculerPositions();
+
+
+    /* =====================================================
+       TOTAUX RÉELS
+    ===================================================== */
+
+    let totalCapitalRestant =
+        0;
+
+
+    let totalValeurActuelle =
+        0;
+
+
+    let totalGainNonRealise =
+        0;
+
+
+    let totalGainsRealises =
+        0;
+
+
+    let valorisationComplete =
+        true;
+
+
+    /* =====================================================
+       PORTEFEUILLE VIDE
+    ===================================================== */
+
+    if (
+        positions.length === 0
+    ) {
+
+        listePositions.innerHTML = `
+
+            <div class="portfolio-empty">
+
+                <p>
+                    Aucune position réelle ouverte.
+                </p>
+
+                <p>
+                    Les transactions de test sont conservées
+                    dans l'historique mais ne sont pas incluses
+                    dans le portefeuille.
+                </p>
+
+            </div>
+        `;
+    }
+
+
+    /* =====================================================
+       POSITIONS
+    ===================================================== */
+
+    positions.forEach(
+        position => {
+
+            const capitalRestant =
+                Number(
+                    position.coutAcquisitionNet
+                ) || 0;
+
+
+            const gainsRealises =
+                Number(
+                    position.gainsRealises
+                ) || 0;
+
+
+            totalCapitalRestant +=
+                capitalRestant;
+
+
+            totalGainsRealises +=
+                gainsRealises;
+
+
+            const valeurActuelle =
+                position.valeurActuelle ===
+                    null
+                    ? null
+                    : Number(
+                        position.valeurActuelle
+                    );
+
+
+            const gainNonRealise =
+                position.gainNonRealise ===
+                    null
+                    ? null
+                    : Number(
+                        position.gainNonRealise
+                    );
+
+
+            if (
+                valeurActuelle !== null &&
+                gainNonRealise !== null &&
+                Number.isFinite(
+                    valeurActuelle
+                ) &&
+                Number.isFinite(
+                    gainNonRealise
+                )
+            ) {
+
+                totalValeurActuelle +=
+                    valeurActuelle;
+
+
+                totalGainNonRealise +=
+                    gainNonRealise;
+
+            } else {
+
+                valorisationComplete =
+                    false;
+            }
+
+
+            const classeGain =
+                gainNonRealise !== null &&
+                gainNonRealise > 0
+                    ? "positif"
+                    : gainNonRealise !== null &&
+                      gainNonRealise < 0
+                        ? "negatif"
+                        : "neutre";
+
+
+            const classeGainRealise =
+                gainsRealises > 0
+                    ? "positif"
+                    : gainsRealises < 0
+                        ? "negatif"
+                        : "neutre";
+
+
+            const nombreDatesNonFiables =
+                Number(
+                    position.nombreDatesNonFiables
+                ) || 0;
+
+
+            const texteQualiteDates =
+                nombreDatesNonFiables === 0
+                    ? "Toutes les dates sont exploitables"
+                    : `${nombreDatesNonFiables} date(s) inconnue(s) ou à vérifier`;
+
+
+            const carte =
+                document.createElement(
+                    "div"
+                );
+
+
+            carte.className =
+                "position-card";
+
+
+            carte.innerHTML = `
+
+                <div class="position-header">
+
+                    <div>
+
+                        <h3>
+                            ${echapperHTML(
+                                position.entreprise
+                            )}
+                        </h3>
+
+                        <p class="position-ticker">
+
+                            ${echapperHTML(
+                                position.ticker
+                            )}
+
+                        </p>
+
+                    </div>
+
+
+                    <span class="courtier-badge">
+
+                        ${echapperHTML(
+                            nomCourtier(
+                                position.courtier
+                            )
+                        )}
+
+                    </span>
+
+                </div>
+
+
+                <div class="position-details">
+
+                    <p>
+                        <strong>
+                            Portefeuille :
+                        </strong>
+
+                        Réel
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Quantité détenue :
+                        </strong>
+
+                        ${formatQuantite(
+                            position.quantite
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            PRU net de frais :
+                        </strong>
+
+                        ${formatEuro(
+                            position.pru
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Capital restant investi :
+                        </strong>
+
+                        ${formatEuro(
+                            position.coutAcquisitionNet
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Frais cumulés :
+                        </strong>
+
+                        ${formatEuro(
+                            position.fraisCumules
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Nombre de transactions réelles :
+                        </strong>
+
+                        ${position.nombreTransactions}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Qualité des dates :
+                        </strong>
+
+                        ${echapperHTML(
+                            texteQualiteDates
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Cours d’origine :
+                        </strong>
+
+                        ${formatMonnaie(
+                            position.coursOriginal,
+                            position.deviseOriginale
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Cours de référence EUR :
+                        </strong>
+
+                        ${formatEuro(
+                            position.coursEUR
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Taux FX :
+                        </strong>
+
+                        ${
+                            Number.isFinite(
+                                Number(
+                                    position.fxRateToEUR
+                                )
+                            )
+                                ? formatTaux(
+                                    position.fxRateToEUR
+                                )
+                                : "—"
+                        }
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Source FX :
+                        </strong>
+
+                        ${echapperHTML(
+                            position.fxProvider ||
+                            "—"
+                        )}
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Taux courtier exact :
+                        </strong>
+
+                        ${
+                            position.brokerRateConfirmed
+                                ? formatTaux(
+                                    position.brokerRate
+                                )
+                                : "Impossible à confirmer"
+                        }
+                    </p>
+
+
+                    <p>
+                        <strong>
+                            Valeur actuelle :
+                        </strong>
+
+                        ${
+                            valeurActuelle !== null
+                                ? formatEuro(
+                                    valeurActuelle
+                                )
+                                : "Impossible à confirmer"
+                        }
+                    </p>
+
+
+                    <p class="${classeGain}">
+
+                        <strong>
+                            Gain / Perte non réalisé :
+                        </strong>
+
+                        ${
+                            gainNonRealise !== null
+                                ? formatEuro(
+                                    gainNonRealise
+                                )
+                                : "Impossible à confirmer"
+                        }
+
+                    </p>
+
+
+                    <p class="${classeGain}">
+
+                        <strong>
+                            Rendement non réalisé :
+                        </strong>
+
+                        ${
+                            position.rendement !== null
+                                ? formatPourcentage(
+                                    position.rendement
+                                )
+                                : "Impossible à confirmer"
+                        }
+
+                    </p>
+
+
+                    <p class="${classeGainRealise}">
+
+                        <strong>
+                            Gains réalisés cumulés :
+                        </strong>
+
+                        ${formatEuro(
+                            gainsRealises
+                        )}
+
+                    </p>
+
+                </div>
+            `;
+
+
+            listePositions.appendChild(
+                carte
+            );
+        }
+    );
+
+
+    /* =====================================================
+       PERFORMANCE TOTALE
+    ===================================================== */
+
+    const performanceTotale =
+        valorisationComplete
+            ? totalGainNonRealise +
+              totalGainsRealises
+            : null;
+
+
+    /* =====================================================
+       CAPITAL
+    ===================================================== */
+
+    if (
+        totalInvestiElement
+    ) {
+
+        totalInvestiElement.textContent =
+            formatEuro(
+                totalCapitalRestant
+            );
+    }
+
+
+    /* =====================================================
+       VALEUR
+    ===================================================== */
+
+    if (
+        totalValeurElement
+    ) {
+
+        totalValeurElement.textContent =
+            valorisationComplete
+                ? formatEuro(
+                    totalValeurActuelle
+                )
+                : "Partiellement indisponible";
+    }
+
+
+    /* =====================================================
+       GAINS
+    ===================================================== */
+
+    if (
+        totalGainElement
+    ) {
+
+        const classeLatente =
+            totalGainNonRealise > 0
+                ? "positif"
+                : totalGainNonRealise < 0
+                    ? "negatif"
+                    : "neutre";
+
+
+        const classeRealisee =
+            totalGainsRealises > 0
+                ? "positif"
+                : totalGainsRealises < 0
+                    ? "negatif"
+                    : "neutre";
+
+
+        const classeTotale =
+            performanceTotale !== null &&
+            performanceTotale > 0
+                ? "positif"
+                : performanceTotale !== null &&
+                  performanceTotale < 0
+                    ? "negatif"
+                    : "neutre";
+
+
+        totalGainElement.innerHTML = `
+
+            <div class="summary-performance">
+
+                <div>
+
+                    <strong>
+                        Gain / Perte non réalisé
+                    </strong>
+
+                    <div class="${classeLatente}">
+
+                        ${
+                            valorisationComplete
+                                ? formatEuro(
+                                    totalGainNonRealise
+                                )
+                                : "Impossible à confirmer"
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Gains réalisés cumulés
+                    </strong>
+
+                    <div class="${classeRealisee}">
+
+                        ${formatEuro(
+                            totalGainsRealises
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Performance totale
+                    </strong>
+
+                    <div class="${classeTotale}">
+
+                        ${
+                            performanceTotale !== null
+                                ? formatEuro(
+                                    performanceTotale
+                                )
+                                : "Impossible à confirmer"
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+    }
+
+
+    /* =====================================================
+       XIRR
+    ===================================================== */
+
+    if (
+        totalRendementElement
+    ) {
+
+        const resultatXIRR =
+            calculerXIRRPortefeuille();
+
+
+        if (
+            resultatXIRR.statut ===
+            "calcule"
+        ) {
+
+            const pourcentageXIRR =
+                resultatXIRR.taux *
+                100;
+
+
+            const classeXIRR =
+                pourcentageXIRR > 0
+                    ? "positif"
+                    : pourcentageXIRR < 0
+                        ? "negatif"
+                        : "neutre";
+
+
+            totalRendementElement.innerHTML = `
+
+                <div class="${classeXIRR}">
+
+                    <strong>
+                        ${formatPourcentage(
+                            pourcentageXIRR
+                        )}
+                    </strong>
+
+                </div>
+
+                <small>
+                    XIRR annualisé —
+                    ${resultatXIRR.nombreFlux}
+                    flux réels pris en compte.
+                    Les transactions TEST sont exclues.
+                </small>
+            `;
+
+        } else {
+
+            const raison =
+                resultatXIRR.raison ||
+                "Calcul indisponible.";
+
+
+            totalRendementElement.innerHTML = `
+
+                <div class="neutre">
+
+                    <strong>
+                        XIRR indisponible
+                    </strong>
+
+                </div>
+
+                <small>
+                    ${echapperHTML(
+                        raison
+                    )}
+                </small>
+            `;
+        }
+    }
+}
+
+
+/* =========================================================
+   AFFICHAGE HISTORIQUE DES TRANSACTIONS
+========================================================= */
+
+function afficherTransactions() {
+
+    if (
+        !listeTransactions
+    ) {
+
+        return;
+    }
+
+
+    listeTransactions.innerHTML =
+        "";
+
+
+    if (
+        transactions.length === 0
+    ) {
+
+        listeTransactions.innerHTML = `
+
+            <div class="portfolio-empty">
+
+                <p>
+                    Aucune transaction enregistrée.
+                </p>
+
+            </div>
+        `;
+
+
+        return;
+    }
+
+
+    const transactionsTriees =
+        transactions
+            .map(
+                (
+                    transaction,
+                    index
+                ) => ({
+
+                    transaction,
+
+                    index
+                })
+            )
+            .sort(
+                (
+                    a,
+                    b
+                ) => {
+
+                    const tempsA =
+                        obtenirTempsTransaction(
+                            a.transaction
+                        );
+
+
+                    const tempsB =
+                        obtenirTempsTransaction(
+                            b.transaction
+                        );
+
+
+                    if (
+                        tempsA === tempsB
+                    ) {
+
+                        return (
+                            b.index -
+                            a.index
+                        );
+                    }
+
+
+                    return (
+                        tempsB -
+                        tempsA
+                    );
+                }
+            );
+
+
+    transactionsTriees.forEach(
+        ({
+            transaction,
+            index
+        }) => {
+
+            const carte =
+                document.createElement(
+                    "div"
+                );
+
+
+            carte.className =
+                transactionEstTest(
+                    transaction
+                )
+                    ? "position-card transaction-card transaction-test"
+                    : "position-card transaction-card";
+
+
+            const typeLabel =
+                transaction.type ===
+                    "achat"
+                    ? "Achat"
+                    : "Vente";
+
+
+            const montantNet =
+                transaction.type ===
+                    "achat"
+                    ? transaction.coutTotal
+                    : transaction.produitNet;
+
+
+            const dateAffichee =
+                formatDateHeure(
+                    transaction.date
+                );
+
+
+            const statutDate =
+                libelleStatutDate(
+                    transaction
+                );
+
+
+            const classeDate =
+                dateTransactionEstFiable(
+                    transaction
+                )
+                    ? "positif"
+                    : "neutre";
+
+
+            carte.innerHTML = `
+
+                <div class="position-header">
+
+                    <div>
+
+                        <h3>
+                            ${typeLabel} —
+                            ${echapperHTML(
+                                transaction.entreprise
+                            )}
+                        </h3>
+
+
+                        <p class="position-ticker">
+
+                            ${echapperHTML(
+                                transaction.ticker
+                            )}
+
+                        </p>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="courtier-badge">
+
+                            ${echapperHTML(
+                                nomCourtier(
+                                    transaction.courtier
+                                )
+                            )}
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="position-details">
+
+                    <p>
+
+                        <strong>
+                            Statut :
+                        </strong>
+
+                        ${
+                            transactionEstTest(
+                                transaction
+                            )
+                                ? `<span class="neutre"><strong>TEST</strong></span>`
+                                : `<span class="positif"><strong>RÉELLE</strong></span>`
+                        }
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Date :
+                        </strong>
+
+                        ${echapperHTML(
+                            dateAffichee
+                        )}
+
+                    </p>
+
+
+                    <p class="${classeDate}">
+
+                        <strong>
+                            Fiabilité de la date :
+                        </strong>
+
+                        ${echapperHTML(
+                            statutDate
+                        )}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Type :
+                        </strong>
+
+                        ${typeLabel}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Mode :
+                        </strong>
+
+                        ${echapperHTML(
+                            transaction.modeExecution ||
+                            "—"
+                        )}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Quantité :
+                        </strong>
+
+                        ${formatQuantite(
+                            transaction.quantite
+                        )}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Prix d’exécution :
+                        </strong>
+
+                        ${formatEuro(
+                            transaction.prixExecution
+                        )}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Montant brut :
+                        </strong>
+
+                        ${formatEuro(
+                            transaction.montantBrut
+                        )}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Frais :
+                        </strong>
+
+                        ${formatEuro(
+                            transaction.frais
+                        )}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+
+                            ${
+                                transaction.type ===
+                                    "achat"
+                                    ? "Coût total"
+                                    : "Produit net"
+                            } :
+
+                        </strong>
+
+                        ${formatEuro(
+                            montantNet
+                        )}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Source frais :
+                        </strong>
+
+                        ${echapperHTML(
+                            transaction.sourceFrais ||
+                            "inconnu"
+                        )}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Source transaction :
+                        </strong>
+
+                        ${echapperHTML(
+                            transaction.sourceTransaction ||
+                            "—"
+                        )}
+
+                    </p>
+
+
+                    <p>
+
+                        <strong>
+                            Qualité :
+                        </strong>
+
+                        ${echapperHTML(
+                            transaction.qualiteTransaction ||
+                            "—"
+                        )}
+
+                    </p>
+
+
+                    ${
+                        transactionEstTest(
+                            transaction
+                        )
+                            ? `
+
+                                <p class="neutre">
+
+                                    <strong>
+                                        Impact portefeuille :
+                                    </strong>
+
+                                    Aucun — transaction de test
+                                    exclue des calculs réels.
+
+                                </p>
+
+                            `
+                            : ""
+                    }
+
+                </div>
+
+
+                <div class="position-actions">
+
+                    <button
+                        type="button"
+                        class="modifier-transaction"
+                        data-index="${index}"
+                    >
+                        Modifier
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="supprimer-transaction"
+                        data-index="${index}"
+                    >
+                        Supprimer
+                    </button>
+
+                </div>
+            `;
+
+
+            listeTransactions.appendChild(
+                carte
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   MODIFIER UNE TRANSACTION
+========================================================= */
+
+function modifierTransaction(
+    index
+) {
+
+    const tx =
+        transactions[
+            index
+        ];
+
+
+    if (
+        !tx
+    ) {
+
+        return;
+    }
+
+
+    indexTransactionEnModification =
+        index;
+
+
+    /* =====================================================
+       STATUT
+    ===================================================== */
+
+    if (
+        statutTransactionSelect
+    ) {
+
+        statutTransactionSelect.value =
+            transactionEstTest(
+                tx
+            )
+                ? "test"
+                : "reelle";
+    }
+
+
+    /* =====================================================
+       COURTIER
+    ===================================================== */
+
+    if (
+        courtierSelect
+    ) {
+
+        courtierSelect.value =
+            tx.courtier ||
+            "trade-republic";
+    }
+
+
+    /* =====================================================
+       TYPE
+    ===================================================== */
+
+    if (
+        typeTransactionSelect
+    ) {
+
+        typeTransactionSelect.value =
+            tx.type ||
+            "achat";
+    }
+
+
+    /* =====================================================
+       MODE
+    ===================================================== */
+
+    if (
+        modeExecutionSelect
+    ) {
+
+        modeExecutionSelect.value =
+            tx.modeExecution ||
+            "autre";
+    }
+
+
+    /* =====================================================
+       ENTREPRISE
+    ===================================================== */
+
+    if (
+        nomActionInput
+    ) {
+
+        nomActionInput.value =
+            tx.entreprise ||
+            "";
+    }
+
+
+    /* =====================================================
+       TICKER
+    ===================================================== */
+
+    if (
+        tickerInput
+    ) {
+
+        tickerInput.value =
+            tx.ticker ||
+            "";
+    }
+
+
+    /* =====================================================
+       PRIX
+    ===================================================== */
+
+    if (
+        prixAchatInput
+    ) {
+
+        const prix =
+            Number(
+                tx.prixExecution
+            );
+
+
+        prixAchatInput.value =
+            Number.isFinite(
+                prix
+            )
+                ? prix.toFixed(4)
+                : "0";
+    }
+
+
+    /* =====================================================
+       MODE DE SAISIE
+    ===================================================== */
+
+    if (
+        modeSaisieSelect
+    ) {
+
+        modeSaisieSelect.value =
+            "quantite";
+    }
+
+
+    /* =====================================================
+       QUANTITÉ
+    ===================================================== */
+
+    if (
+        quantiteInput
+    ) {
+
+        quantiteInput.value =
+            Number.isFinite(
+                Number(
+                    tx.quantite
+                )
+            )
+                ? Number(
+                    tx.quantite
+                )
+                : 0;
+    }
+
+
+    /* =====================================================
+       MONTANT
+    ===================================================== */
+
+    if (
+        montantInvestiInput
+    ) {
+
+        const montantBrut =
+            Number(
+                tx.montantBrut
+            );
+
+
+        montantInvestiInput.value =
+            Number.isFinite(
+                montantBrut
+            )
+                ? montantBrut.toFixed(2)
+                : "0";
+    }
+
+
+    /* =====================================================
+       FRAIS
+    ===================================================== */
+
+    if (
+        fraisTransactionInput
+    ) {
+
+        const frais =
+            Number(
+                tx.frais
+            );
+
+
+        fraisTransactionInput.value =
+            Number.isFinite(
+                frais
+            )
+                ? frais.toFixed(2)
+                : "0";
+    }
+
+
+    /* =====================================================
+       SOURCE FRAIS
+    ===================================================== */
+
+    if (
+        sourceFraisSelect
+    ) {
+
+        sourceFraisSelect.value =
+            tx.sourceFrais ||
+            "inconnu";
+    }
+
+
+    /* =====================================================
+       DATE
+
+       Une date inconnue reste inconnue.
+       On ne fabrique jamais la date du jour.
+    ===================================================== */
+
+    if (
+        dateTransactionInput
+    ) {
+
+        if (
+            tx.date
+        ) {
+
+            const date =
+                new Date(
+                    tx.date
+                );
+
+
+            if (
+                !Number.isNaN(
+                    date.getTime()
+                )
+            ) {
+
+                const decalage =
+                    date.getTimezoneOffset() *
+                    60000;
+
+
+                dateTransactionInput.value =
+                    new Date(
+                        date.getTime() -
+                        decalage
+                    )
+                        .toISOString()
+                        .slice(
+                            0,
+                            16
+                        );
+
+            } else {
+
+                dateTransactionInput.value =
+                    "";
+            }
+
+        } else {
+
+            dateTransactionInput.value =
+                "";
+        }
+    }
+
+
+    /* =====================================================
+       BOUTON
+    ===================================================== */
+
+    if (
+        ajouterPositionButton
+    ) {
+
+        ajouterPositionButton.textContent =
+            "Enregistrer les modifications";
+    }
+
+
+    mettreAJourModeSaisie();
+
+
+    mettreAJourInformationFraction();
+
+
+    recalculerTransaction();
+
+
+    if (
+        nomActionInput
+    ) {
+
+        nomActionInput.scrollIntoView({
+
+            behavior:
+                "smooth",
+
+            block:
+                "center"
+        });
+    }
+}
+
+
+/* =========================================================
+   SUPPRIMER UNE TRANSACTION
+========================================================= */
+
+function supprimerTransaction(
+    index
+) {
+
+    const tx =
+        transactions[
+            index
+        ];
+
+
+    if (
+        !tx
+    ) {
+
+        return;
+    }
+
+
+    const statut =
+        transactionEstTest(
+            tx
+        )
+            ? "de test"
+            : "réelle";
+
+
+    const confirmation =
+        confirm(
+            `Supprimer cette transaction ${statut} ${tx.type} ${tx.ticker} ?`
+        );
+
+
+    if (
+        !confirmation
+    ) {
+
+        return;
+    }
+
+
+    transactions.splice(
+        index,
+        1
+    );
+
+
+    indexTransactionEnModification =
+        null;
+
+
+    sauvegarderTransactions();
+
+
+    recalculerPositions();
+
+
+    afficherPositions();
+
+
+    afficherTransactions();
+
+
+    reinitialiserFormulaire();
+}
+
+
+/* =========================================================
+   RÉINITIALISATION DU FORMULAIRE
+========================================================= */
+
+function reinitialiserFormulaire() {
+
+    if (
+        statutTransactionSelect
+    ) {
+
+        statutTransactionSelect.value =
+            "reelle";
+    }
+
+
+    if (
+        nomActionInput
+    ) {
+
+        nomActionInput.value =
+            "";
+    }
+
+
+    if (
+        tickerInput
+    ) {
+
+        tickerInput.value =
+            "";
+    }
+
+
+    if (
+        prixAchatInput
+    ) {
+
+        prixAchatInput.value =
+            "0";
+    }
+
+
+    if (
+        quantiteInput
+    ) {
+
+        quantiteInput.value =
+            "0";
+    }
+
+
+    if (
+        montantInvestiInput
+    ) {
+
+        montantInvestiInput.value =
+            "0";
+    }
+
+
+    if (
+        modeSaisieSelect
+    ) {
+
+        modeSaisieSelect.value =
+            "quantite";
+    }
+
+
+    if (
+        typeTransactionSelect
+    ) {
+
+        typeTransactionSelect.value =
+            "achat";
+    }
+
+
+    if (
+        dateTransactionInput
+    ) {
+
+        dateTransactionInput.value =
+            "";
+    }
+
+
+    indexTransactionEnModification =
+        null;
+
+
+    initialiserDateTransaction();
+
+
+    determinerFraisAutomatiques();
+
+
+    mettreAJourModeSaisie();
+
+
+    mettreAJourInformationFraction();
+
+
+    if (
+        calculPosition
+    ) {
+
+        calculPosition.textContent =
+            "Renseignez la transaction.";
+    }
+
+
+    if (
+        ajouterPositionButton
+    ) {
+
+        ajouterPositionButton.textContent =
+            "Enregistrer la transaction";
+    }
+}
+
+
+/* =========================================================
+   ÉVÉNEMENT PRINCIPAL
+========================================================= */
+
+if (
+    ajouterPositionButton
+) {
+
+    ajouterPositionButton.addEventListener(
+        "click",
+        enregistrerTransaction
+    );
+}
+
+
+/* =========================================================
+   STATUT RÉEL / TEST
+========================================================= */
+
+if (
+    statutTransactionSelect
+) {
+
+    statutTransactionSelect.addEventListener(
+        "change",
+        recalculerTransaction
+    );
+}
+
+
+/* =========================================================
+   MODE DE SAISIE
+========================================================= */
+
+if (
+    modeSaisieSelect
+) {
+
+    modeSaisieSelect.addEventListener(
+        "change",
+        mettreAJourModeSaisie
+    );
+}
+
+
+/* =========================================================
+   COURTIER
+========================================================= */
+
+if (
+    courtierSelect
+) {
+
+    courtierSelect.addEventListener(
+        "change",
+        () => {
+
+            determinerFraisAutomatiques();
+
+
+            mettreAJourInformationFraction();
+
+
+            recalculerTransaction();
+        }
+    );
+}
+
+
+/* =========================================================
+   MODE D'EXÉCUTION
+========================================================= */
+
+if (
+    modeExecutionSelect
+) {
+
+    modeExecutionSelect.addEventListener(
+        "change",
+        () => {
+
+            determinerFraisAutomatiques();
+
+
+            recalculerTransaction();
+        }
+    );
+}
+
+
+/* =========================================================
+   TYPE
+========================================================= */
+
+if (
+    typeTransactionSelect
+) {
+
+    typeTransactionSelect.addEventListener(
+        "change",
+        recalculerTransaction
+    );
+}
+
+
+/* =========================================================
+   TICKER
+========================================================= */
+
+if (
+    tickerInput
+) {
+
+    tickerInput.addEventListener(
+        "input",
+        () => {
+
+            tickerInput.value =
+                tickerInput.value
+                    .toUpperCase()
+                    .replace(
+                        /\s+/g,
+                        ""
+                    );
+
+
+            mettreAJourInformationFraction();
+        }
+    );
+}
+
+
+/* =========================================================
+   PRIX
+========================================================= */
+
+if (
+    prixAchatInput
+) {
+
+    prixAchatInput.addEventListener(
+        "input",
+        recalculerTransaction
+    );
+}
+
+
+/* =========================================================
+   QUANTITÉ
+========================================================= */
+
+if (
+    quantiteInput
+) {
+
+    quantiteInput.addEventListener(
+        "input",
+        () => {
+
+            if (
+                !modeSaisieSelect ||
+                modeSaisieSelect.value ===
+                    "quantite"
+            ) {
+
+                recalculerTransaction();
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   MONTANT
+========================================================= */
+
+if (
+    montantInvestiInput
+) {
+
+    montantInvestiInput.addEventListener(
+        "input",
+        () => {
+
+            if (
+                modeSaisieSelect &&
+                modeSaisieSelect.value ===
+                    "montant"
+            ) {
+
+                recalculerTransaction();
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   FRAIS
+========================================================= */
+
+if (
+    fraisTransactionInput
+) {
+
+    fraisTransactionInput.addEventListener(
+        "input",
+        () => {
+
+            if (
+                sourceFraisSelect
+            ) {
+
+                sourceFraisSelect.value =
+                    "manuel";
+            }
+
+
+            recalculerTransaction();
+        }
+    );
+}
+
+
+/* =========================================================
+   HISTORIQUE :
+   MODIFIER / SUPPRIMER
+========================================================= */
+
+if (
+    listeTransactions
+) {
+
+    listeTransactions.addEventListener(
+        "click",
+        event => {
+
+            const boutonModifier =
+                event.target.closest(
+                    ".modifier-transaction"
+                );
+
+
+            if (
+                boutonModifier
+            ) {
+
+                const index =
+                    Number(
+                        boutonModifier
+                            .dataset
+                            .index
+                    );
+
+
+                if (
+                    Number.isInteger(
+                        index
+                    )
+                ) {
+
+                    modifierTransaction(
+                        index
+                    );
+                }
+
+
+                return;
+            }
+
+
+            const boutonSupprimer =
+                event.target.closest(
+                    ".supprimer-transaction"
+                );
+
+
+            if (
+                boutonSupprimer
+            ) {
+
+                const index =
+                    Number(
+                        boutonSupprimer
+                            .dataset
+                            .index
+                    );
+
+
+                if (
+                    Number.isInteger(
+                        index
+                    )
+                ) {
+
+                    supprimerTransaction(
+                        index
+                    );
+                }
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   TOUCHE ENTRÉE
+========================================================= */
+
+const champsTransaction = [
+
+    nomActionInput,
+
+    tickerInput,
+
+    prixAchatInput,
+
+    quantiteInput,
+
+    montantInvestiInput,
+
+    fraisTransactionInput
+
+].filter(
+    Boolean
+);
+
+
+champsTransaction.forEach(
+    champ => {
+
+        champ.addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
+
+                    event.preventDefault();
+
+
+                    if (
+                        ajouterPositionButton &&
+                        !ajouterPositionButton
+                            .disabled
+                    ) {
+
+                        enregistrerTransaction();
+                    }
+                }
+            }
+        );
+    }
+);
+
+
+/* =========================================================
+   INITIALISATION
+========================================================= */
+
+function initialiserApplication() {
+
+    /* =====================================================
+       1. CHARGEMENT
+    ===================================================== */
+
+    chargerTransactions();
+
+
+    /* =====================================================
+       2. MIGRATION
+    ===================================================== */
+
+    migrerAnciennesPositionsSiNecessaire();
+
+
+    /* =====================================================
+       3. NORMALISATION
+    ===================================================== */
+
+    normaliserTransactions();
+
+
+    /* =====================================================
+       4. POSITIONS RÉELLES
+    ===================================================== */
+
+    recalculerPositions();
+
+
+    /* =====================================================
+       5. FORMULAIRE
+    ===================================================== */
+
+    if (
+        statutTransactionSelect
+    ) {
+
+        statutTransactionSelect.value =
+            "reelle";
+    }
+
+
+    initialiserDateTransaction();
+
+
+    determinerFraisAutomatiques();
+
+
+    mettreAJourModeSaisie();
+
+
+    mettreAJourInformationFraction();
+
+
+    /* =====================================================
+       6. AFFICHAGE
+    ===================================================== */
+
+    afficherPositions();
+
+
+    afficherTransactions();
+
+
+    /* =====================================================
+       7. DIAGNOSTIC
+    ===================================================== */
+
+    const nombreReelles =
+        transactions.filter(
+            transactionEstReelle
+        ).length;
+
+
+    const nombreTests =
+        transactions.filter(
+            transactionEstTest
+        ).length;
+
+
+    const resultatXIRR =
+        calculerXIRRPortefeuille();
+
+
+    console.log(
+        "Application initialisée.",
+        {
+
+            transactionsReelles:
+                nombreReelles,
+
+            transactionsTest:
+                nombreTests,
+
+            positionsReelles:
+                positions.length,
+
+            xirr:
+                resultatXIRR
+        }
+    );
+}
+
+
+/* =========================================================
+   DÉMARRAGE
+========================================================= */
+
+initialiserApplication();
+
+
+/* =========================================================
+   OUTILS ACCESSIBLES DEPUIS LA CONSOLE
+========================================================= */
+
+window.recalculerPositions =
+    recalculerPositions;
+
+
+window.modifierTransaction =
+    modifierTransaction;
+
+
+window.supprimerTransaction =
+    supprimerTransaction;
+
+
+window.normaliserTransactions =
+    normaliserTransactions;
+
+
+window.dateTransactionEstFiable =
+    dateTransactionEstFiable;
+
+
+window.transactionEstReelle =
+    transactionEstReelle;
+
+
+window.transactionEstTest =
+    transactionEstTest;
+
+
+window.construireFluxXIRR =
+    construireFluxXIRR;
+
+
+window.calculerXIRRPortefeuille =
+    calculerXIRRPortefeuille;
+
+
+window.trouverRacinesXIRR =
+    trouverRacinesXIRR;
+
+
+/* =========================================================
+   FIN DU BLOC 2/2
+   FIN DU SCRIPT.JS
+========================================================= */
