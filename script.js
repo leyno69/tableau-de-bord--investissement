@@ -4152,3 +4152,1043 @@ function afficherTransactions() {
    FIN PARTIE 2B
 
 ========================================================= */
+/* =========================================================
+   SCRIPT.JS — BLOC 2/2
+   PARTIE 2C
+
+   FINALISATION :
+   - modification
+   - suppression
+   - réinitialisation
+   - événements
+   - initialisation complète
+========================================================= */
+
+
+/* =========================================================
+   MODIFIER UNE TRANSACTION
+========================================================= */
+
+function modifierTransaction(index) {
+    const tx =
+        transactions[index];
+
+    if (!tx) {
+        return;
+    }
+
+
+    indexTransactionEnModification =
+        index;
+
+
+    /* =====================================================
+       STATUT RÉEL / TEST
+    ===================================================== */
+
+    if (
+        statutTransactionSelect
+    ) {
+        statutTransactionSelect.value =
+            transactionEstTest(tx)
+                ? "test"
+                : "reelle";
+    }
+
+
+    /* =====================================================
+       COURTIER
+    ===================================================== */
+
+    if (
+        courtierSelect
+    ) {
+        courtierSelect.value =
+            tx.courtier ||
+            "trade-republic";
+    }
+
+
+    /* =====================================================
+       TYPE
+    ===================================================== */
+
+    if (
+        typeTransactionSelect
+    ) {
+        typeTransactionSelect.value =
+            tx.type ||
+            "achat";
+    }
+
+
+    /* =====================================================
+       MODE D'EXÉCUTION
+    ===================================================== */
+
+    if (
+        modeExecutionSelect
+    ) {
+        modeExecutionSelect.value =
+            tx.modeExecution ||
+            "autre";
+    }
+
+
+    /* =====================================================
+       ENTREPRISE
+    ===================================================== */
+
+    if (
+        nomActionInput
+    ) {
+        nomActionInput.value =
+            tx.entreprise ||
+            "";
+    }
+
+
+    /* =====================================================
+       TICKER
+    ===================================================== */
+
+    if (
+        tickerInput
+    ) {
+        tickerInput.value =
+            tx.ticker ||
+            "";
+    }
+
+
+    /* =====================================================
+       PRIX
+    ===================================================== */
+
+    if (
+        prixAchatInput
+    ) {
+        const prix =
+            Number(
+                tx.prixExecution
+            );
+
+        prixAchatInput.value =
+            Number.isFinite(prix)
+                ? prix.toFixed(4)
+                : "0";
+    }
+
+
+    /* =====================================================
+       MODE DE SAISIE
+    ===================================================== */
+
+    if (
+        modeSaisieSelect
+    ) {
+        modeSaisieSelect.value =
+            "quantite";
+    }
+
+
+    /* =====================================================
+       QUANTITÉ
+    ===================================================== */
+
+    if (
+        quantiteInput
+    ) {
+        quantiteInput.value =
+            Number.isFinite(
+                Number(
+                    tx.quantite
+                )
+            )
+                ? Number(
+                    tx.quantite
+                )
+                : 0;
+    }
+
+
+    /* =====================================================
+       MONTANT BRUT
+    ===================================================== */
+
+    if (
+        montantInvestiInput
+    ) {
+        const montantBrut =
+            Number(
+                tx.montantBrut
+            );
+
+        montantInvestiInput.value =
+            Number.isFinite(
+                montantBrut
+            )
+                ? montantBrut.toFixed(2)
+                : "0";
+    }
+
+
+    /* =====================================================
+       FRAIS
+    ===================================================== */
+
+    if (
+        fraisTransactionInput
+    ) {
+        const frais =
+            Number(
+                tx.frais
+            );
+
+        fraisTransactionInput.value =
+            Number.isFinite(
+                frais
+            )
+                ? frais.toFixed(2)
+                : "0";
+    }
+
+
+    /* =====================================================
+       SOURCE FRAIS
+    ===================================================== */
+
+    if (
+        sourceFraisSelect
+    ) {
+        sourceFraisSelect.value =
+            tx.sourceFrais ||
+            "inconnu";
+    }
+
+
+    /* =====================================================
+       DATE
+
+       Si elle est inconnue, le champ reste vide.
+       On ne remplace jamais par la date du jour.
+    ===================================================== */
+
+    if (
+        dateTransactionInput
+    ) {
+
+        if (
+            tx.date
+        ) {
+            const date =
+                new Date(
+                    tx.date
+                );
+
+
+            if (
+                !Number.isNaN(
+                    date.getTime()
+                )
+            ) {
+                const decalage =
+                    date.getTimezoneOffset() *
+                    60000;
+
+
+                dateTransactionInput.value =
+                    new Date(
+                        date.getTime() -
+                        decalage
+                    )
+                        .toISOString()
+                        .slice(
+                            0,
+                            16
+                        );
+
+            } else {
+
+                dateTransactionInput.value =
+                    "";
+            }
+
+        } else {
+
+            dateTransactionInput.value =
+                "";
+        }
+    }
+
+
+    /* =====================================================
+       BOUTON
+    ===================================================== */
+
+    if (
+        ajouterPositionButton
+    ) {
+        ajouterPositionButton.textContent =
+            "Enregistrer les modifications";
+    }
+
+
+    /* =====================================================
+       RAFRAÎCHISSEMENT FORMULAIRE
+    ===================================================== */
+
+    mettreAJourModeSaisie();
+
+    mettreAJourInformationFraction();
+
+    recalculerTransaction();
+
+
+    /* =====================================================
+       REMONTÉE VERS LE FORMULAIRE
+    ===================================================== */
+
+    if (
+        nomActionInput
+    ) {
+        nomActionInput.scrollIntoView({
+            behavior:
+                "smooth",
+
+            block:
+                "center"
+        });
+    }
+}
+
+
+/* =========================================================
+   SUPPRIMER UNE TRANSACTION
+========================================================= */
+
+function supprimerTransaction(index) {
+    const tx =
+        transactions[index];
+
+
+    if (!tx) {
+        return;
+    }
+
+
+    const statut =
+        transactionEstTest(tx)
+            ? "de test"
+            : "réelle";
+
+
+    const confirmation =
+        confirm(
+            `Supprimer cette transaction ${statut} ${tx.type} ${tx.ticker} ?`
+        );
+
+
+    if (
+        !confirmation
+    ) {
+        return;
+    }
+
+
+    transactions.splice(
+        index,
+        1
+    );
+
+
+    indexTransactionEnModification =
+        null;
+
+
+    sauvegarderTransactions();
+
+    recalculerPositions();
+
+    afficherPositions();
+
+    afficherTransactions();
+
+    reinitialiserFormulaire();
+}
+
+
+/* =========================================================
+   RÉINITIALISATION DU FORMULAIRE
+========================================================= */
+
+function reinitialiserFormulaire() {
+
+    /* =====================================================
+       STATUT
+    ===================================================== */
+
+    if (
+        statutTransactionSelect
+    ) {
+        statutTransactionSelect.value =
+            "reelle";
+    }
+
+
+    /* =====================================================
+       ENTREPRISE
+    ===================================================== */
+
+    if (
+        nomActionInput
+    ) {
+        nomActionInput.value =
+            "";
+    }
+
+
+    /* =====================================================
+       TICKER
+    ===================================================== */
+
+    if (
+        tickerInput
+    ) {
+        tickerInput.value =
+            "";
+    }
+
+
+    /* =====================================================
+       PRIX
+    ===================================================== */
+
+    if (
+        prixAchatInput
+    ) {
+        prixAchatInput.value =
+            "0";
+    }
+
+
+    /* =====================================================
+       QUANTITÉ
+    ===================================================== */
+
+    if (
+        quantiteInput
+    ) {
+        quantiteInput.value =
+            "0";
+    }
+
+
+    /* =====================================================
+       MONTANT
+    ===================================================== */
+
+    if (
+        montantInvestiInput
+    ) {
+        montantInvestiInput.value =
+            "0";
+    }
+
+
+    /* =====================================================
+       MODE DE SAISIE
+    ===================================================== */
+
+    if (
+        modeSaisieSelect
+    ) {
+        modeSaisieSelect.value =
+            "quantite";
+    }
+
+
+    /* =====================================================
+       TYPE
+    ===================================================== */
+
+    if (
+        typeTransactionSelect
+    ) {
+        typeTransactionSelect.value =
+            "achat";
+    }
+
+
+    /* =====================================================
+       DATE
+    ===================================================== */
+
+    if (
+        dateTransactionInput
+    ) {
+        dateTransactionInput.value =
+            "";
+    }
+
+
+    /* =====================================================
+       INDEX MODIFICATION
+    ===================================================== */
+
+    indexTransactionEnModification =
+        null;
+
+
+    /* =====================================================
+       DATE PAR DÉFAUT
+    ===================================================== */
+
+    initialiserDateTransaction();
+
+
+    /* =====================================================
+       FRAIS AUTOMATIQUES
+    ===================================================== */
+
+    determinerFraisAutomatiques();
+
+
+    /* =====================================================
+       MODE DE SAISIE
+    ===================================================== */
+
+    mettreAJourModeSaisie();
+
+
+    /* =====================================================
+       FRACTIONS
+    ===================================================== */
+
+    mettreAJourInformationFraction();
+
+
+    /* =====================================================
+       TEXTE CALCUL
+    ===================================================== */
+
+    if (
+        calculPosition
+    ) {
+        calculPosition.textContent =
+            "Renseignez la transaction.";
+    }
+
+
+    /* =====================================================
+       BOUTON
+    ===================================================== */
+
+    if (
+        ajouterPositionButton
+    ) {
+        ajouterPositionButton.textContent =
+            "Enregistrer la transaction";
+    }
+}
+
+
+/* =========================================================
+   ÉVÉNEMENT PRINCIPAL
+========================================================= */
+
+if (
+    ajouterPositionButton
+) {
+    ajouterPositionButton.addEventListener(
+        "click",
+        enregistrerTransaction
+    );
+}
+
+
+/* =========================================================
+   STATUT RÉEL / TEST
+========================================================= */
+
+if (
+    statutTransactionSelect
+) {
+    statutTransactionSelect.addEventListener(
+        "change",
+        () => {
+
+            /*
+               Le statut ne modifie pas les calculs
+               du formulaire.
+
+               Il détermine uniquement si l'opération
+               alimentera le portefeuille réel.
+            */
+
+            recalculerTransaction();
+        }
+    );
+}
+
+
+/* =========================================================
+   MODE DE SAISIE
+========================================================= */
+
+if (
+    modeSaisieSelect
+) {
+    modeSaisieSelect.addEventListener(
+        "change",
+        mettreAJourModeSaisie
+    );
+}
+
+
+/* =========================================================
+   COURTIER
+========================================================= */
+
+if (
+    courtierSelect
+) {
+    courtierSelect.addEventListener(
+        "change",
+        () => {
+
+            determinerFraisAutomatiques();
+
+            mettreAJourInformationFraction();
+
+            recalculerTransaction();
+        }
+    );
+}
+
+
+/* =========================================================
+   MODE D'EXÉCUTION
+========================================================= */
+
+if (
+    modeExecutionSelect
+) {
+    modeExecutionSelect.addEventListener(
+        "change",
+        () => {
+
+            determinerFraisAutomatiques();
+
+            recalculerTransaction();
+        }
+    );
+}
+
+
+/* =========================================================
+   TYPE DE TRANSACTION
+========================================================= */
+
+if (
+    typeTransactionSelect
+) {
+    typeTransactionSelect.addEventListener(
+        "change",
+        recalculerTransaction
+    );
+}
+
+
+/* =========================================================
+   TICKER
+========================================================= */
+
+if (
+    tickerInput
+) {
+    tickerInput.addEventListener(
+        "input",
+        () => {
+
+            tickerInput.value =
+                tickerInput.value
+                    .toUpperCase()
+                    .replace(
+                        /\s+/g,
+                        ""
+                    );
+
+
+            mettreAJourInformationFraction();
+        }
+    );
+}
+
+
+/* =========================================================
+   PRIX
+========================================================= */
+
+if (
+    prixAchatInput
+) {
+    prixAchatInput.addEventListener(
+        "input",
+        recalculerTransaction
+    );
+}
+
+
+/* =========================================================
+   QUANTITÉ
+========================================================= */
+
+if (
+    quantiteInput
+) {
+    quantiteInput.addEventListener(
+        "input",
+        () => {
+
+            if (
+                !modeSaisieSelect ||
+                modeSaisieSelect.value ===
+                    "quantite"
+            ) {
+                recalculerTransaction();
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   MONTANT
+========================================================= */
+
+if (
+    montantInvestiInput
+) {
+    montantInvestiInput.addEventListener(
+        "input",
+        () => {
+
+            if (
+                modeSaisieSelect &&
+                modeSaisieSelect.value ===
+                    "montant"
+            ) {
+                recalculerTransaction();
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   FRAIS MANUELS
+========================================================= */
+
+if (
+    fraisTransactionInput
+) {
+    fraisTransactionInput.addEventListener(
+        "input",
+        () => {
+
+            if (
+                sourceFraisSelect
+            ) {
+                sourceFraisSelect.value =
+                    "manuel";
+            }
+
+
+            recalculerTransaction();
+        }
+    );
+}
+
+
+/* =========================================================
+   ACTIONS HISTORIQUE
+========================================================= */
+
+if (
+    listeTransactions
+) {
+    listeTransactions.addEventListener(
+        "click",
+        event => {
+
+            /* -------------------------------------------------
+               MODIFIER
+            ------------------------------------------------- */
+
+            const boutonModifier =
+                event.target.closest(
+                    ".modifier-transaction"
+                );
+
+
+            if (
+                boutonModifier
+            ) {
+                const index =
+                    Number(
+                        boutonModifier
+                            .dataset
+                            .index
+                    );
+
+
+                if (
+                    Number.isInteger(
+                        index
+                    )
+                ) {
+                    modifierTransaction(
+                        index
+                    );
+                }
+
+
+                return;
+            }
+
+
+            /* -------------------------------------------------
+               SUPPRIMER
+            ------------------------------------------------- */
+
+            const boutonSupprimer =
+                event.target.closest(
+                    ".supprimer-transaction"
+                );
+
+
+            if (
+                boutonSupprimer
+            ) {
+                const index =
+                    Number(
+                        boutonSupprimer
+                            .dataset
+                            .index
+                    );
+
+
+                if (
+                    Number.isInteger(
+                        index
+                    )
+                ) {
+                    supprimerTransaction(
+                        index
+                    );
+                }
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   TOUCHE ENTRÉE
+========================================================= */
+
+const champsTransaction = [
+
+    nomActionInput,
+
+    tickerInput,
+
+    prixAchatInput,
+
+    quantiteInput,
+
+    montantInvestiInput,
+
+    fraisTransactionInput
+
+].filter(
+    Boolean
+);
+
+
+champsTransaction.forEach(
+    champ => {
+
+        champ.addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
+                    event.preventDefault();
+
+
+                    if (
+                        ajouterPositionButton &&
+                        !ajouterPositionButton
+                            .disabled
+                    ) {
+                        enregistrerTransaction();
+                    }
+                }
+            }
+        );
+    }
+);
+
+
+/* =========================================================
+   INITIALISATION
+========================================================= */
+
+function initialiserApplication() {
+
+    /* =====================================================
+       1. CHARGEMENT
+    ===================================================== */
+
+    chargerTransactions();
+
+
+    /* =====================================================
+       2. MIGRATION ÉVENTUELLE
+    ===================================================== */
+
+    migrerAnciennesPositionsSiNecessaire();
+
+
+    /* =====================================================
+       3. NORMALISATION
+
+       - anciennes transactions sans statut -> réelles
+       - anciennes migrations -> date inconnue
+       - normalisation des tickers
+    ===================================================== */
+
+    normaliserTransactions();
+
+
+    /* =====================================================
+       4. RECALCUL DU PORTEFEUILLE RÉEL
+    ===================================================== */
+
+    recalculerPositions();
+
+
+    /* =====================================================
+       5. FORMULAIRE
+    ===================================================== */
+
+    if (
+        statutTransactionSelect
+    ) {
+        statutTransactionSelect.value =
+            "reelle";
+    }
+
+
+    initialiserDateTransaction();
+
+
+    determinerFraisAutomatiques();
+
+
+    mettreAJourModeSaisie();
+
+
+    mettreAJourInformationFraction();
+
+
+    /* =====================================================
+       6. AFFICHAGE
+    ===================================================== */
+
+    afficherPositions();
+
+
+    afficherTransactions();
+
+
+    /* =====================================================
+       7. DIAGNOSTIC
+    ===================================================== */
+
+    const nombreReelles =
+        transactions.filter(
+            transactionEstReelle
+        ).length;
+
+
+    const nombreTests =
+        transactions.filter(
+            transactionEstTest
+        ).length;
+
+
+    console.log(
+        "Application initialisée.",
+        {
+            transactionsReelles:
+                nombreReelles,
+
+            transactionsTest:
+                nombreTests,
+
+            positionsReelles:
+                positions.length
+        }
+    );
+}
+
+
+/* =========================================================
+   DÉMARRAGE
+========================================================= */
+
+initialiserApplication();
+
+
+/* =========================================================
+   OUTILS ACCESSIBLES DEPUIS LA CONSOLE
+========================================================= */
+
+window.recalculerPositions =
+    recalculerPositions;
+
+
+window.modifierTransaction =
+    modifierTransaction;
+
+
+window.supprimerTransaction =
+    supprimerTransaction;
+
+
+window.normaliserTransactions =
+    normaliserTransactions;
+
+
+window.dateTransactionEstFiable =
+    dateTransactionEstFiable;
+
+
+window.transactionEstReelle =
+    transactionEstReelle;
+
+
+window.transactionEstTest =
+    transactionEstTest;
+
+
+/* =========================================================
+   FIN DU BLOC 2/2
+   FIN DU SCRIPT.JS
+========================================================= */
