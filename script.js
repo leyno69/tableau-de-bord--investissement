@@ -2212,6 +2212,12 @@ function recalculerPositions() {
    TABLEAU DE BORD D'INVESTISSEMENT
    SCRIPT.JS — BLOC 2/2
    PARTIE 2A
+
+   VERSION :
+   - statut réel / test
+   - dates fiabilisées
+   - frais
+   - transactions individuelles
 ========================================================= */
 
 
@@ -2220,10 +2226,18 @@ function recalculerPositions() {
 ========================================================= */
 
 function lireFormulaireTransaction() {
+
+    const statutTransaction =
+        statutTransactionSelect
+            ? statutTransactionSelect.value
+            : "reelle";
+
+
     const entreprise =
         nomActionInput
             ? nomActionInput.value.trim()
             : "";
+
 
     const ticker =
         tickerInput
@@ -2232,15 +2246,18 @@ function lireFormulaireTransaction() {
                 .toUpperCase()
             : "";
 
+
     const courtier =
         courtierSelect
             ? courtierSelect.value
             : "trade-republic";
 
+
     const type =
         typeTransactionSelect
             ? typeTransactionSelect.value
             : "achat";
+
 
     const modeExecution =
         modeExecutionSelect
@@ -2253,28 +2270,38 @@ function lireFormulaireTransaction() {
     ----------------------------------------------------- */
 
     let date = null;
-    let dateStatus = "date-inconnue";
-    let dateSource = "inconnue";
+
+    let dateStatus =
+        "date-inconnue";
+
+    let dateSource =
+        "inconnue";
+
 
     if (
         dateTransactionInput &&
         dateTransactionInput.value
     ) {
+
         const dateSaisie =
             new Date(
                 dateTransactionInput.value
             );
+
 
         if (
             !Number.isNaN(
                 dateSaisie.getTime()
             )
         ) {
+
             date =
                 dateSaisie.toISOString();
 
+
             dateStatus =
                 "declaree-utilisateur";
+
 
             dateSource =
                 "saisie-utilisateur";
@@ -2283,7 +2310,7 @@ function lireFormulaireTransaction() {
 
 
     /* -----------------------------------------------------
-       PRIX / MODE / FRAIS
+       PRIX
     ----------------------------------------------------- */
 
     const prixExecution =
@@ -2293,10 +2320,20 @@ function lireFormulaireTransaction() {
             )
             : NaN;
 
+
+    /* -----------------------------------------------------
+       MODE DE SAISIE
+    ----------------------------------------------------- */
+
     const mode =
         modeSaisieSelect
             ? modeSaisieSelect.value
             : "quantite";
+
+
+    /* -----------------------------------------------------
+       FRAIS
+    ----------------------------------------------------- */
 
     const frais =
         fraisTransactionInput
@@ -2305,23 +2342,30 @@ function lireFormulaireTransaction() {
             )
             : 0;
 
+
     const sourceFrais =
         sourceFraisSelect
             ? sourceFraisSelect.value
             : "inconnu";
 
 
-    let quantite = NaN;
-    let montantBrut = NaN;
+    let quantite =
+        NaN;
 
 
-    /* -----------------------------------------------------
+    let montantBrut =
+        NaN;
+
+
+    /* =====================================================
        SAISIE PAR MONTANT
-    ----------------------------------------------------- */
+    ===================================================== */
 
     if (
-        mode === "montant"
+        mode ===
+        "montant"
     ) {
+
         montantBrut =
             montantInvestiInput
                 ? parseFloat(
@@ -2329,12 +2373,18 @@ function lireFormulaireTransaction() {
                 )
                 : NaN;
 
+
         if (
-            Number.isFinite(prixExecution) &&
+            Number.isFinite(
+                prixExecution
+            ) &&
             prixExecution > 0 &&
-            Number.isFinite(montantBrut) &&
+            Number.isFinite(
+                montantBrut
+            ) &&
             montantBrut > 0
         ) {
+
             quantite =
                 montantBrut /
                 prixExecution;
@@ -2342,11 +2392,12 @@ function lireFormulaireTransaction() {
     }
 
 
-    /* -----------------------------------------------------
+    /* =====================================================
        SAISIE PAR QUANTITÉ
-    ----------------------------------------------------- */
+    ===================================================== */
 
     else {
+
         quantite =
             quantiteInput
                 ? parseFloat(
@@ -2354,12 +2405,18 @@ function lireFormulaireTransaction() {
                 )
                 : NaN;
 
+
         if (
-            Number.isFinite(prixExecution) &&
+            Number.isFinite(
+                prixExecution
+            ) &&
             prixExecution > 0 &&
-            Number.isFinite(quantite) &&
+            Number.isFinite(
+                quantite
+            ) &&
             quantite > 0
         ) {
+
             montantBrut =
                 prixExecution *
                 quantite;
@@ -2368,20 +2425,33 @@ function lireFormulaireTransaction() {
 
 
     return {
+
+        statutTransaction,
+
         entreprise,
+
         ticker,
+
         courtier,
+
         type,
+
         modeExecution,
 
         date,
+
         dateStatus,
+
         dateSource,
 
         prixExecution,
+
         quantite,
+
         montantBrut,
+
         frais,
+
         sourceFrais
     };
 }
@@ -2391,72 +2461,115 @@ function lireFormulaireTransaction() {
    VALIDATION
 ========================================================= */
 
-function validerTransaction(donnees) {
-    if (!donnees.entreprise) {
+function validerTransaction(
+    donnees
+) {
+
+    if (
+        donnees.statutTransaction !==
+            "reelle" &&
+        donnees.statutTransaction !==
+            "test"
+    ) {
+
+        throw new Error(
+            "Le statut de la transaction est invalide."
+        );
+    }
+
+
+    if (
+        !donnees.entreprise
+    ) {
+
         throw new Error(
             "Indiquez le nom de l’entreprise."
         );
     }
 
-    if (!donnees.ticker) {
+
+    if (
+        !donnees.ticker
+    ) {
+
         throw new Error(
             "Indiquez le ticker."
         );
     }
 
+
     if (
         !Number.isFinite(
             donnees.prixExecution
         ) ||
-        donnees.prixExecution <= 0
+        donnees.prixExecution <=
+            0
     ) {
+
         throw new Error(
             "Le prix d’exécution doit être supérieur à 0."
         );
     }
 
+
     if (
         !Number.isFinite(
             donnees.quantite
         ) ||
-        donnees.quantite <= 0
+        donnees.quantite <=
+            0
     ) {
+
         throw new Error(
             "La quantité doit être supérieure à 0."
         );
     }
 
+
     if (
         !Number.isFinite(
             donnees.montantBrut
         ) ||
-        donnees.montantBrut <= 0
+        donnees.montantBrut <=
+            0
     ) {
+
         throw new Error(
             "Le montant brut doit être supérieur à 0."
         );
     }
 
+
     if (
         !Number.isFinite(
             donnees.frais
         ) ||
-        donnees.frais < 0
+        donnees.frais <
+            0
     ) {
+
         throw new Error(
             "Les frais doivent être supérieurs ou égaux à 0."
         );
     }
 
 
-    /* -----------------------------------------------------
-       CONTRÔLE D'UNE VENTE
-    ----------------------------------------------------- */
+    /* =====================================================
+       CONTRÔLE D'UNE VENTE RÉELLE
+
+       Une transaction de test ne doit jamais bloquer
+       ou modifier le portefeuille réel.
+    ===================================================== */
 
     if (
-        donnees.type === "vente"
+        donnees.type ===
+            "vente" &&
+        donnees.statutTransaction ===
+            "reelle"
     ) {
+
         recalculerPositions();
+
 
         const position =
             positions.find(
@@ -2467,6 +2580,7 @@ function validerTransaction(donnees) {
                         donnees.courtier
             );
 
+
         const quantiteDisponible =
             position
                 ? Number(
@@ -2474,11 +2588,15 @@ function validerTransaction(donnees) {
                 )
                 : 0;
 
+
         if (
-            indexTransactionEnModification === null &&
+            indexTransactionEnModification ===
+                null &&
             donnees.quantite >
-                quantiteDisponible + 1e-8
+                quantiteDisponible +
+                    1e-8
         ) {
+
             throw new Error(
                 `Vente impossible : seulement ${formatQuantite(
                     quantiteDisponible
@@ -2489,6 +2607,7 @@ function validerTransaction(donnees) {
         }
     }
 
+
     return true;
 }
 
@@ -2498,18 +2617,26 @@ function validerTransaction(donnees) {
 ========================================================= */
 
 async function enregistrerTransaction() {
-    if (!ajouterPositionButton) {
+
+    if (
+        !ajouterPositionButton
+    ) {
         return;
     }
+
 
     const donnees =
         lireFormulaireTransaction();
 
+
     try {
+
         validerTransaction(
             donnees
         );
+
     } catch (error) {
+
         alert(
             error.message
         );
@@ -2517,103 +2644,187 @@ async function enregistrerTransaction() {
         return;
     }
 
+
     ajouterPositionButton.disabled =
         true;
+
 
     ajouterPositionButton.textContent =
         "Récupération des données de marché...";
 
 
     try {
+
+        /* =================================================
+           DONNÉES DE MARCHÉ
+        ================================================= */
+
         const marche =
             await recupererDonneesMarche(
                 donnees.ticker
             );
+
 
         const frais =
             Number(
                 donnees.frais
             );
 
+
+        /* =================================================
+           COÛT / PRODUIT NET
+        ================================================= */
+
         const coutTotal =
-            donnees.type === "achat"
-                ? donnees.montantBrut + frais
+            donnees.type ===
+                "achat"
+                ? donnees.montantBrut +
+                    frais
                 : null;
+
 
         const produitNet =
-            donnees.type === "vente"
-                ? donnees.montantBrut - frais
+            donnees.type ===
+                "vente"
+                ? donnees.montantBrut -
+                    frais
                 : null;
 
 
-        /* -------------------------------------------------
-           TRANSACTION EXISTANTE SI MODIFICATION
-        ------------------------------------------------- */
+        /* =================================================
+           TRANSACTION EXISTANTE
+        ================================================= */
 
         const transactionExistante =
-            indexTransactionEnModification !== null
+            indexTransactionEnModification !==
+                null
                 ? transactions[
                     indexTransactionEnModification
                 ]
                 : null;
 
 
-        /* -------------------------------------------------
-           CONSTRUCTION DE LA TRANSACTION
-        ------------------------------------------------- */
+        /* =================================================
+           CONSTRUCTION
+        ================================================= */
 
         const transaction = {
+
             id:
                 transactionExistante?.id ||
                 genererIdTransaction(),
 
+
+            /* =============================
+               RÉELLE / TEST
+            ============================= */
+
+            statutTransaction:
+                donnees.statutTransaction,
+
+
+            /* =============================
+               TYPE
+            ============================= */
+
             type:
                 donnees.type,
+
+
+            /* =============================
+               COURTIER
+            ============================= */
 
             courtier:
                 donnees.courtier,
 
+
+            /* =============================
+               MODE
+            ============================= */
+
             modeExecution:
                 donnees.modeExecution,
+
+
+            /* =============================
+               DATE
+            ============================= */
 
             date:
                 donnees.date,
 
+
             dateStatus:
                 donnees.dateStatus,
+
 
             dateSource:
                 donnees.dateSource,
 
+
+            /* =============================
+               TITRE
+            ============================= */
+
             entreprise:
                 donnees.entreprise,
+
 
             ticker:
                 donnees.ticker,
 
+
+            /* =============================
+               EXÉCUTION
+            ============================= */
+
             prixExecution:
                 donnees.prixExecution,
+
 
             quantite:
                 Number(
                     donnees.quantite
-                        .toFixed(8)
+                        .toFixed(
+                            8
+                        )
                 ),
+
 
             montantBrut:
                 Number(
                     donnees.montantBrut
-                        .toFixed(8)
+                        .toFixed(
+                            8
+                        )
                 ),
 
+
+            /* =============================
+               FRAIS
+            ============================= */
+
             frais,
+
 
             sourceFrais:
                 donnees.sourceFrais,
 
+
+            /* =============================
+               FLUX
+            ============================= */
+
             coutTotal,
 
+
             produitNet,
+
+
+            /* =============================
+               TRAÇABILITÉ
+            ============================= */
 
             sourceTransaction:
                 transactionExistante
@@ -2624,6 +2835,7 @@ async function enregistrerTransaction() {
                     )
                     : "saisie-manuelle",
 
+
             qualiteTransaction:
                 transactionExistante
                     ? (
@@ -2633,67 +2845,98 @@ async function enregistrerTransaction() {
                     )
                     : "declaree-utilisateur",
 
+
+            /* =============================
+               DONNÉES DE MARCHÉ
+            ============================= */
+
             coursOriginal:
                 marche.coursOriginal,
+
 
             deviseOriginale:
                 marche.deviseOriginale,
 
+
             coursEUR:
                 marche.coursEUR,
+
 
             deviseStatus:
                 marche.deviseStatus,
 
+
+            /* =============================
+               FX
+            ============================= */
+
             fxRateToEUR:
                 marche.fxRateToEUR,
+
 
             fxDate:
                 marche.fxDate,
 
+
             fxProvider:
                 marche.fxProvider,
+
 
             fxStatus:
                 marche.fxStatus,
 
+
+            /* =============================
+               TAUX COURTIER
+            ============================= */
+
             brokerRateConfirmed:
                 marche.brokerRateConfirmed,
+
 
             brokerRate:
                 marche.brokerRate,
 
+
             brokerRateMessage:
                 marche.brokerRateMessage,
+
+
+            /* =============================
+               HORODATAGE MARCHÉ
+            ============================= */
 
             marketTimestamp:
                 marche.timestamp
         };
 
 
-        /* -------------------------------------------------
+        /* =================================================
            MODIFICATION
-        ------------------------------------------------- */
+        ================================================= */
 
         if (
             indexTransactionEnModification !==
                 null
         ) {
+
             transactions[
                 indexTransactionEnModification
             ] =
                 transaction;
+
 
             indexTransactionEnModification =
                 null;
         }
 
 
-        /* -------------------------------------------------
+        /* =================================================
            NOUVELLE TRANSACTION
-        ------------------------------------------------- */
+        ================================================= */
 
         else {
+
             transactions.push(
                 transaction
             );
@@ -2702,30 +2945,39 @@ async function enregistrerTransaction() {
 
         sauvegarderTransactions();
 
+
         recalculerPositions();
+
 
         afficherPositions();
 
+
         afficherTransactions();
+
 
         reinitialiserFormulaire();
 
     } catch (error) {
+
         console.error(
             "Erreur d'enregistrement :",
             error
         );
+
 
         alert(
             `Erreur : ${error.message}`
         );
 
     } finally {
+
         ajouterPositionButton.disabled =
             false;
 
+
         ajouterPositionButton.textContent =
-            indexTransactionEnModification !== null
+            indexTransactionEnModification !==
+                null
                 ? "Enregistrer les modifications"
                 : "Enregistrer la transaction";
     }
@@ -2737,8 +2989,67 @@ async function enregistrerTransaction() {
    COLLER 2B DIRECTEMENT À LA SUITE
 ========================================================= */
 /* =========================================================
-   BLOC 2/2 — PARTIE 2B
+   SCRIPT.JS — BLOC 2/2
+   PARTIE 2B
+
+   AFFICHAGE :
+   - portefeuille réel uniquement
+   - qualité des dates
+   - performance réalisée / non réalisée
+   - historique réel / test clairement identifié
 ========================================================= */
+
+
+/* =========================================================
+   LIBELLÉS DE QUALITÉ DES DATES
+========================================================= */
+
+function libelleStatutDate(transaction) {
+
+    if (
+        !transaction ||
+        !transaction.date
+    ) {
+        return "Date historique inconnue";
+    }
+
+
+    switch (
+        transaction.dateStatus
+    ) {
+
+        case "confirmee":
+            return "Date confirmée";
+
+        case "declaree-utilisateur":
+            return "Date déclarée par l’utilisateur";
+
+        case "a-verifier":
+            return "Date à vérifier";
+
+        case "date-inconnue":
+            return "Date historique inconnue";
+
+        default:
+            return "Date à vérifier";
+    }
+}
+
+
+/* =========================================================
+   LIBELLÉ STATUT TRANSACTION
+========================================================= */
+
+function libelleStatutTransaction(
+    transaction
+) {
+
+    return transactionEstTest(
+        transaction
+    )
+        ? "TEST"
+        : "RÉELLE";
+}
 
 
 /* =========================================================
@@ -2746,37 +3057,67 @@ async function enregistrerTransaction() {
 ========================================================= */
 
 function afficherPositions() {
-    if (!listePositions) {
+
+    if (
+        !listePositions
+    ) {
         return;
     }
 
-    listePositions.innerHTML = "";
+
+    listePositions.innerHTML =
+        "";
+
 
     recalculerPositions();
 
 
     /* =====================================================
-       TOTAUX
+       TOTAUX DU PORTEFEUILLE RÉEL
     ===================================================== */
 
-    let totalCapitalRestant = 0;
-    let totalValeurActuelle = 0;
-    let totalGainNonRealise = 0;
-    let totalGainsRealises = 0;
+    let totalCapitalRestant =
+        0;
 
-    let valorisationComplete = true;
+
+    let totalValeurActuelle =
+        0;
+
+
+    let totalGainNonRealise =
+        0;
+
+
+    let totalGainsRealises =
+        0;
+
+
+    let valorisationComplete =
+        true;
 
 
     /* =====================================================
        PORTEFEUILLE VIDE
     ===================================================== */
 
-    if (positions.length === 0) {
+    if (
+        positions.length ===
+        0
+    ) {
+
         listePositions.innerHTML = `
             <div class="portfolio-empty">
+
                 <p>
-                    Aucune position ouverte.
+                    Aucune position réelle ouverte.
                 </p>
+
+                <p>
+                    Les transactions de test sont conservées
+                    dans l'historique mais ne sont pas incluses
+                    dans le portefeuille.
+                </p>
+
             </div>
         `;
     }
@@ -2794,30 +3135,48 @@ function afficherPositions() {
                     position.coutAcquisitionNet
                 ) || 0;
 
+
             const gainsRealises =
                 Number(
                     position.gainsRealises
                 ) || 0;
 
-            const valeurActuelle =
-                Number(
-                    position.valeurActuelle
-                );
-
-            const gainNonRealise =
-                Number(
-                    position.gainNonRealise
-                );
-
 
             totalCapitalRestant +=
                 capitalRestant;
+
 
             totalGainsRealises +=
                 gainsRealises;
 
 
+            /* -------------------------------------------------
+               VALORISATION
+            ------------------------------------------------- */
+
+            const valeurActuelle =
+                position.valeurActuelle ===
+                    null
+                    ? null
+                    : Number(
+                        position.valeurActuelle
+                    );
+
+
+            const gainNonRealise =
+                position.gainNonRealise ===
+                    null
+                    ? null
+                    : Number(
+                        position.gainNonRealise
+                    );
+
+
             if (
+                valeurActuelle !==
+                    null &&
+                gainNonRealise !==
+                    null &&
                 Number.isFinite(
                     valeurActuelle
                 ) &&
@@ -2825,21 +3184,33 @@ function afficherPositions() {
                     gainNonRealise
                 )
             ) {
+
                 totalValeurActuelle +=
                     valeurActuelle;
 
+
                 totalGainNonRealise +=
                     gainNonRealise;
+
             } else {
+
                 valorisationComplete =
                     false;
             }
 
 
+            /* -------------------------------------------------
+               CLASSES PERFORMANCE
+            ------------------------------------------------- */
+
             const classeGain =
+                gainNonRealise !==
+                    null &&
                 gainNonRealise > 0
                     ? "positif"
-                    : gainNonRealise < 0
+                    : gainNonRealise !==
+                            null &&
+                      gainNonRealise < 0
                         ? "negatif"
                         : "neutre";
 
@@ -2852,22 +3223,39 @@ function afficherPositions() {
                         : "neutre";
 
 
-            const qualiteDates =
-                position.historiqueDatesComplet
-                    ? "Historique des dates exploitable"
-                    : `${position.nombreDatesNonFiables} date(s) inconnue(s) ou à vérifier`;
+            /* -------------------------------------------------
+               QUALITÉ DES DATES
+            ------------------------------------------------- */
 
+            const nombreDatesNonFiables =
+                Number(
+                    position.nombreDatesNonFiables
+                ) || 0;
+
+
+            const texteQualiteDates =
+                nombreDatesNonFiables ===
+                    0
+                    ? "Toutes les dates sont exploitables"
+                    : `${nombreDatesNonFiables} date(s) inconnue(s) ou à vérifier`;
+
+
+            /* -------------------------------------------------
+               CARTE
+            ------------------------------------------------- */
 
             const carte =
                 document.createElement(
                     "div"
                 );
 
+
             carte.className =
                 "position-card";
 
 
             carte.innerHTML = `
+
                 <div class="position-header">
 
                     <div>
@@ -2877,6 +3265,7 @@ function afficherPositions() {
                                 position.entreprise
                             )}
                         </h3>
+
 
                         <p class="position-ticker">
                             ${echapperHTML(
@@ -2901,6 +3290,16 @@ function afficherPositions() {
 
 
                 <div class="position-details">
+
+
+                    <p>
+                        <strong>
+                            Portefeuille :
+                        </strong>
+
+                        Réel
+                    </p>
+
 
                     <p>
                         <strong>
@@ -2948,7 +3347,7 @@ function afficherPositions() {
 
                     <p>
                         <strong>
-                            Nombre de transactions :
+                            Nombre de transactions réelles :
                         </strong>
 
                         ${position.nombreTransactions}
@@ -2961,7 +3360,7 @@ function afficherPositions() {
                         </strong>
 
                         ${echapperHTML(
-                            qualiteDates
+                            texteQualiteDates
                         )}
                     </p>
 
@@ -3040,9 +3439,14 @@ function afficherPositions() {
                             Valeur actuelle :
                         </strong>
 
-                        ${formatEuro(
-                            position.valeurActuelle
-                        )}
+                        ${
+                            valeurActuelle !==
+                                null
+                                ? formatEuro(
+                                    valeurActuelle
+                                )
+                                : "Impossible à confirmer"
+                        }
                     </p>
 
 
@@ -3052,9 +3456,14 @@ function afficherPositions() {
                             Gain / Perte non réalisé :
                         </strong>
 
-                        ${formatEuro(
-                            position.gainNonRealise
-                        )}
+                        ${
+                            gainNonRealise !==
+                                null
+                                ? formatEuro(
+                                    gainNonRealise
+                                )
+                                : "Impossible à confirmer"
+                        }
 
                     </p>
 
@@ -3065,9 +3474,14 @@ function afficherPositions() {
                             Rendement non réalisé :
                         </strong>
 
-                        ${formatPourcentage(
-                            position.rendement
-                        )}
+                        ${
+                            position.rendement !==
+                                null
+                                ? formatPourcentage(
+                                    position.rendement
+                                )
+                                : "Impossible à confirmer"
+                        }
 
                     </p>
 
@@ -3079,7 +3493,7 @@ function afficherPositions() {
                         </strong>
 
                         ${formatEuro(
-                            position.gainsRealises
+                            gainsRealises
                         )}
 
                     </p>
@@ -3102,7 +3516,7 @@ function afficherPositions() {
     const performanceTotale =
         valorisationComplete
             ? totalGainNonRealise +
-                totalGainsRealises
+              totalGainsRealises
             : null;
 
 
@@ -3113,6 +3527,7 @@ function afficherPositions() {
     if (
         totalInvestiElement
     ) {
+
         totalInvestiElement.textContent =
             formatEuro(
                 totalCapitalRestant
@@ -3127,6 +3542,7 @@ function afficherPositions() {
     if (
         totalValeurElement
     ) {
+
         totalValeurElement.textContent =
             valorisationComplete
                 ? formatEuro(
@@ -3161,14 +3577,19 @@ function afficherPositions() {
 
 
         const classeTotale =
+            performanceTotale !==
+                null &&
             performanceTotale > 0
                 ? "positif"
-                : performanceTotale < 0
+                : performanceTotale !==
+                        null &&
+                  performanceTotale < 0
                     ? "negatif"
                     : "neutre";
 
 
         totalGainElement.innerHTML = `
+
             <div class="summary-performance">
 
                 <div>
@@ -3178,6 +3599,7 @@ function afficherPositions() {
                     </strong>
 
                     <div class="${classeLatente}">
+
                         ${
                             valorisationComplete
                                 ? formatEuro(
@@ -3185,40 +3607,46 @@ function afficherPositions() {
                                 )
                                 : "Impossible à confirmer"
                         }
+
                     </div>
 
                 </div>
 
 
-                <div style="margin-top:12px;">
+                <div>
 
                     <strong>
                         Gains réalisés cumulés
                     </strong>
 
                     <div class="${classeRealisee}">
+
                         ${formatEuro(
                             totalGainsRealises
                         )}
+
                     </div>
 
                 </div>
 
 
-                <div style="margin-top:12px;">
+                <div>
 
                     <strong>
                         Performance totale
                     </strong>
 
                     <div class="${classeTotale}">
+
                         ${
-                            performanceTotale !== null
+                            performanceTotale !==
+                                null
                                 ? formatEuro(
                                     performanceTotale
                                 )
                                 : "Impossible à confirmer"
                         }
+
                     </div>
 
                 </div>
@@ -3229,178 +3657,53 @@ function afficherPositions() {
 
 
     /* =====================================================
-       CAPITAL ENGAGÉ CUMULÉ
-    ===================================================== */
+       RENDEMENT GLOBAL
 
-    let totalCapitalEngage =
-        0;
+       XIRR / TWR volontairement non calculé ici.
 
-
-    transactions.forEach(
-        transaction => {
-
-            if (
-                transaction.type ===
-                "achat"
-            ) {
-                const coutAchat =
-                    Number(
-                        transaction.coutTotal
-                    );
-
-
-                if (
-                    Number.isFinite(
-                        coutAchat
-                    ) &&
-                    coutAchat > 0
-                ) {
-                    totalCapitalEngage +=
-                        coutAchat;
-                }
-            }
-        }
-    );
-
-
-    /* =====================================================
-       RENDEMENT CUMULÉ SIMPLE
-    ===================================================== */
-
-    const rendementCumule =
-        performanceTotale !== null &&
-        totalCapitalEngage > 0
-            ? (
-                performanceTotale /
-                totalCapitalEngage
-            ) * 100
-            : null;
-
-
-    /* =====================================================
-       QUALITÉ DE L'HISTORIQUE TEMPOREL
-    ===================================================== */
-
-    const transactionsSansDateFiable =
-        transactions.filter(
-            transaction =>
-                !dateTransactionEstFiable(
-                    transaction
-                )
-        );
-
-
-    const historiqueTemporelFiable =
-        transactions.length > 0 &&
-        transactionsSansDateFiable.length ===
-            0;
-
-
-    /* =====================================================
-       RÉSUMÉ RENDEMENT
+       Les dates devront d'abord être suffisamment fiables.
     ===================================================== */
 
     if (
         totalRendementElement
     ) {
 
-        const classeRendement =
-            rendementCumule > 0
-                ? "positif"
-                : rendementCumule < 0
-                    ? "negatif"
-                    : "neutre";
+        const transactionsReelles =
+            transactions.filter(
+                transactionEstReelle
+            );
 
 
-        totalRendementElement.innerHTML = `
-            <div>
-
-                <strong>
-                    Rendement cumulé
-                </strong>
-
-                <div class="${classeRendement}">
-                    ${
-                        rendementCumule !== null
-                            ? formatPourcentage(
-                                rendementCumule
-                            )
-                            : "Impossible à confirmer"
-                    }
-                </div>
-
-            </div>
+        const nombreDatesNonFiables =
+            transactionsReelles.filter(
+                transaction =>
+                    !dateTransactionEstFiable(
+                        transaction
+                    )
+            ).length;
 
 
-            <div style="margin-top:12px;">
+        if (
+            transactionsReelles.length ===
+            0
+        ) {
 
-                <strong>
-                    Capital engagé cumulé
-                </strong>
+            totalRendementElement.textContent =
+                "Aucune transaction réelle";
 
-                <div>
-                    ${formatEuro(
-                        totalCapitalEngage
-                    )}
-                </div>
+        } else if (
+            nombreDatesNonFiables >
+            0
+        ) {
 
-            </div>
+            totalRendementElement.textContent =
+                `XIRR/TWR en attente — ${nombreDatesNonFiables} date(s) à fiabiliser`;
 
+        } else {
 
-            <div style="margin-top:12px;">
-
-                <strong>
-                    Historique temporel
-                </strong>
-
-                <div>
-                    ${
-                        historiqueTemporelFiable
-                            ? "Toutes les dates nécessaires sont disponibles"
-                            : `${transactionsSansDateFiable.length} transaction(s) avec date inconnue ou à vérifier`
-                    }
-                </div>
-
-            </div>
-
-
-            <div style="margin-top:12px;">
-
-                <strong>
-                    XIRR
-                </strong>
-
-                <div>
-                    ${
-                        historiqueTemporelFiable
-                            ? "Historique compatible — calcul à intégrer"
-                            : "Indisponible tant que l’historique des dates n’est pas complet"
-                    }
-                </div>
-
-            </div>
-
-
-            <div
-                style="
-                    margin-top:12px;
-                    font-size:0.9em;
-                    line-height:1.4;
-                "
-            >
-                Le rendement cumulé est un indicateur
-                simple, frais inclus.
-
-                Il ne tient pas compte de la durée
-                d’investissement.
-
-                ${
-                    historiqueTemporelFiable
-                        ? "Les dates disponibles permettront ensuite d'ajouter un rendement annualisé."
-                        : "Aucun rendement annualisé ne sera affiché à partir d'une date historique inventée."
-                }
-            </div>
-        `;
+            totalRendementElement.textContent =
+                "Dates exploitables — XIRR/TWR prêt à être intégré";
+        }
     }
 }
 
@@ -3410,6 +3713,7 @@ function afficherPositions() {
 ========================================================= */
 
 function afficherTransactions() {
+
     if (
         !listeTransactions
     ) {
@@ -3425,7 +3729,9 @@ function afficherTransactions() {
         transactions.length ===
         0
     ) {
+
         listeTransactions.innerHTML = `
+
             <div class="portfolio-empty">
 
                 <p>
@@ -3439,13 +3745,15 @@ function afficherTransactions() {
     }
 
 
-    /*
-       Les opérations réellement datées sont classées
+    /* =====================================================
+       TRI
+
+       Les transactions possédant une date sont affichées
        de la plus récente à la plus ancienne.
 
-       Une opération historique sans date est conservée
-       et affichée après les opérations datées.
-    */
+       Les transactions sans date historique fiable restent
+       visibles, sans leur fabriquer une date.
+    ===================================================== */
 
     const transactionsTriees =
         transactions
@@ -3469,39 +3777,16 @@ function afficherTransactions() {
                             a.transaction
                         );
 
+
                     const tempsB =
                         obtenirTempsTransaction(
                             b.transaction
                         );
 
 
-                    const dateAInconnue =
+                    if (
                         tempsA ===
-                        Number.NEGATIVE_INFINITY;
-
-                    const dateBInconnue =
-                        tempsB ===
-                        Number.NEGATIVE_INFINITY;
-
-
-                    if (
-                        dateAInconnue &&
-                        !dateBInconnue
-                    ) {
-                        return 1;
-                    }
-
-
-                    if (
-                        dateBInconnue &&
-                        !dateAInconnue
-                    ) {
-                        return -1;
-                    }
-
-
-                    if (
-                        tempsA === tempsB
+                        tempsB
                     ) {
                         return (
                             b.index -
@@ -3518,11 +3803,16 @@ function afficherTransactions() {
             );
 
 
+    /* =====================================================
+       CARTES
+    ===================================================== */
+
     transactionsTriees.forEach(
         ({
             transaction,
             index
         }) => {
+
 
             const carte =
                 document.createElement(
@@ -3531,49 +3821,64 @@ function afficherTransactions() {
 
 
             carte.className =
-                "position-card transaction-card";
+                transactionEstTest(
+                    transaction
+                )
+                    ? "position-card transaction-card transaction-test"
+                    : "position-card transaction-card";
 
+
+            /* -------------------------------------------------
+               TYPE
+            ------------------------------------------------- */
 
             const typeLabel =
-                transaction.type === "achat"
+                transaction.type ===
+                    "achat"
                     ? "Achat"
                     : "Vente";
 
 
+            /* -------------------------------------------------
+               MONTANT NET
+            ------------------------------------------------- */
+
             const montantNet =
-                transaction.type === "achat"
+                transaction.type ===
+                    "achat"
                     ? transaction.coutTotal
                     : transaction.produitNet;
 
 
             /* -------------------------------------------------
-               STATUT DE LA DATE
+               STATUT
             ------------------------------------------------- */
 
-            let statutDate =
-                "Date à vérifier";
+            const statutLabel =
+                libelleStatutTransaction(
+                    transaction
+                );
 
 
-            if (
-                transaction.dateStatus ===
-                "confirmee"
-            ) {
-                statutDate =
-                    "Date confirmée";
-            } else if (
-                transaction.dateStatus ===
-                "declaree-utilisateur"
-            ) {
-                statutDate =
-                    "Date déclarée par l’utilisateur";
-            } else if (
-                transaction.dateStatus ===
-                "date-inconnue"
-            ) {
-                statutDate =
-                    "Date historique inconnue";
-            }
+            /* -------------------------------------------------
+               DATE
+            ------------------------------------------------- */
 
+            const dateAffichee =
+                formatDateHeure(
+                    transaction.date
+                );
+
+
+            const statutDate =
+                libelleStatutDate(
+                    transaction
+                );
+
+
+            /* -------------------------------------------------
+               CLASSE DATE
+            ------------------------------------------------- */
 
             const classeDate =
                 dateTransactionEstFiable(
@@ -3583,7 +3888,12 @@ function afficherTransactions() {
                     : "neutre";
 
 
+            /* -------------------------------------------------
+               HTML
+            ------------------------------------------------- */
+
             carte.innerHTML = `
+
                 <div class="position-header">
 
                     <div>
@@ -3595,42 +3905,66 @@ function afficherTransactions() {
                             )}
                         </h3>
 
+
                         <p class="position-ticker">
+
                             ${echapperHTML(
                                 transaction.ticker
                             )}
+
                         </p>
 
                     </div>
 
 
-                    <span class="courtier-badge">
+                    <div>
 
-                        ${echapperHTML(
-                            nomCourtier(
-                                transaction.courtier
-                            )
-                        )}
+                        <span class="courtier-badge">
 
-                    </span>
+                            ${echapperHTML(
+                                nomCourtier(
+                                    transaction.courtier
+                                )
+                            )}
+
+                        </span>
+
+                    </div>
 
                 </div>
 
 
                 <div class="position-details">
 
+
+                    <p>
+                        <strong>
+                            Statut :
+                        </strong>
+
+                        ${
+                            transactionEstTest(
+                                transaction
+                            )
+                                ? `<span class="neutre"><strong>TEST</strong></span>`
+                                : `<span class="positif"><strong>RÉELLE</strong></span>`
+                        }
+                    </p>
+
+
                     <p>
                         <strong>
                             Date :
                         </strong>
 
-                        ${formatDateHeure(
-                            transaction.date
+                        ${echapperHTML(
+                            dateAffichee
                         )}
                     </p>
 
 
                     <p class="${classeDate}">
+
                         <strong>
                             Fiabilité de la date :
                         </strong>
@@ -3638,6 +3972,7 @@ function afficherTransactions() {
                         ${echapperHTML(
                             statutDate
                         )}
+
                     </p>
 
 
@@ -3708,12 +4043,14 @@ function afficherTransactions() {
 
                     <p>
                         <strong>
+
                             ${
                                 transaction.type ===
                                     "achat"
                                     ? "Coût total"
                                     : "Produit net"
                             } :
+
                         </strong>
 
                         ${formatEuro(
@@ -3757,6 +4094,26 @@ function afficherTransactions() {
                         )}
                     </p>
 
+
+                    ${
+                        transactionEstTest(
+                            transaction
+                        )
+                            ? `
+                                <p class="neutre">
+
+                                    <strong>
+                                        Impact portefeuille :
+                                    </strong>
+
+                                    Aucun — transaction de test
+                                    exclue des calculs réels.
+
+                                </p>
+                            `
+                            : ""
+                    }
+
                 </div>
 
 
@@ -3793,670 +4150,5 @@ function afficherTransactions() {
 
 /* =========================================================
    FIN PARTIE 2B
-   COLLER 2C DIRECTEMENT À LA SUITE
-========================================================= */
-/* =========================================================
-   BLOC 2/2 — PARTIE 2C
-========================================================= */
 
-
-/* =========================================================
-   MODIFIER UNE TRANSACTION
-========================================================= */
-
-function modifierTransaction(index) {
-    const tx =
-        transactions[index];
-
-    if (!tx) {
-        return;
-    }
-
-    indexTransactionEnModification =
-        index;
-
-
-    if (courtierSelect) {
-        courtierSelect.value =
-            tx.courtier;
-    }
-
-
-    if (typeTransactionSelect) {
-        typeTransactionSelect.value =
-            tx.type;
-    }
-
-
-    if (modeExecutionSelect) {
-        modeExecutionSelect.value =
-            tx.modeExecution ||
-            "autre";
-    }
-
-
-    if (nomActionInput) {
-        nomActionInput.value =
-            tx.entreprise;
-    }
-
-
-    if (tickerInput) {
-        tickerInput.value =
-            tx.ticker;
-    }
-
-
-    if (prixAchatInput) {
-        prixAchatInput.value =
-            Number(
-                tx.prixExecution
-            ).toFixed(4);
-    }
-
-
-    if (modeSaisieSelect) {
-        modeSaisieSelect.value =
-            "quantite";
-    }
-
-
-    if (quantiteInput) {
-        quantiteInput.value =
-            tx.quantite;
-    }
-
-
-    if (montantInvestiInput) {
-        montantInvestiInput.value =
-            Number(
-                tx.montantBrut
-            ).toFixed(2);
-    }
-
-
-    if (fraisTransactionInput) {
-        fraisTransactionInput.value =
-            Number(
-                tx.frais
-            ).toFixed(2);
-    }
-
-
-    if (sourceFraisSelect) {
-        sourceFraisSelect.value =
-            tx.sourceFrais ||
-            "inconnu";
-    }
-
-
-    /* =====================================================
-       DATE
-
-       Si la transaction a une date connue,
-       on la remet dans le champ.
-
-       Si la date est inconnue,
-       le champ reste vide.
-    ===================================================== */
-
-    if (dateTransactionInput) {
-        if (tx.date) {
-            const date =
-                new Date(
-                    tx.date
-                );
-
-            if (
-                !Number.isNaN(
-                    date.getTime()
-                )
-            ) {
-                const decalage =
-                    date.getTimezoneOffset() *
-                    60000;
-
-                dateTransactionInput.value =
-                    new Date(
-                        date.getTime() -
-                        decalage
-                    )
-                        .toISOString()
-                        .slice(0, 16);
-            } else {
-                dateTransactionInput.value =
-                    "";
-            }
-        } else {
-            dateTransactionInput.value =
-                "";
-        }
-    }
-
-
-    if (ajouterPositionButton) {
-        ajouterPositionButton.textContent =
-            "Enregistrer les modifications";
-    }
-
-
-    mettreAJourModeSaisie();
-
-    mettreAJourInformationFraction();
-
-    recalculerTransaction();
-
-
-    if (nomActionInput) {
-        nomActionInput.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
-    }
-}
-
-
-/* =========================================================
-   SUPPRIMER UNE TRANSACTION
-========================================================= */
-
-function supprimerTransaction(index) {
-    const tx =
-        transactions[index];
-
-    if (!tx) {
-        return;
-    }
-
-
-    const confirmation =
-        confirm(
-            `Supprimer cette transaction ${tx.type} ${tx.ticker} ?`
-        );
-
-
-    if (!confirmation) {
-        return;
-    }
-
-
-    transactions.splice(
-        index,
-        1
-    );
-
-
-    indexTransactionEnModification =
-        null;
-
-
-    sauvegarderTransactions();
-
-    recalculerPositions();
-
-    afficherPositions();
-
-    afficherTransactions();
-
-    reinitialiserFormulaire();
-}
-
-
-/* =========================================================
-   RÉINITIALISATION DU FORMULAIRE
-========================================================= */
-
-function reinitialiserFormulaire() {
-    if (nomActionInput) {
-        nomActionInput.value =
-            "";
-    }
-
-
-    if (tickerInput) {
-        tickerInput.value =
-            "";
-    }
-
-
-    if (prixAchatInput) {
-        prixAchatInput.value =
-            "0";
-    }
-
-
-    if (quantiteInput) {
-        quantiteInput.value =
-            "0";
-    }
-
-
-    if (montantInvestiInput) {
-        montantInvestiInput.value =
-            "0";
-    }
-
-
-    if (modeSaisieSelect) {
-        modeSaisieSelect.value =
-            "quantite";
-    }
-
-
-    if (typeTransactionSelect) {
-        typeTransactionSelect.value =
-            "achat";
-    }
-
-
-    indexTransactionEnModification =
-        null;
-
-
-    if (dateTransactionInput) {
-        dateTransactionInput.value =
-            "";
-    }
-
-
-    initialiserDateTransaction();
-
-    determinerFraisAutomatiques();
-
-    mettreAJourModeSaisie();
-
-    mettreAJourInformationFraction();
-
-
-    if (calculPosition) {
-        calculPosition.textContent =
-            "Renseignez la transaction.";
-    }
-
-
-    if (ajouterPositionButton) {
-        ajouterPositionButton.textContent =
-            "Enregistrer la transaction";
-    }
-}
-
-
-/* =========================================================
-   ÉVÉNEMENT PRINCIPAL
-========================================================= */
-
-if (ajouterPositionButton) {
-    ajouterPositionButton.addEventListener(
-        "click",
-        enregistrerTransaction
-    );
-}
-
-
-/* =========================================================
-   MODE DE SAISIE
-========================================================= */
-
-if (modeSaisieSelect) {
-    modeSaisieSelect.addEventListener(
-        "change",
-        mettreAJourModeSaisie
-    );
-}
-
-
-/* =========================================================
-   COURTIER
-========================================================= */
-
-if (courtierSelect) {
-    courtierSelect.addEventListener(
-        "change",
-        () => {
-
-            determinerFraisAutomatiques();
-
-            mettreAJourInformationFraction();
-
-            recalculerTransaction();
-        }
-    );
-}
-
-
-/* =========================================================
-   MODE D'EXÉCUTION
-========================================================= */
-
-if (modeExecutionSelect) {
-    modeExecutionSelect.addEventListener(
-        "change",
-        () => {
-
-            determinerFraisAutomatiques();
-
-            recalculerTransaction();
-        }
-    );
-}
-
-
-/* =========================================================
-   TYPE DE TRANSACTION
-========================================================= */
-
-if (typeTransactionSelect) {
-    typeTransactionSelect.addEventListener(
-        "change",
-        recalculerTransaction
-    );
-}
-
-
-/* =========================================================
-   TICKER
-========================================================= */
-
-if (tickerInput) {
-    tickerInput.addEventListener(
-        "input",
-        () => {
-
-            tickerInput.value =
-                tickerInput.value
-                    .toUpperCase()
-                    .replace(
-                        /\s+/g,
-                        ""
-                    );
-
-
-            mettreAJourInformationFraction();
-        }
-    );
-}
-
-
-/* =========================================================
-   PRIX
-========================================================= */
-
-if (prixAchatInput) {
-    prixAchatInput.addEventListener(
-        "input",
-        recalculerTransaction
-    );
-}
-
-
-/* =========================================================
-   QUANTITÉ
-========================================================= */
-
-if (quantiteInput) {
-    quantiteInput.addEventListener(
-        "input",
-        () => {
-
-            if (
-                !modeSaisieSelect ||
-                modeSaisieSelect.value ===
-                    "quantite"
-            ) {
-                recalculerTransaction();
-            }
-        }
-    );
-}
-
-
-/* =========================================================
-   MONTANT
-========================================================= */
-
-if (montantInvestiInput) {
-    montantInvestiInput.addEventListener(
-        "input",
-        () => {
-
-            if (
-                modeSaisieSelect &&
-                modeSaisieSelect.value ===
-                    "montant"
-            ) {
-                recalculerTransaction();
-            }
-        }
-    );
-}
-
-
-/* =========================================================
-   FRAIS MANUELS
-========================================================= */
-
-if (fraisTransactionInput) {
-    fraisTransactionInput.addEventListener(
-        "input",
-        () => {
-
-            if (sourceFraisSelect) {
-                sourceFraisSelect.value =
-                    "manuel";
-            }
-
-            recalculerTransaction();
-        }
-    );
-}
-
-
-/* =========================================================
-   HISTORIQUE :
-   MODIFIER / SUPPRIMER
-========================================================= */
-
-if (listeTransactions) {
-    listeTransactions.addEventListener(
-        "click",
-        event => {
-
-            const boutonModifier =
-                event.target.closest(
-                    ".modifier-transaction"
-                );
-
-
-            if (boutonModifier) {
-                const index =
-                    Number(
-                        boutonModifier
-                            .dataset
-                            .index
-                    );
-
-
-                if (
-                    Number.isInteger(
-                        index
-                    )
-                ) {
-                    modifierTransaction(
-                        index
-                    );
-                }
-
-                return;
-            }
-
-
-            const boutonSupprimer =
-                event.target.closest(
-                    ".supprimer-transaction"
-                );
-
-
-            if (boutonSupprimer) {
-                const index =
-                    Number(
-                        boutonSupprimer
-                            .dataset
-                            .index
-                    );
-
-
-                if (
-                    Number.isInteger(
-                        index
-                    )
-                ) {
-                    supprimerTransaction(
-                        index
-                    );
-                }
-            }
-        }
-    );
-}
-
-
-/* =========================================================
-   TOUCHE ENTRÉE
-========================================================= */
-
-const champsTransaction = [
-    nomActionInput,
-    tickerInput,
-    prixAchatInput,
-    quantiteInput,
-    montantInvestiInput,
-    fraisTransactionInput
-].filter(
-    Boolean
-);
-
-
-champsTransaction.forEach(
-    champ => {
-
-        champ.addEventListener(
-            "keydown",
-            event => {
-
-                if (
-                    event.key ===
-                    "Enter"
-                ) {
-                    event.preventDefault();
-
-
-                    if (
-                        ajouterPositionButton &&
-                        !ajouterPositionButton
-                            .disabled
-                    ) {
-                        enregistrerTransaction();
-                    }
-                }
-            }
-        );
-    }
-);
-
-
-/* =========================================================
-   INITIALISATION
-========================================================= */
-
-function initialiserApplication() {
-
-    /* -----------------------------------------------------
-       1. CHARGEMENT
-    ----------------------------------------------------- */
-
-    chargerTransactions();
-
-
-    /* -----------------------------------------------------
-       2. MIGRATION ÉVENTUELLE
-    ----------------------------------------------------- */
-
-    migrerAnciennesPositionsSiNecessaire();
-
-
-    /* -----------------------------------------------------
-       3. NORMALISATION
-
-       Corrige notamment les anciennes transactions
-       migrées qui avaient reçu une fausse date.
-    ----------------------------------------------------- */
-
-    normaliserTransactions();
-
-
-    /* -----------------------------------------------------
-       4. RECALCUL DU PORTEFEUILLE
-    ----------------------------------------------------- */
-
-    recalculerPositions();
-
-
-    /* -----------------------------------------------------
-       5. FORMULAIRE
-    ----------------------------------------------------- */
-
-    initialiserDateTransaction();
-
-    determinerFraisAutomatiques();
-
-    mettreAJourModeSaisie();
-
-    mettreAJourInformationFraction();
-
-
-    /* -----------------------------------------------------
-       6. AFFICHAGE
-    ----------------------------------------------------- */
-
-    afficherPositions();
-
-    afficherTransactions();
-
-
-    console.log(
-        "Application initialisée — architecture transactions -> positions, dates historiques sécurisées."
-    );
-}
-
-
-/* =========================================================
-   DÉMARRAGE
-========================================================= */
-
-initialiserApplication();
-
-
-/* =========================================================
-   OUTILS ACCESSIBLES DEPUIS LA CONSOLE
-========================================================= */
-
-window.recalculerPositions =
-    recalculerPositions;
-
-window.modifierTransaction =
-    modifierTransaction;
-
-window.supprimerTransaction =
-    supprimerTransaction;
-
-window.normaliserTransactions =
-    normaliserTransactions;
-
-window.dateTransactionEstFiable =
-    dateTransactionEstFiable;
-
-
-/* =========================================================
-   FIN DU BLOC 2/2
-   FIN DU SCRIPT.JS
 ========================================================= */
