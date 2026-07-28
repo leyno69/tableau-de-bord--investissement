@@ -1,1 +1,14 @@
-Titre: Tableau de bord d'investissement Description courte: un tableau de bord personnel pour suivre des actions, des secteurs et des alertes. Sections Vue d'ensemble Portefeuille Radar quotidien Vision long terme et critères de conviction. Outils Graphiques et alertes pour les mouvements significatifs.
+export const brokers = [
+  {
+    id: 'trade-republic',
+    name: 'Trade Republic',
+    fractional: 'Selon l’actif et les fonctionnalités du courtier',
+    status: 'Configuré'
+  },
+  {
+    id: 'revolut',
+    name: 'Revolut',
+    fractional: 'Selon l’actif et les fonctionnalités du courtier',
+    status: 'Configuré'
+  }
+];

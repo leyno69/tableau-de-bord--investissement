@@ -1,1238 +1,206 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Tableau de bord d'investissement</title>
-
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
-</head>
-
-<body>
-
-    <h1>
-        Tableau de bord d'investissement
-    </h1>
-
-
-    <!-- =====================================================
-         VUE D'ENSEMBLE
-    ====================================================== -->
-
-    <section>
-        <h2>Vue d'ensemble</h2>
-
-        <p>
-            Suivi consolidé du portefeuille,
-            des transactions, des enveloppes fiscales,
-            des frais et des performances.
-        </p>
-    </section>
-
-
-    <!-- =====================================================
-         NOUVELLE TRANSACTION
-    ====================================================== -->
-
-    <section>
-
-        <h2>
-            Nouvelle transaction
-        </h2>
-
-        <div class="portfolio-form">
-
-
-            <!-- STATUT DE LA TRANSACTION -->
-
-            <div class="form-field">
-
-                <label for="statutTransaction">
-                    Statut de la transaction
-                </label>
-
-                <select id="statutTransaction">
-
-                    <option value="reelle">
-                        Transaction réelle
-                    </option>
-
-                    <option value="test">
-                        Transaction de test
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- COURTIER -->
-
-            <div class="form-field">
-
-                <label for="courtier">
-                    Courtier
-                </label>
-
-                <select id="courtier">
-
-                    <option value="trade-republic">
-                        Trade Republic
-                    </option>
-
-                    <option value="revolut">
-                        Revolut
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- ENVELOPPE -->
-
-            <div class="form-field">
-
-                <label for="enveloppe">
-                    Enveloppe
-                </label>
-
-                <select id="enveloppe">
-
-                    <option value="cto">
-                        Compte-titres ordinaire (CTO)
-                    </option>
-
-                    <option value="pea">
-                        Plan d'épargne en actions (PEA)
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- TYPE D'INSTRUMENT -->
-
-            <div class="form-field">
-
-                <label for="typeInstrument">
-                    Type d'instrument
-                </label>
-
-                <select id="typeInstrument">
-
-                    <option value="action">
-                        Action
-                    </option>
-
-                    <option value="etf">
-                        ETF
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- TYPE DE TRANSACTION -->
-
-            <div class="form-field">
-
-                <label for="typeTransaction">
-                    Type de transaction
-                </label>
-
-                <select id="typeTransaction">
-
-                    <option value="achat">
-                        Achat
-                    </option>
-
-                    <option value="vente">
-                        Vente
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- MODE D'EXÉCUTION -->
-
-            <div class="form-field">
-
-                <label for="modeExecution">
-                    Mode d'exécution
-                </label>
-
-                <select id="modeExecution">
-
-                    <option value="ordre-classique">
-                        Ordre classique
-                    </option>
-
-                    <option value="plan-epargne">
-                        Plan d'épargne
-                    </option>
-
-                    <option value="autre">
-                        Autre
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- DATE -->
-
-            <div class="form-field">
-
-                <label for="dateTransaction">
-                    Date et heure
-                </label>
-
-                <input
-                    type="datetime-local"
-                    id="dateTransaction"
-                >
-
-            </div>
-
-
-            <!-- INSTRUMENT -->
-
-            <div class="form-field">
-
-                <label for="nomAction">
-                    Instrument
-                </label>
-
-                <input
-                    type="text"
-                    id="nomAction"
-                    placeholder="Ex. NVIDIA ou MSCI World ETF"
-                    autocomplete="off"
-                >
-
-            </div>
-
-
-            <!-- TICKER -->
-
-            <div class="form-field">
-
-                <label for="ticker">
-                    Ticker
-                </label>
-
-                <input
-                    type="text"
-                    id="ticker"
-                    placeholder="Ex. NVDA"
-                    autocomplete="off"
-                >
-
-            </div>
-
-
-            <!-- ISIN -->
-
-            <div class="form-field">
-
-                <label for="isin">
-                    ISIN
-                </label>
-
-                <input
-                    type="text"
-                    id="isin"
-                    placeholder="Ex. US67066G1040"
-                    autocomplete="off"
-                >
-
-            </div>
-
-
-            <!-- PLACE DE COTATION -->
-
-            <div class="form-field">
-
-                <label for="placeCotation">
-                    Place de cotation
-                </label>
-
-                <input
-                    type="text"
-                    id="placeCotation"
-                    placeholder="Ex. Xetra, Nasdaq, Euronext"
-                    autocomplete="off"
-                >
-
-            </div>
-
-
-            <!-- DEVISE DE COTATION -->
-
-            <div class="form-field">
-
-                <label for="deviseCotation">
-                    Devise de cotation
-                </label>
-
-                <select id="deviseCotation">
-
-                    <option value="EUR">
-                        EUR
-                    </option>
-
-                    <option value="USD">
-                        USD
-                    </option>
-
-                    <option value="GBP">
-                        GBP
-                    </option>
-
-                    <option value="CHF">
-                        CHF
-                    </option>
-
-                    <option value="JPY">
-                        JPY
-                    </option>
-
-                    <option value="autre">
-                        Autre
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- ÉLIGIBILITÉ PEA -->
-
-            <div class="form-field">
-
-                <label for="eligibilitePEA">
-                    Éligibilité PEA
-                </label>
-
-                <select id="eligibilitePEA">
-
-                    <option value="a-confirmer">
-                        À confirmer
-                    </option>
-
-                    <option value="oui">
-                        Oui
-                    </option>
-
-                    <option value="non">
-                        Non
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- PRIX D'EXÉCUTION -->
-
-            <div class="form-field">
-
-                <label for="prixAchat">
-                    Prix d'exécution unitaire
-                </label>
-
-                <input
-                    type="number"
-                    id="prixAchat"
-                    value="0"
-                    min="0"
-                    step="0.0001"
-                >
-
-            </div>
-
-
-            <!-- MODE DE SAISIE -->
-
-            <div class="form-field">
-
-                <label for="modeSaisie">
-                    Mode de saisie
-                </label>
-
-                <select id="modeSaisie">
-
-                    <option value="quantite">
-                        Par quantité
-                    </option>
-
-                    <option value="montant">
-                        Par montant brut
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- QUANTITÉ -->
-
-            <div
-                class="form-field"
-                id="champQuantite"
-            >
-
-                <label for="quantite">
-                    Quantité
-                </label>
-
-                <input
-                    type="number"
-                    id="quantite"
-                    value="0"
-                    min="0"
-                    step="0.00000001"
-                >
-
-            </div>
-
-
-            <!-- MONTANT BRUT -->
-
-            <div
-                class="form-field"
-                id="champMontant"
-            >
-
-                <label for="montantInvesti">
-                    Montant brut
-                </label>
-
-                <input
-                    type="number"
-                    id="montantInvesti"
-                    value="0"
-                    min="0"
-                    step="0.01"
-                >
-
-            </div>
-
-
-            <!-- FRAIS -->
-
-            <div class="form-field">
-
-                <label for="fraisTransaction">
-                    Frais de transaction (€)
-                </label>
-
-                <input
-                    type="number"
-                    id="fraisTransaction"
-                    value="1"
-                    min="0"
-                    step="0.01"
-                >
-
-            </div>
-
-
-            <!-- SOURCE DES FRAIS -->
-
-            <div class="form-field">
-
-                <label for="sourceFrais">
-                    Origine des frais
-                </label>
-
-                <select id="sourceFrais">
-
-                    <option value="regle-courtier">
-                        Règle du courtier
-                    </option>
-
-                    <option value="justificatif">
-                        Justificatif confirmé
-                    </option>
-
-                    <option value="manuel">
-                        Saisie manuelle
-                    </option>
-
-                    <option value="inconnu">
-                        Impossible à confirmer
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <!-- INFORMATION ENVELOPPE -->
-
-            <div class="form-field full-width">
-
-                <div class="fraction-info">
-
-                    <strong>
-                        Enveloppe :
-                    </strong>
-
-                    <span>
-                        Le PEA et le CTO seront suivis séparément.
-                        Un même instrument détenu dans les deux enveloppes
-                        sera traité comme deux positions distinctes.
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <!-- INFORMATION IDENTITÉ INSTRUMENT -->
-
-            <div class="form-field full-width">
-
-                <div class="fraction-info">
-
-                    <strong>
-                        Identité de l'instrument :
-                    </strong>
-
-                    <span>
-                        Le ticker seul ne suffit pas toujours.
-                        L'ISIN, la place de cotation et la devise
-                        permettront d'identifier précisément
-                        une action ou un ETF.
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <!-- INFORMATION PEA -->
-
-            <div class="form-field full-width">
-
-                <div class="fraction-info">
-
-                    <strong>
-                        Éligibilité PEA :
-                    </strong>
-
-                    <span>
-                        Cette information doit être vérifiée.
-                        Elle ne sera jamais déduite automatiquement
-                        à partir du seul ticker.
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <!-- INFORMATION STATUT -->
-
-            <div class="form-field full-width">
-
-                <div class="fraction-info">
-
-                    <strong>
-                        Statut :
-                    </strong>
-
-                    <span>
-                        Les transactions de test sont conservées
-                        dans l'historique mais exclues des calculs
-                        du portefeuille réel.
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <!-- INFO FRACTION -->
-
-            <div class="form-field full-width">
-
-                <div
-                    id="fractionInfo"
-                    class="fraction-info"
-                >
-
-                    <strong>
-                        Fractionnement :
-                    </strong>
-
-                    <span id="fractionStatus">
-                        Information non vérifiée
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <!-- INFO FRAIS -->
-
-            <div class="form-field full-width">
-
-                <div
-                    id="fraisInfo"
-                    class="fraction-info"
-                >
-                    Frais calculés selon
-                    le courtier et le mode d'exécution.
-                </div>
-
-            </div>
-
-
-            <!-- CALCUL -->
-
-            <div class="form-field full-width">
-
-                <p
-                    id="calculPosition"
-                    class="calcul-position"
-                >
-                    Renseignez la transaction.
-                </p>
-
-            </div>
-
-
-            <!-- BOUTON -->
-
-            <button
-                type="button"
-                id="ajouterPosition"
-            >
-                Enregistrer la transaction
-            </button>
-
-        </div>
-
-    </section>
-
-
-    <!-- =====================================================
-         POSITIONS CALCULÉES
-    ====================================================== -->
-
-    <section>
-
-        <div class="section-header">
-
-            <div>
-
-                <h2>
-                    Portefeuille
-                </h2>
-
-                <p class="section-description">
-                    Les positions sont calculées
-                    automatiquement à partir des transactions
-                    réelles uniquement.
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <!-- FUTURS FILTRES PEA / CTO -->
-
-        <div
-            id="portfolioFilters"
-            class="portfolio-filters"
-        >
-
-            <button
-                type="button"
-                class="portfolio-filter active"
-                data-enveloppe="global"
-            >
-                Global
-            </button>
-
-            <button
-                type="button"
-                class="portfolio-filter"
-                data-enveloppe="pea"
-            >
-                PEA
-            </button>
-
-            <button
-                type="button"
-                class="portfolio-filter"
-                data-enveloppe="cto"
-            >
-                CTO
-            </button>
-
-        </div>
-
-
-        <div id="listePositions"></div>
-
-        <hr>
-
-
-        <!-- RÉSUMÉ -->
-
-        <div class="portfolio-summary">
-
-            <p>
-                <strong>
-                    Capital investi
-                </strong>
-
-                <span id="totalInvesti">
-                    0,00 €
-                </span>
-            </p>
-
-
-            <p>
-                <strong>
-                    Valeur actuelle
-                </strong>
-
-                <span id="totalValeur">
-                    0,00 €
-                </span>
-            </p>
-
-
-            <p>
-                <strong>
-                    Gain / Perte net
-                </strong>
-
-                <span id="totalGain">
-                    0,00 €
-                </span>
-            </p>
-
-
-            <p>
-                <strong>
-                    Rendement net
-                </strong>
-
-                <span id="totalRendement">
-                    0,00 %
-                </span>
-            </p>
-
-        </div>
-
-    </section>
-
-
-    <!-- =====================================================
-         FICHE INSTRUMENT
-    ====================================================== -->
-
-    <section
-        id="instrumentPanel"
-        class="instrument-panel"
-        hidden
-    >
-
-        <div class="instrument-panel-header">
-
-            <div>
-
-                <p class="instrument-panel-label">
-                    Fiche instrument
-                </p>
-
-                <h2 id="instrumentPanelName">
-                    —
-                </h2>
-
-                <p id="instrumentPanelMeta">
-                    —
-                </p>
-
-            </div>
-
-
-            <button
-                type="button"
-                id="fermerInstrumentPanel"
-                class="instrument-panel-close"
-                aria-label="Fermer la fiche instrument"
-            >
-                Fermer
-            </button>
-
-        </div>
-
-
-        <div class="instrument-market-summary">
-
-            <div>
-
-                <span class="instrument-summary-label">
-                    Cours
-                </span>
-
-                <strong id="instrumentLivePrice">
-                    —
-                </strong>
-
-            </div>
-
-
-            <div>
-
-                <span class="instrument-summary-label">
-                    Variation
-                </span>
-
-                <strong id="instrumentLiveChange">
-                    —
-                </strong>
-
-            </div>
-
-
-            <div>
-
-                <span class="instrument-summary-label">
-                    Marché
-                </span>
-
-                <strong id="instrumentMarketStatus">
-                    —
-                </strong>
-
-            </div>
-
-
-            <div>
-
-                <span class="instrument-summary-label">
-                    Dernière donnée
-                </span>
-
-                <strong id="instrumentLastUpdate">
-                    —
-                </strong>
-
-            </div>
-
-        </div>
-
-
-        <!-- HORIZONS GRAPHIQUE -->
-
-        <div class="chart-periods">
-
-            <button
-                type="button"
-                class="chart-period active"
-                data-period="1H"
-            >
-                1H
-            </button>
-
-            <button
-                type="button"
-                class="chart-period"
-                data-period="1J"
-            >
-                1J
-            </button>
-
-            <button
-                type="button"
-                class="chart-period"
-                data-period="1S"
-            >
-                1S
-            </button>
-
-            <button
-                type="button"
-                class="chart-period"
-                data-period="1M"
-            >
-                1M
-            </button>
-
-            <button
-                type="button"
-                class="chart-period"
-                data-period="6M"
-            >
-                6M
-            </button>
-
-            <button
-                type="button"
-                class="chart-period"
-                data-period="1A"
-            >
-                1A
-            </button>
-
-            <button
-                type="button"
-                class="chart-period"
-                data-period="MAX"
-            >
-                MAX
-            </button>
-
-        </div>
-
-
-        <!-- CONTENEUR DU FUTUR GRAPHIQUE -->
-
-        <div
-            id="instrumentChart"
-            class="instrument-chart"
-        >
-
-            <p>
-                Le graphique de marché sera affiché ici
-                lorsque le moteur de données live
-                et historique sera connecté.
-            </p>
-
-        </div>
-
-
-        <!-- DONNÉES D'IDENTIFICATION -->
-
-        <div class="instrument-identification">
-
-            <div>
-
-                <span>
-                    Type
-                </span>
-
-                <strong id="instrumentType">
-                    —
-                </strong>
-
-            </div>
-
-
-            <div>
-
-                <span>
-                    Ticker
-                </span>
-
-                <strong id="instrumentTicker">
-                    —
-                </strong>
-
-            </div>
-
-
-            <div>
-
-                <span>
-                    ISIN
-                </span>
-
-                <strong id="instrumentIsin">
-                    —
-                </strong>
-
-            </div>
-
-
-            <div>
-
-                <span>
-                    Place de cotation
-                </span>
-
-                <strong id="instrumentExchange">
-                    —
-                </strong>
-
-            </div>
-
-
-            <div>
-
-                <span>
-                    Devise
-                </span>
-
-                <strong id="instrumentCurrency">
-                    —
-                </strong>
-
-            </div>
-
-
-            <div>
-
-                <span>
-                    Éligibilité PEA
-                </span>
-
-                <strong id="instrumentPeaEligibility">
-                    —
-                </strong>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- =====================================================
-         HISTORIQUE DES TRANSACTIONS
-    ====================================================== -->
-
-    <section>
-
-        <div class="section-header">
-
-            <div>
-
-                <h2>
-                    Historique des transactions
-                </h2>
-
-                <p class="section-description">
-                    Les transactions réelles et les transactions
-                    de test restent conservées séparément afin
-                    de garantir la traçabilité des calculs.
-                </p>
-
-            </div>
-
-        </div>
-
-        <div id="listeTransactions"></div>
-
-    </section>
-
-
-    <!-- =====================================================
-         QUALITÉ DES DONNÉES
-    ====================================================== -->
-
-    <section>
-
-        <h2>
-            Qualité des données
-        </h2>
-
-        <div class="data-quality-grid">
-
-
-            <div class="data-quality-card">
-
-                <strong>
-                    Statut de transaction
-                </strong>
-
-                <p>
-                    Les transactions réelles alimentent
-                    le portefeuille et les performances.
-                    Les transactions de test sont exclues
-                    des calculs financiers.
-                </p>
-
-            </div>
-
-
-            <div class="data-quality-card">
-
-                <strong>
-                    Enveloppe fiscale
-                </strong>
-
-                <p>
-                    Le PEA et le CTO seront suivis
-                    séparément afin de ne pas mélanger
-                    leurs positions et leurs performances.
-                </p>
-
-            </div>
-
-
-            <div class="data-quality-card">
-
-                <strong>
-                    Identité de l'instrument
-                </strong>
-
-                <p>
-                    Le ticker, l'ISIN, la place de cotation
-                    et la devise seront utilisés ensemble
-                    lorsque cela est nécessaire pour éviter
-                    les ambiguïtés.
-                </p>
-
-            </div>
-
-
-            <div class="data-quality-card">
-
-                <strong>
-                    Éligibilité PEA
-                </strong>
-
-                <p>
-                    L'éligibilité d'une action ou d'un ETF
-                    doit être confirmée à partir d'une source
-                    fiable et ne sera jamais supposée.
-                </p>
-
-            </div>
-
-
-            <div class="data-quality-card">
-
-                <strong>
-                    Date
-                </strong>
-
-                <p>
-                    Chaque date possède un statut de fiabilité.
-                    Une date historique inconnue n'est jamais
-                    remplacée artificiellement par une date
-                    supposée.
-                </p>
-
-            </div>
-
-
-            <div class="data-quality-card">
-
-                <strong>
-                    Prix d'exécution
-                </strong>
-
-                <p>
-                    Donnée réelle saisie ou issue
-                    du justificatif du courtier.
-                </p>
-
-            </div>
-
-
-            <div class="data-quality-card">
-
-                <strong>
-                    Frais
-                </strong>
-
-                <p>
-                    Donnée conservée séparément
-                    pour calculer la performance nette.
-                </p>
-
-            </div>
-
-
-            <div class="data-quality-card">
-
-                <strong>
-                    Cours actuel
-                </strong>
-
-                <p>
-                    La source de marché devra être
-                    identifiable avec la place de cotation,
-                    la devise, le fournisseur et l'horodatage.
-                </p>
-
-            </div>
-
-
-            <div class="data-quality-card">
-
-                <strong>
-                    Taux de change
-                </strong>
-
-                <p>
-                    Taux courtier exact lorsqu'il est
-                    disponible, sinon taux de référence
-                    explicitement identifié.
-                </p>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- =====================================================
-         RADAR QUOTIDIEN
-    ====================================================== -->
-
-    <section>
-
-        <h2>
-            Radar quotidien
-        </h2>
-
-        <p>
-            Cette section affichera les actualités,
-            événements, signaux et changements importants
-            concernant les marchés et les instruments suivis.
-        </p>
-
-    </section>
-
-
-    <!-- =====================================================
-         FUTURE ANALYSE / OPPORTUNITÉS
-    ====================================================== -->
-
-    <section>
-
-        <h2>
-            Analyse et opportunités
-        </h2>
-
-        <p>
-            Cette section accueillera ultérieurement
-            les analyses probabilistes, statistiques,
-            niveaux de confiance, explications,
-            sources et alertes.
-        </p>
-
-    </section>
-
-
-    <script src="script.js"></script>
-
-</body>
-</html>
+import { brokers } from './brokers.js';
+import { defaultPortfolio, summarizePortfolio, allocationByRegion } from './portfolio.js';
+import { defaultWatchlist, pseudoRefresh } from './market.js';
+import { buildAlerts } from './alerts.js';
+
+const STORAGE_KEYS = {
+  portfolio: 'invest-dashboard-portfolio',
+  watchlist: 'invest-dashboard-watchlist',
+  broker: 'invest-dashboard-active-broker'
+};
+
+const money = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
+const pct = new Intl.NumberFormat('fr-FR', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const state = {
+  portfolio: load(STORAGE_KEYS.portfolio, defaultPortfolio),
+  watchlist: load(STORAGE_KEYS.watchlist, defaultWatchlist),
+  activeBroker: localStorage.getItem(STORAGE_KEYS.broker) || 'all'
+};
+
+function load(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : structuredClone(fallback);
+  } catch {
+    return structuredClone(fallback);
+  }
+}
+
+function persist() {
+  localStorage.setItem(STORAGE_KEYS.portfolio, JSON.stringify(state.portfolio));
+  localStorage.setItem(STORAGE_KEYS.watchlist, JSON.stringify(state.watchlist));
+  localStorage.setItem(STORAGE_KEYS.broker, state.activeBroker);
+}
+
+function brokerName(id) {
+  return brokers.find(b => b.id === id)?.name || id;
+}
+
+function visiblePositions() {
+  return state.activeBroker === 'all' ? state.portfolio.positions : state.portfolio.positions.filter(p => p.broker === state.activeBroker);
+}
+
+function renderBrokerControls() {
+  const selects = [document.querySelector('#brokerSelect'), document.querySelector('#positionBroker')];
+  for (const [index, select] of selects.entries()) {
+    select.innerHTML = '';
+    if (index === 0) select.add(new Option('Tous les courtiers', 'all'));
+    brokers.forEach(b => select.add(new Option(b.name, b.id)));
+  }
+  document.querySelector('#brokerSelect').value = state.activeBroker;
+
+  document.querySelector('#brokersPanel').innerHTML = brokers.map(b => `
+    <div class="broker-row">
+      <div><strong>${b.name}</strong><small>${b.fractional}</small></div>
+      <span class="badge">${b.status}</span>
+    </div>`).join('');
+}
+
+function renderMetrics() {
+  const filtered = { ...state.portfolio, positions: visiblePositions() };
+  const summary = summarizePortfolio(filtered);
+  document.querySelector('#portfolioValue').textContent = money.format(summary.totalValue);
+  document.querySelector('#investedValue').textContent = money.format(summary.invested);
+  document.querySelector('#pnlValue').textContent = money.format(summary.pnl);
+  document.querySelector('#pnlValue').className = summary.pnl >= 0 ? 'positive' : 'negative';
+  document.querySelector('#pnlPercent').textContent = pct.format(summary.pnlPct / 100);
+  document.querySelector('#cashValue').textContent = money.format(state.portfolio.cash);
+  document.querySelector('#portfolioMove').textContent = `${summary.pnl >= 0 ? '+' : ''}${money.format(summary.pnl)} latent`;
+}
+
+function renderPortfolio() {
+  const rows = visiblePositions();
+  const table = document.querySelector('#portfolioTable');
+  if (!rows.length) {
+    table.innerHTML = '<tr><td colspan="7" class="empty">Aucune position pour ce courtier.</td></tr>';
+    return;
+  }
+  table.innerHTML = rows.map(p => {
+    const invested = p.quantity * p.avgPrice;
+    const value = p.quantity * p.price;
+    const perf = invested ? (value - invested) / invested : 0;
+    return `<tr>
+      <td class="asset-cell"><strong>${p.name}</strong><small>${p.ticker} • ${p.type}</small></td>
+      <td>${brokerName(p.broker)}</td>
+      <td>${p.quantity.toLocaleString('fr-FR', { maximumFractionDigits: 6 })}</td>
+      <td>${money.format(p.avgPrice)}</td>
+      <td>${money.format(p.price)}</td>
+      <td>${money.format(value)}</td>
+      <td class="${perf >= 0 ? 'positive' : 'negative'}">${pct.format(perf)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAllocation() {
+  const filtered = { ...state.portfolio, positions: visiblePositions() };
+  const allocations = allocationByRegion(filtered);
+  document.querySelector('#allocationBars').innerHTML = allocations.length ? allocations.map(a => `
+    <div class="allocation-row">
+      <div class="allocation-meta"><span>${a.label}</span><strong>${a.percent.toFixed(1)} %</strong></div>
+      <div class="bar"><span style="width:${Math.max(2, a.percent)}%"></span></div>
+    </div>`).join('') : '<p class="empty">Aucune donnée.</p>';
+}
+
+function signalClass(signal) {
+  if (signal === 'Achat') return 'buy';
+  if (signal === 'Alléger') return 'sell';
+  return '';
+}
+
+function renderWatchlist() {
+  document.querySelector('#watchlist').innerHTML = state.watchlist.map(item => `
+    <article class="watch-card">
+      <div class="watch-card-top">
+        <div><h3>${item.name}</h3><span class="ticker">${item.ticker}</span></div>
+        <span class="badge ${signalClass(item.signal)}">${item.signal}</span>
+      </div>
+      <div class="watch-price">${money.format(item.price)}</div>
+      <div class="${item.change >= 0 ? 'positive' : 'negative'}">${item.change >= 0 ? '+' : ''}${item.change.toFixed(2)} % aujourd’hui</div>
+      <p class="watch-note">${item.note || '—'}</p>
+    </article>`).join('');
+}
+
+function renderAlerts() {
+  const alerts = buildAlerts(state.watchlist);
+  document.querySelector('#alertsList').innerHTML = alerts.map(a => `
+    <div class="alert"><strong>${a.title}</strong><small>${a.text}</small></div>`).join('');
+}
+
+function renderAll() {
+  renderMetrics();
+  renderPortfolio();
+  renderAllocation();
+  renderWatchlist();
+  renderAlerts();
+}
+
+function setupDialogs() {
+  const positionDialog = document.querySelector('#positionDialog');
+  const watchDialog = document.querySelector('#watchDialog');
+  const positionForm = document.querySelector('#positionForm');
+  const watchForm = document.querySelector('#watchForm');
+
+  document.querySelector('#addPositionBtn').addEventListener('click', () => positionDialog.showModal());
+  document.querySelector('#addWatchBtn').addEventListener('click', () => watchDialog.showModal());
+
+  document.querySelector('#savePositionBtn').addEventListener('click', (event) => {
+    event.preventDefault();
+    if (!positionForm.reportValidity()) return;
+    const data = new FormData(positionForm);
+    state.portfolio.positions.push({
+      id: Date.now(),
+      name: String(data.get('name')).trim(),
+      ticker: String(data.get('ticker')).trim().toUpperCase(),
+      type: String(data.get('type')),
+      broker: String(data.get('broker')),
+      quantity: Number(data.get('quantity')),
+      avgPrice: Number(data.get('avgPrice')),
+      price: Number(data.get('price')),
+      region: String(data.get('region'))
+    });
+    persist();
+    renderAll();
+    positionForm.reset();
+    positionDialog.close();
+  });
+
+  document.querySelector('#saveWatchBtn').addEventListener('click', (event) => {
+    event.preventDefault();
+    if (!watchForm.reportValidity()) return;
+    const data = new FormData(watchForm);
+    state.watchlist.push({
+      id: Date.now(),
+      name: String(data.get('name')).trim(),
+      ticker: String(data.get('ticker')).trim().toUpperCase(),
+      price: Number(data.get('price')),
+      change: Number(data.get('change')),
+      signal: String(data.get('signal')),
+      note: String(data.get('note')).trim()
+    });
+    persist();
+    renderAll();
+    watchForm.reset();
+    watchDialog.close();
+  });
+}
+
+renderBrokerControls();
+renderAll();
+setupDialogs();
+
+document.querySelector('#brokerSelect').addEventListener('change', (event) => {
+  state.activeBroker = event.target.value;
+  persist();
+  renderAll();
+});
+
+document.querySelector('#refreshBtn').addEventListener('click', () => {
+  state.watchlist = pseudoRefresh(state.watchlist);
+  state.portfolio.positions = state.portfolio.positions.map(p => ({
+    ...p,
+    price: Number((p.price * (1 + (Math.random() - 0.5) * 0.008)).toFixed(2))
+  }));
+  persist();
+  renderAll();
+});
