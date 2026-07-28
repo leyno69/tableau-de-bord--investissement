@@ -100,6 +100,202 @@ function sauvegarderTransactions() {
 
 
 /* =========================================================
+   GESTION DE LA FIABILITÉ DES DATES
+========================================================= */
+
+/*
+   Statuts actuellement utilisés :
+
+   "confirmee"
+       Date vérifiée à partir d'une source fiable.
+
+   "declaree-utilisateur"
+       Date explicitement saisie par l'utilisateur.
+
+   "a-verifier"
+       Une date existe, mais son origine n'a pas encore
+       été suffisamment qualifiée.
+
+   "date-inconnue"
+       La vraie date historique n'est pas connue.
+
+   Une date inconnue ne doit jamais être remplacée
+   artificiellement par la date du jour.
+*/
+
+
+function dateTransactionEstFiable(transaction) {
+    if (
+        !transaction ||
+        !transaction.date
+    ) {
+        return false;
+    }
+
+    const date =
+        new Date(transaction.date);
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+        return false;
+    }
+
+    return (
+        transaction.dateStatus === "confirmee" ||
+        transaction.dateStatus === "declaree-utilisateur"
+    );
+}
+
+
+/* =========================================================
+   NORMALISATION DES TRANSACTIONS EXISTANTES
+========================================================= */
+
+function normaliserTransactions() {
+    let modificationEffectuee = false;
+
+    transactions =
+        transactions
+            .filter(transaction => {
+                return (
+                    transaction &&
+                    typeof transaction === "object"
+                );
+            })
+            .map(transaction => {
+
+                const copie = {
+                    ...transaction
+                };
+
+
+                /*
+                   Une transaction issue de la migration
+                   des anciennes positions n'avait pas
+                   de véritable date historique.
+
+                   Les anciennes versions lui attribuaient
+                   la date du jour de la migration.
+
+                   Cette date ne constitue donc pas une
+                   donnée historique fiable.
+                */
+
+                if (
+                    copie.sourceTransaction ===
+                    "migration-ancienne-position"
+                ) {
+                    if (
+                        copie.date !== null ||
+                        copie.dateStatus !== "date-inconnue" ||
+                        copie.dateSource !==
+                            "migration-sans-date-historique"
+                    ) {
+                        modificationEffectuee = true;
+                    }
+
+                    copie.date = null;
+
+                    copie.dateStatus =
+                        "date-inconnue";
+
+                    copie.dateSource =
+                        "migration-sans-date-historique";
+
+                    return copie;
+                }
+
+
+                /*
+                   Transactions normales déjà présentes
+                   avant l'introduction du système de
+                   qualification des dates.
+                */
+
+                if (!copie.dateStatus) {
+                    if (copie.date) {
+                        copie.dateStatus =
+                            "a-verifier";
+
+                        copie.dateSource =
+                            copie.dateSource ||
+                            "historique-existant";
+                    } else {
+                        copie.dateStatus =
+                            "date-inconnue";
+
+                        copie.dateSource =
+                            copie.dateSource ||
+                            "inconnue";
+                    }
+
+                    modificationEffectuee = true;
+                }
+
+
+                if (!copie.dateSource) {
+                    copie.dateSource =
+                        copie.date
+                            ? "historique-existant"
+                            : "inconnue";
+
+                    modificationEffectuee = true;
+                }
+
+
+                return copie;
+            });
+
+
+    if (modificationEffectuee) {
+        sauvegarderTransactions();
+    }
+}
+
+
+/* =========================================================
+   ORDRE CHRONOLOGIQUE DES TRANSACTIONS
+========================================================= */
+
+function obtenirTempsTransaction(transaction) {
+    /*
+       Une opération historique dont la date exacte
+       est inconnue doit rester antérieure aux nouvelles
+       transactions enregistrées par l'application.
+
+       Number.NEGATIVE_INFINITY permet de préserver
+       cet ordre logique sans inventer une date.
+    */
+
+    if (
+        !transaction ||
+        !transaction.date
+    ) {
+        return Number.NEGATIVE_INFINITY;
+    }
+
+
+    const temps =
+        new Date(
+            transaction.date
+        ).getTime();
+
+
+    if (
+        !Number.isFinite(temps)
+    ) {
+        return Number.NEGATIVE_INFINITY;
+    }
+
+
+    return temps;
+}
+
+
+/* =========================================================
    MIGRATION DES ANCIENNES POSITIONS
 ========================================================= */
 
@@ -122,124 +318,182 @@ function migrerAnciennesPositionsSiNecessaire() {
         anciennesPositions = [];
     }
 
+
     if (anciennesPositions.length === 0) {
         return;
     }
 
-    const maintenant = new Date().toISOString();
 
-    transactions = anciennesPositions
-        .filter(position =>
-            position &&
-            Number(position.quantite) > 0 &&
-            Number(position.montantInvesti) > 0
-        )
-        .map((position, index) => {
-            const quantite = Number(position.quantite);
-            const montantInvesti = Number(position.montantInvesti);
+    /*
+       IMPORTANT :
 
-            const prixExecution =
-                quantite > 0
-                    ? montantInvesti / quantite
-                    : 0;
+       La vraie date d'achat des anciennes positions
+       n'est pas connue à partir des données disponibles.
 
-            return {
-                id:
-                    `migration-${Date.now()}-${index}`,
+       Nous enregistrons donc explicitement :
 
-                type:
-                    "achat",
+       date: null
+       dateStatus: "date-inconnue"
 
-                courtier:
-                    position.courtier ||
-                    "trade-republic",
+       Aucun XIRR ou autre calcul dépendant du temps
+       ne devra considérer cette transaction comme datée.
+    */
 
-                modeExecution:
-                    "autre",
 
-                date:
-                    maintenant,
+    transactions =
+        anciennesPositions
+            .filter(position =>
+                position &&
+                Number(position.quantite) > 0 &&
+                Number(position.montantInvesti) > 0
+            )
+            .map((position, index) => {
 
-                entreprise:
-                    String(
-                        position.entreprise ||
-                        position.ticker ||
-                        ""
-                    ),
+                const quantite =
+                    Number(position.quantite);
 
-                ticker:
-                    String(position.ticker || "")
-                        .trim()
-                        .toUpperCase(),
+                const montantInvesti =
+                    Number(position.montantInvesti);
 
-                prixExecution,
-                quantite,
 
-                montantBrut:
-                    montantInvesti,
+                const prixExecution =
+                    quantite > 0
+                        ? montantInvesti / quantite
+                        : 0;
 
-                frais:
-                    0,
 
-                sourceFrais:
-                    "inconnu",
+                return {
+                    id:
+                        `migration-${Date.now()}-${index}`,
 
-                coutTotal:
-                    montantInvesti,
+                    type:
+                        "achat",
 
-                sourceTransaction:
-                    "migration-ancienne-position",
+                    courtier:
+                        position.courtier ||
+                        "trade-republic",
 
-                qualiteTransaction:
-                    "partielle",
+                    modeExecution:
+                        "autre",
 
-                coursOriginal:
-                    Number(
-                        position.coursOriginal ??
-                        position.cours
-                    ),
 
-                deviseOriginale:
-                    position.deviseOriginale ||
-                    null,
+                    /* =============================
+                       DATE HISTORIQUE
+                    ============================= */
 
-                coursEUR:
-                    Number(
-                        position.coursEUR ??
-                        position.cours
-                    ),
+                    date:
+                        null,
 
-                fxRateToEUR:
-                    Number.isFinite(
-                        Number(position.fxRateToEUR)
-                    )
-                        ? Number(position.fxRateToEUR)
-                        : null,
+                    dateStatus:
+                        "date-inconnue",
 
-                fxDate:
-                    position.fxDate || null,
+                    dateSource:
+                        "migration-sans-date-historique",
 
-                fxProvider:
-                    position.fxProvider || null,
 
-                fxStatus:
-                    position.fxStatus || null,
+                    entreprise:
+                        String(
+                            position.entreprise ||
+                            position.ticker ||
+                            ""
+                        ),
 
-                brokerRateConfirmed:
-                    position.brokerRateConfirmed === true,
+                    ticker:
+                        String(position.ticker || "")
+                            .trim()
+                            .toUpperCase(),
 
-                brokerRate:
-                    Number.isFinite(
-                        Number(position.brokerRate)
-                    )
-                        ? Number(position.brokerRate)
-                        : null,
+                    prixExecution,
 
-                brokerRateMessage:
-                    position.brokerRateMessage ||
-                    "Impossible à confirmer pour cette transaction migrée."
-            };
-        });
+                    quantite,
+
+                    montantBrut:
+                        montantInvesti,
+
+
+                    /*
+                       Aucun frais historique n'est
+                       inventé.
+
+                       0 signifie ici qu'aucun montant
+                       de frais n'est enregistré dans
+                       les anciennes données.
+
+                       La source reste donc "inconnu".
+                    */
+
+                    frais:
+                        0,
+
+                    sourceFrais:
+                        "inconnu",
+
+                    coutTotal:
+                        montantInvesti,
+
+                    produitNet:
+                        null,
+
+                    sourceTransaction:
+                        "migration-ancienne-position",
+
+                    qualiteTransaction:
+                        "partielle",
+
+                    coursOriginal:
+                        Number(
+                            position.coursOriginal ??
+                            position.cours
+                        ),
+
+                    deviseOriginale:
+                        position.deviseOriginale ||
+                        null,
+
+                    coursEUR:
+                        Number(
+                            position.coursEUR ??
+                            position.cours
+                        ),
+
+                    fxRateToEUR:
+                        Number.isFinite(
+                            Number(position.fxRateToEUR)
+                        )
+                            ? Number(position.fxRateToEUR)
+                            : null,
+
+                    fxDate:
+                        position.fxDate ||
+                        null,
+
+                    fxProvider:
+                        position.fxProvider ||
+                        null,
+
+                    fxStatus:
+                        position.fxStatus ||
+                        null,
+
+                    brokerRateConfirmed:
+                        position.brokerRateConfirmed === true,
+
+                    brokerRate:
+                        Number.isFinite(
+                            Number(position.brokerRate)
+                        )
+                            ? Number(position.brokerRate)
+                            : null,
+
+                    brokerRateMessage:
+                        position.brokerRateMessage ||
+                        "Impossible à confirmer pour cette transaction migrée.",
+
+                    marketTimestamp:
+                        null
+                };
+            });
+
 
     sauvegarderTransactions();
 }
@@ -351,13 +605,18 @@ function formatTaux(valeur) {
 
 function formatDateHeure(valeur) {
     if (!valeur) {
-        return "—";
+        return "Date historique inconnue";
     }
 
-    const date = new Date(valeur);
+    const date =
+        new Date(valeur);
 
-    if (Number.isNaN(date.getTime())) {
-        return "—";
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+        return "Date historique inconnue";
     }
 
     return new Intl.DateTimeFormat("fr-FR", {
@@ -390,7 +649,8 @@ function nomCourtier(courtier) {
             return "Revolut";
 
         default:
-            return courtier || "Non renseigné";
+            return courtier ||
+                "Non renseigné";
     }
 }
 
@@ -431,14 +691,17 @@ function initialiserDateTransaction() {
         return;
     }
 
-    const maintenant = new Date();
+    const maintenant =
+        new Date();
 
     const decalage =
-        maintenant.getTimezoneOffset() * 60000;
+        maintenant.getTimezoneOffset() *
+        60000;
 
     const localISO =
         new Date(
-            maintenant.getTime() - decalage
+            maintenant.getTime() -
+            decalage
         )
             .toISOString()
             .slice(0, 16);
@@ -462,6 +725,7 @@ function determinerFraisAutomatiques() {
         return;
     }
 
+
     const courtier =
         courtierSelect.value;
 
@@ -469,9 +733,14 @@ function determinerFraisAutomatiques() {
         modeExecutionSelect.value;
 
 
-    if (courtier === "trade-republic") {
-
-        if (modeExecution === "plan-epargne") {
+    if (
+        courtier ===
+        "trade-republic"
+    ) {
+        if (
+            modeExecution ===
+            "plan-epargne"
+        ) {
             fraisTransactionInput.value =
                 "0.00";
 
@@ -487,7 +756,10 @@ function determinerFraisAutomatiques() {
         }
 
 
-        if (modeExecution === "ordre-classique") {
+        if (
+            modeExecution ===
+            "ordre-classique"
+        ) {
             fraisTransactionInput.value =
                 "1.00";
 
@@ -504,7 +776,10 @@ function determinerFraisAutomatiques() {
     }
 
 
-    if (courtier === "revolut") {
+    if (
+        courtier ===
+        "revolut"
+    ) {
         sourceFraisSelect.value =
             "inconnu";
 
@@ -608,10 +883,12 @@ function recalculerTransaction() {
         return;
     }
 
+
     const prixExecution =
         parseFloat(
             prixAchatInput.value
         );
+
 
     const frais =
         fraisTransactionInput
@@ -619,6 +896,7 @@ function recalculerTransaction() {
                 fraisTransactionInput.value
             )
             : 0;
+
 
     const mode =
         modeSaisieSelect
@@ -646,13 +924,20 @@ function recalculerTransaction() {
             : 0;
 
 
-    if (mode === "montant") {
+    /* -----------------------------------------------------
+       SAISIE PAR MONTANT
+    ----------------------------------------------------- */
+
+    if (
+        mode === "montant"
+    ) {
         const montantBrut =
             montantInvestiInput
                 ? parseFloat(
                     montantInvestiInput.value
                 )
                 : NaN;
+
 
         if (
             !Number.isFinite(montantBrut) ||
@@ -669,22 +954,29 @@ function recalculerTransaction() {
             return;
         }
 
+
         const quantite =
             montantBrut /
             prixExecution;
 
+
         quantiteInput.value =
             quantite.toFixed(8);
+
 
         const type =
             typeTransactionSelect
                 ? typeTransactionSelect.value
                 : "achat";
 
+
         const fluxNet =
             type === "achat"
-                ? montantBrut + fraisValides
-                : montantBrut - fraisValides;
+                ? montantBrut +
+                    fraisValides
+                : montantBrut -
+                    fraisValides;
+
 
         if (calculPosition) {
             calculPosition.textContent =
@@ -698,10 +990,15 @@ function recalculerTransaction() {
     }
 
 
+    /* -----------------------------------------------------
+       SAISIE PAR QUANTITÉ
+    ----------------------------------------------------- */
+
     const quantite =
         parseFloat(
             quantiteInput.value
         );
+
 
     if (
         !Number.isFinite(quantite) ||
@@ -725,6 +1022,7 @@ function recalculerTransaction() {
         prixExecution *
         quantite;
 
+
     if (montantInvestiInput) {
         montantInvestiInput.value =
             montantBrut.toFixed(2);
@@ -736,10 +1034,13 @@ function recalculerTransaction() {
             ? typeTransactionSelect.value
             : "achat";
 
+
     const fluxNet =
         type === "achat"
-            ? montantBrut + fraisValides
-            : montantBrut - fraisValides;
+            ? montantBrut +
+                fraisValides
+            : montantBrut -
+                fraisValides;
 
 
     if (calculPosition) {
@@ -769,18 +1070,27 @@ async function recupererDonneesMarche(ticker) {
         );
     }
 
-    const response = await fetch(
-        `/api/quote?symbol=${encodeURIComponent(symbole)}`,
-        {
-            method: "GET",
-            headers: {
-                Accept: "application/json"
-            },
-            cache: "no-store"
-        }
-    );
 
-    let data = null;
+    const response =
+        await fetch(
+            `/api/quote?symbol=${encodeURIComponent(symbole)}`,
+            {
+                method: "GET",
+
+                headers: {
+                    Accept:
+                        "application/json"
+                },
+
+                cache:
+                    "no-store"
+            }
+        );
+
+
+    let data =
+        null;
+
 
     try {
         data =
@@ -801,10 +1111,14 @@ async function recupererDonneesMarche(ticker) {
 
 
     const coursOriginal =
-        Number(data.priceOriginal);
+        Number(
+            data.priceOriginal
+        );
 
     const coursEUR =
-        Number(data.priceEUR);
+        Number(
+            data.priceEUR
+        );
 
 
     if (
@@ -848,13 +1162,16 @@ async function recupererDonneesMarche(ticker) {
                 : null,
 
         fxDate:
-            data.fxDate || null,
+            data.fxDate ||
+            null,
 
         fxProvider:
-            data.fxProvider || null,
+            data.fxProvider ||
+            null,
 
         fxStatus:
-            data.fxStatus || null,
+            data.fxStatus ||
+            null,
 
         brokerRateConfirmed:
             data.brokerRateConfirmed === true,
@@ -871,7 +1188,8 @@ async function recupererDonneesMarche(ticker) {
             "Impossible à confirmer.",
 
         timestamp:
-            data.timestamp || null
+            data.timestamp ||
+            null
     };
 }
 
@@ -881,84 +1199,183 @@ async function recupererDonneesMarche(ticker) {
 ========================================================= */
 
 function recalculerPositions() {
-    const groupes = new Map();
+    const groupes =
+        new Map();
 
+
+    /*
+       On conserve l'ordre original pour départager
+       plusieurs transactions ayant la même date.
+
+       Les transactions dont la date historique est
+       inconnue sont placées avant les transactions
+       réellement datées.
+
+       Cela préserve la logique de la position sans
+       inventer une date d'achat.
+    */
 
     const transactionsTriees =
-        [...transactions].sort(
-            (a, b) =>
-                new Date(a.date).getTime() -
-                new Date(b.date).getTime()
-        );
+        [...transactions]
+            .map(
+                (transaction, indexOriginal) => ({
+                    transaction,
+                    indexOriginal
+                })
+            )
+            .sort(
+                (a, b) => {
+
+                    const tempsA =
+                        obtenirTempsTransaction(
+                            a.transaction
+                        );
+
+                    const tempsB =
+                        obtenirTempsTransaction(
+                            b.transaction
+                        );
 
 
-    for (const tx of transactionsTriees) {
+                    if (
+                        tempsA === tempsB
+                    ) {
+                        return (
+                            a.indexOriginal -
+                            b.indexOriginal
+                        );
+                    }
+
+
+                    return (
+                        tempsA -
+                        tempsB
+                    );
+                }
+            )
+            .map(
+                element =>
+                    element.transaction
+            );
+
+
+    for (
+        const tx of
+        transactionsTriees
+    ) {
         const cle =
             `${tx.courtier}::${tx.ticker}`;
 
+
         if (!groupes.has(cle)) {
-            groupes.set(cle, {
-                entreprise:
-                    tx.entreprise,
+            groupes.set(
+                cle,
+                {
+                    entreprise:
+                        tx.entreprise,
 
-                ticker:
-                    tx.ticker,
+                    ticker:
+                        tx.ticker,
 
-                courtier:
-                    tx.courtier,
+                    courtier:
+                        tx.courtier,
 
-                quantite:
-                    0,
+                    quantite:
+                        0,
 
-                coutAcquisitionNet:
-                    0,
+                    coutAcquisitionNet:
+                        0,
 
-                fraisCumules:
-                    0,
+                    fraisCumules:
+                        0,
 
-                gainsRealises:
-                    0,
+                    gainsRealises:
+                        0,
 
-                nombreTransactions:
-                    0,
+                    nombreTransactions:
+                        0,
 
-                coursOriginal:
-                    tx.coursOriginal || null,
+                    coursOriginal:
+                        tx.coursOriginal ||
+                        null,
 
-                deviseOriginale:
-                    tx.deviseOriginale || null,
+                    deviseOriginale:
+                        tx.deviseOriginale ||
+                        null,
 
-                coursEUR:
-                    tx.coursEUR || null,
+                    coursEUR:
+                        tx.coursEUR ||
+                        null,
 
-                fxRateToEUR:
-                    tx.fxRateToEUR || null,
+                    fxRateToEUR:
+                        tx.fxRateToEUR ||
+                        null,
 
-                fxDate:
-                    tx.fxDate || null,
+                    fxDate:
+                        tx.fxDate ||
+                        null,
 
-                fxProvider:
-                    tx.fxProvider || null,
+                    fxProvider:
+                        tx.fxProvider ||
+                        null,
 
-                fxStatus:
-                    tx.fxStatus || null,
+                    fxStatus:
+                        tx.fxStatus ||
+                        null,
 
-                brokerRateConfirmed:
-                    tx.brokerRateConfirmed === true,
+                    brokerRateConfirmed:
+                        tx.brokerRateConfirmed === true,
 
-                brokerRate:
-                    tx.brokerRate || null
-            });
+                    brokerRate:
+                        tx.brokerRate ||
+                        null,
+
+
+                    /* =============================
+                       QUALITÉ TEMPORELLE
+                    ============================= */
+
+                    historiqueDatesComplet:
+                        true,
+
+                    nombreDatesNonFiables:
+                        0
+                }
+            );
         }
 
 
         const position =
             groupes.get(cle);
 
-        position.nombreTransactions += 1;
-        position.fraisCumules +=
-            Number(tx.frais) || 0;
 
+        position.nombreTransactions +=
+            1;
+
+
+        position.fraisCumules +=
+            Number(tx.frais) ||
+            0;
+
+
+        /* -------------------------------------------------
+           FIABILITÉ DE L'HISTORIQUE
+        ------------------------------------------------- */
+
+        if (
+            !dateTransactionEstFiable(tx)
+        ) {
+            position.historiqueDatesComplet =
+                false;
+
+            position.nombreDatesNonFiables +=
+                1;
+        }
+
+
+        /* -------------------------------------------------
+           DONNÉES DE MARCHÉ DISPONIBLES
+        ------------------------------------------------- */
 
         if (
             Number(tx.coursEUR) > 0
@@ -988,33 +1405,104 @@ function recalculerPositions() {
                 tx.brokerRateConfirmed === true;
 
             position.brokerRate =
-                tx.brokerRate || null;
+                tx.brokerRate ||
+                null;
         }
 
 
-        if (tx.type === "achat") {
-            position.quantite +=
+        /* -------------------------------------------------
+           ACHAT
+        ------------------------------------------------- */
+
+        if (
+            tx.type ===
+            "achat"
+        ) {
+            const quantiteAchetee =
                 Number(tx.quantite);
 
-            position.coutAcquisitionNet +=
+            const coutAchat =
                 Number(tx.coutTotal);
-        }
 
-
-        if (tx.type === "vente") {
-            const quantiteAvant =
-                position.quantite;
 
             if (
-                quantiteAvant <= 0
+                !Number.isFinite(quantiteAchetee) ||
+                quantiteAchetee <= 0 ||
+                !Number.isFinite(coutAchat) ||
+                coutAchat <= 0
             ) {
+                console.error(
+                    "Transaction d'achat invalide ignorée :",
+                    tx
+                );
+
                 continue;
             }
 
 
+            position.quantite +=
+                quantiteAchetee;
+
+            position.coutAcquisitionNet +=
+                coutAchat;
+        }
+
+
+        /* -------------------------------------------------
+           VENTE
+        ------------------------------------------------- */
+
+        if (
+            tx.type ===
+            "vente"
+        ) {
+            const quantiteAvant =
+                position.quantite;
+
+
+            if (
+                quantiteAvant <= 0
+            ) {
+                console.error(
+                    "Vente sans position disponible :",
+                    tx
+                );
+
+                continue;
+            }
+
+
+            const quantiteTransaction =
+                Number(tx.quantite);
+
+
+            if (
+                !Number.isFinite(
+                    quantiteTransaction
+                ) ||
+                quantiteTransaction <= 0
+            ) {
+                console.error(
+                    "Quantité de vente invalide :",
+                    tx
+                );
+
+                continue;
+            }
+
+
+            /*
+               Cette protection ne remplace pas
+               la validation du formulaire.
+
+               Elle évite simplement qu'une ancienne
+               donnée incohérente fasse passer la
+               quantité sous zéro.
+            */
+
             const quantiteVendue =
                 Math.min(
-                    Number(tx.quantite),
+                    quantiteTransaction,
                     quantiteAvant
                 );
 
@@ -1031,6 +1519,20 @@ function recalculerPositions() {
 
             const produitNet =
                 Number(tx.produitNet);
+
+
+            if (
+                !Number.isFinite(
+                    produitNet
+                )
+            ) {
+                console.error(
+                    "Produit net de vente invalide :",
+                    tx
+                );
+
+                continue;
+            }
 
 
             const gainRealise =
@@ -1051,11 +1553,16 @@ function recalculerPositions() {
 
 
             if (
-                Math.abs(position.quantite) <
+                Math.abs(
+                    position.quantite
+                ) <
                 1e-10
             ) {
-                position.quantite = 0;
-                position.coutAcquisitionNet = 0;
+                position.quantite =
+                    0;
+
+                position.coutAcquisitionNet =
+                    0;
             }
         }
     }
@@ -1067,7 +1574,8 @@ function recalculerPositions() {
         )
             .filter(
                 position =>
-                    position.quantite > 0
+                    position.quantite >
+                    0
             )
             .map(
                 position => {
@@ -1075,21 +1583,21 @@ function recalculerPositions() {
                     const pru =
                         position.quantite > 0
                             ? position.coutAcquisitionNet /
-                              position.quantite
+                                position.quantite
                             : 0;
 
 
                     const valeurActuelle =
                         Number(position.coursEUR) > 0
                             ? position.quantite *
-                              Number(position.coursEUR)
+                                Number(position.coursEUR)
                             : null;
 
 
                     const gainNonRealise =
                         valeurActuelle !== null
                             ? valeurActuelle -
-                              position.coutAcquisitionNet
+                                position.coutAcquisitionNet
                             : null;
 
 
@@ -1105,9 +1613,13 @@ function recalculerPositions() {
 
                     return {
                         ...position,
+
                         pru,
+
                         valeurActuelle,
+
                         gainNonRealise,
+
                         rendement
                     };
                 }
