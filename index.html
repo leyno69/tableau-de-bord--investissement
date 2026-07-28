@@ -2,55 +2,188 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Tableau de bord d'investissement</title>
-    <link rel="stylesheet" href="style.css">
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 </head>
 
 <body>
 
-    <h1>Tableau de bord d'investissement</h1>
+    <h1>
+        Tableau de bord d'investissement
+    </h1>
+
+
+    <!-- =====================================================
+         VUE D'ENSEMBLE
+    ====================================================== -->
 
     <section>
         <h2>Vue d'ensemble</h2>
-        <p>Bienvenue sur votre tableau de bord personnel.</p>
+
+        <p>
+            Suivi consolidé du portefeuille,
+            des transactions, des frais et
+            des performances.
+        </p>
     </section>
 
+
+    <!-- =====================================================
+         NOUVELLE TRANSACTION
+    ====================================================== -->
+
     <section>
-        <h2>Portefeuille</h2>
+
+        <h2>
+            Nouvelle transaction
+        </h2>
 
         <div class="portfolio-form">
 
-            <div class="form-field">
-                <label for="courtier">Courtier</label>
-                <select id="courtier">
-                    <option value="trade-republic">Trade Republic</option>
-                    <option value="revolut">Revolut</option>
-                </select>
-            </div>
+
+            <!-- COURTIER -->
 
             <div class="form-field">
-                <label for="nomAction">Entreprise</label>
+
+                <label for="courtier">
+                    Courtier
+                </label>
+
+                <select id="courtier">
+
+                    <option value="trade-republic">
+                        Trade Republic
+                    </option>
+
+                    <option value="revolut">
+                        Revolut
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- TYPE DE TRANSACTION -->
+
+            <div class="form-field">
+
+                <label for="typeTransaction">
+                    Type de transaction
+                </label>
+
+                <select id="typeTransaction">
+
+                    <option value="achat">
+                        Achat
+                    </option>
+
+                    <option value="vente">
+                        Vente
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- MODE D'EXÉCUTION -->
+
+            <div class="form-field">
+
+                <label for="modeExecution">
+                    Mode d'exécution
+                </label>
+
+                <select id="modeExecution">
+
+                    <option value="ordre-classique">
+                        Ordre classique
+                    </option>
+
+                    <option value="plan-epargne">
+                        Plan d'épargne
+                    </option>
+
+                    <option value="autre">
+                        Autre
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- DATE -->
+
+            <div class="form-field">
+
+                <label for="dateTransaction">
+                    Date et heure
+                </label>
+
+                <input
+                    type="datetime-local"
+                    id="dateTransaction"
+                >
+
+            </div>
+
+
+            <!-- ENTREPRISE -->
+
+            <div class="form-field">
+
+                <label for="nomAction">
+                    Entreprise
+                </label>
+
                 <input
                     type="text"
                     id="nomAction"
                     placeholder="Ex. NVIDIA"
                     autocomplete="off"
                 >
+
             </div>
 
+
+            <!-- TICKER -->
+
             <div class="form-field">
-                <label for="ticker">Ticker</label>
+
+                <label for="ticker">
+                    Ticker
+                </label>
+
                 <input
                     type="text"
                     id="ticker"
                     placeholder="Ex. NVDA"
                     autocomplete="off"
                 >
+
             </div>
 
+
+            <!-- PRIX D'EXÉCUTION -->
+
             <div class="form-field">
-                <label for="prixAchat">Prix d’achat moyen (€)</label>
+
+                <label for="prixAchat">
+                    Prix d'exécution unitaire (€)
+                </label>
+
                 <input
                     type="number"
                     id="prixAchat"
@@ -58,29 +191,66 @@
                     min="0"
                     step="0.0001"
                 >
+
             </div>
+
+
+            <!-- MODE DE SAISIE -->
 
             <div class="form-field">
-                <label for="modeSaisie">Mode de saisie</label>
+
+                <label for="modeSaisie">
+                    Mode de saisie
+                </label>
+
                 <select id="modeSaisie">
-                    <option value="quantite">Par quantité d’actions</option>
-                    <option value="montant">Par montant investi</option>
+
+                    <option value="quantite">
+                        Par quantité d'actions
+                    </option>
+
+                    <option value="montant">
+                        Par montant brut
+                    </option>
+
                 </select>
+
             </div>
 
-            <div class="form-field" id="champQuantite">
-                <label for="quantite">Nombre d’actions</label>
+
+            <!-- QUANTITÉ -->
+
+            <div
+                class="form-field"
+                id="champQuantite"
+            >
+
+                <label for="quantite">
+                    Nombre d'actions
+                </label>
+
                 <input
                     type="number"
                     id="quantite"
                     value="0"
                     min="0"
-                    step="0.0001"
+                    step="0.00000001"
                 >
+
             </div>
 
-            <div class="form-field" id="champMontant">
-                <label for="montantInvesti">Montant investi (€)</label>
+
+            <!-- MONTANT BRUT -->
+
+            <div
+                class="form-field"
+                id="champMontant"
+            >
+
+                <label for="montantInvesti">
+                    Montant brut (€)
+                </label>
+
                 <input
                     type="number"
                     id="montantInvesti"
@@ -88,60 +258,316 @@
                     min="0"
                     step="0.01"
                 >
+
             </div>
 
+
+            <!-- FRAIS -->
+
+            <div class="form-field">
+
+                <label for="fraisTransaction">
+                    Frais de transaction (€)
+                </label>
+
+                <input
+                    type="number"
+                    id="fraisTransaction"
+                    value="1"
+                    min="0"
+                    step="0.01"
+                >
+
+            </div>
+
+
+            <!-- SOURCE DES FRAIS -->
+
+            <div class="form-field">
+
+                <label for="sourceFrais">
+                    Origine des frais
+                </label>
+
+                <select id="sourceFrais">
+
+                    <option value="regle-courtier">
+                        Règle du courtier
+                    </option>
+
+                    <option value="justificatif">
+                        Justificatif confirmé
+                    </option>
+
+                    <option value="manuel">
+                        Saisie manuelle
+                    </option>
+
+                    <option value="inconnu">
+                        Impossible à confirmer
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- INFO FRACTION -->
+
             <div class="form-field full-width">
-                <div id="fractionInfo" class="fraction-info">
-                    <strong>Fractionnement :</strong>
-                    <span id="fractionStatus">Information non vérifiée</span>
+
+                <div
+                    id="fractionInfo"
+                    class="fraction-info"
+                >
+
+                    <strong>
+                        Fractionnement :
+                    </strong>
+
+                    <span id="fractionStatus">
+                        Information non vérifiée
+                    </span>
+
                 </div>
+
             </div>
+
+
+            <!-- INFO FRAIS -->
 
             <div class="form-field full-width">
-                <p id="calculPosition" class="calcul-position">
-                    Montant investi calculé : 0,00 €
-                </p>
+
+                <div
+                    id="fraisInfo"
+                    class="fraction-info"
+                >
+                    Frais calculés selon
+                    le courtier et le mode d'exécution.
+                </div>
+
             </div>
 
-            <button id="ajouterPosition">
-                Ajouter la position
+
+            <!-- CALCUL -->
+
+            <div class="form-field full-width">
+
+                <p
+                    id="calculPosition"
+                    class="calcul-position"
+                >
+                    Renseignez la transaction.
+                </p>
+
+            </div>
+
+
+            <!-- BOUTON -->
+
+            <button
+                type="button"
+                id="ajouterPosition"
+            >
+                Enregistrer la transaction
             </button>
 
         </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         POSITIONS CALCULÉES
+    ====================================================== -->
+
+    <section>
+
+        <h2>
+            Portefeuille
+        </h2>
+
+        <p class="section-description">
+            Les positions ci-dessous sont calculées
+            automatiquement à partir de l'historique
+            des transactions.
+        </p>
 
         <div id="listePositions"></div>
 
         <hr>
 
+
+        <!-- RÉSUMÉ -->
+
         <div class="portfolio-summary">
-            <p>
-                <strong>Total investi :</strong>
-                <span id="totalInvesti">0,00 €</span>
-            </p>
 
             <p>
-                <strong>Valeur totale :</strong>
-                <span id="totalValeur">0,00 €</span>
+                <strong>
+                    Capital investi
+                </strong>
+
+                <span id="totalInvesti">
+                    0,00 €
+                </span>
             </p>
 
-            <p>
-                <strong>Gain / Perte total :</strong>
-                <span id="totalGain">0,00 €</span>
-            </p>
 
             <p>
-                <strong>Rendement total :</strong>
-                <span id="totalRendement">0,00 %</span>
+                <strong>
+                    Valeur actuelle
+                </strong>
+
+                <span id="totalValeur">
+                    0,00 €
+                </span>
             </p>
+
+
+            <p>
+                <strong>
+                    Gain / Perte net
+                </strong>
+
+                <span id="totalGain">
+                    0,00 €
+                </span>
+            </p>
+
+
+            <p>
+                <strong>
+                    Rendement net
+                </strong>
+
+                <span id="totalRendement">
+                    0,00 %
+                </span>
+            </p>
+
         </div>
+
     </section>
+
+
+    <!-- =====================================================
+         HISTORIQUE DES TRANSACTIONS
+    ====================================================== -->
 
     <section>
-        <h2>Radar quotidien</h2>
-        <p>
-            Cette section affichera les actualités importantes des marchés.
-        </p>
+
+        <div class="section-header">
+
+            <div>
+                <h2>
+                    Historique des transactions
+                </h2>
+
+                <p class="section-description">
+                    Chaque opération reste conservée
+                    individuellement pour garantir
+                    la traçabilité des calculs.
+                </p>
+            </div>
+
+        </div>
+
+        <div id="listeTransactions"></div>
+
     </section>
+
+
+    <!-- =====================================================
+         QUALITÉ DES DONNÉES
+    ====================================================== -->
+
+    <section>
+
+        <h2>
+            Qualité des données
+        </h2>
+
+        <div class="data-quality-grid">
+
+            <div class="data-quality-card">
+
+                <strong>
+                    Prix d'exécution
+                </strong>
+
+                <p>
+                    Donnée réelle saisie ou issue
+                    du justificatif du courtier.
+                </p>
+
+            </div>
+
+
+            <div class="data-quality-card">
+
+                <strong>
+                    Frais
+                </strong>
+
+                <p>
+                    Donnée conservée séparément
+                    pour calculer la performance nette.
+                </p>
+
+            </div>
+
+
+            <div class="data-quality-card">
+
+                <strong>
+                    Cours actuel
+                </strong>
+
+                <p>
+                    Source de marché identifiable
+                    avec devise et horodatage.
+                </p>
+
+            </div>
+
+
+            <div class="data-quality-card">
+
+                <strong>
+                    Taux de change
+                </strong>
+
+                <p>
+                    Taux courtier exact lorsqu'il est
+                    disponible, sinon taux de référence
+                    explicitement identifié.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         RADAR QUOTIDIEN
+    ====================================================== -->
+
+    <section>
+
+        <h2>
+            Radar quotidien
+        </h2>
+
+        <p>
+            Cette section affichera les actualités,
+            événements et signaux importants concernant
+            les marchés et les entreprises suivies.
+        </p>
+
+    </section>
+
 
     <script src="script.js"></script>
 
