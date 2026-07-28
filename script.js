@@ -1591,11 +1591,8 @@ function afficherPositions() {
     ===================================================== */
 
     let totalCapitalRestant = 0;
-
     let totalValeurActuelle = 0;
-
     let totalGainNonRealise = 0;
-
     let totalGainsRealises = 0;
 
     let valorisationComplete = true;
@@ -1628,16 +1625,13 @@ function afficherPositions() {
                     position.coutAcquisitionNet
                 ) || 0;
 
-
             const gainsRealises =
                 Number(
                     position.gainsRealises
                 ) || 0;
 
-
             totalCapitalRestant +=
                 capitalRestant;
-
 
             totalGainsRealises +=
                 gainsRealises;
@@ -1647,7 +1641,6 @@ function afficherPositions() {
                 Number(
                     position.valeurActuelle
                 );
-
 
             const gainNonRealise =
                 Number(
@@ -2045,23 +2038,116 @@ function afficherPositions() {
 
 
     /* =====================================================
-       RENDEMENT TOTAL
+       RENDEMENT CUMULÉ SUR CAPITAL ENGAGÉ
+
+       FORMULE :
+       performance totale / coûts d'achat cumulés × 100
 
        IMPORTANT :
-       On ne fabrique volontairement pas encore
-       un rendement global.
-
-       Avec des achats et ventes à différentes dates,
-       un simple :
-           performance / capital restant
-       serait potentiellement trompeur.
-
-       Nous intégrerons ensuite une méthode adaptée.
+       Ce rendement n'est ni un TWR ni un XIRR.
+       Il ne tient pas compte de la durée d'investissement.
     ===================================================== */
 
+    let totalCapitalEngage = 0;
+
+
+    transactions.forEach(
+        transaction => {
+
+            if (
+                transaction.type === "achat"
+            ) {
+                const coutAchat =
+                    Number(
+                        transaction.coutTotal
+                    );
+
+
+                if (
+                    Number.isFinite(
+                        coutAchat
+                    ) &&
+                    coutAchat > 0
+                ) {
+                    totalCapitalEngage +=
+                        coutAchat;
+                }
+            }
+        }
+    );
+
+
+    const rendementCumule =
+        performanceTotale !== null &&
+        totalCapitalEngage > 0
+            ? (
+                performanceTotale /
+                totalCapitalEngage
+            ) * 100
+            : null;
+
+
     if (totalRendementElement) {
-        totalRendementElement.textContent =
-            "Méthode de rendement global à définir";
+
+        const classeRendement =
+            rendementCumule > 0
+                ? "positif"
+                : rendementCumule < 0
+                    ? "negatif"
+                    : "neutre";
+
+
+        totalRendementElement.innerHTML = `
+            <div>
+
+                <strong>
+                    Rendement cumulé
+                </strong>
+
+                <div class="${classeRendement}">
+                    ${
+                        rendementCumule !== null
+                            ? formatPourcentage(
+                                rendementCumule
+                            )
+                            : "Impossible à confirmer"
+                    }
+                </div>
+
+            </div>
+
+
+            <div style="margin-top:12px;">
+
+                <strong>
+                    Capital engagé cumulé
+                </strong>
+
+                <div>
+                    ${formatEuro(
+                        totalCapitalEngage
+                    )}
+                </div>
+
+            </div>
+
+
+            <div
+                style="
+                    margin-top:12px;
+                    font-size:0.9em;
+                    line-height:1.4;
+                "
+            >
+                Rendement cumulé simple, frais inclus.
+                Il ne tient pas compte de la durée
+                d’investissement.
+                Les mesures TWR et XIRR seront
+                calculées séparément lorsqu'un
+                historique suffisamment fiable
+                sera disponible.
+            </div>
+        `;
     }
 }
 
@@ -2551,10 +2637,6 @@ function reinitialiserFormulaire() {
     indexTransactionEnModification =
         null;
 
-
-    /*
-       On remet la date à maintenant.
-    */
 
     if (dateTransactionInput) {
         dateTransactionInput.value =
