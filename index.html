@@ -51,6 +51,29 @@
         <div class="portfolio-form">
 
 
+            <!-- STATUT DE LA TRANSACTION -->
+
+            <div class="form-field">
+
+                <label for="statutTransaction">
+                    Statut de la transaction
+                </label>
+
+                <select id="statutTransaction">
+
+                    <option value="reelle">
+                        Transaction réelle
+                    </option>
+
+                    <option value="test">
+                        Transaction de test
+                    </option>
+
+                </select>
+
+            </div>
+
+
             <!-- COURTIER -->
 
             <div class="form-field">
@@ -312,6 +335,27 @@
             </div>
 
 
+            <!-- INFORMATION STATUT -->
+
+            <div class="form-field full-width">
+
+                <div class="fraction-info">
+
+                    <strong>
+                        Statut :
+                    </strong>
+
+                    <span>
+                        Les transactions de test seront conservées
+                        dans l'historique mais exclues des calculs
+                        du portefeuille réel.
+                    </span>
+
+                </div>
+
+            </div>
+
+
             <!-- INFO FRACTION -->
 
             <div class="form-field full-width">
@@ -389,8 +433,8 @@
 
         <p class="section-description">
             Les positions ci-dessous sont calculées
-            automatiquement à partir de l'historique
-            des transactions.
+            automatiquement à partir des transactions
+            réelles uniquement.
         </p>
 
         <div id="listePositions"></div>
@@ -464,9 +508,9 @@
                 </h2>
 
                 <p class="section-description">
-                    Chaque opération reste conservée
-                    individuellement pour garantir
-                    la traçabilité des calculs.
+                    Les transactions réelles et les transactions
+                    de test restent conservées séparément afin
+                    de garantir la traçabilité des calculs.
                 </p>
             </div>
 
@@ -488,6 +532,39 @@
         </h2>
 
         <div class="data-quality-grid">
+
+
+            <div class="data-quality-card">
+
+                <strong>
+                    Statut de transaction
+                </strong>
+
+                <p>
+                    Les transactions réelles alimentent
+                    le portefeuille et les performances.
+                    Les transactions de test sont exclues
+                    des calculs financiers.
+                </p>
+
+            </div>
+
+
+            <div class="data-quality-card">
+
+                <strong>
+                    Date
+                </strong>
+
+                <p>
+                    Chaque date possède un statut de fiabilité.
+                    Une date historique inconnue n'est jamais
+                    remplacée artificiellement par une date
+                    supposée.
+                </p>
+
+            </div>
+
 
             <div class="data-quality-card">
 
