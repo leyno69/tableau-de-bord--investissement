@@ -1,206 +1,176 @@
-import { brokers } from './brokers.js';
-import { defaultPortfolio, summarizePortfolio, allocationByRegion } from './portfolio.js';
-import { defaultWatchlist, pseudoRefresh } from './market.js';
-import { buildAlerts } from './alerts.js';
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Tableau de bord personnel pour suivre portefeuille, watchlist et alertes." />
+  <title>Tableau de bord investissement</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">PORTFOLIO CONTROL</p>
+      <h1>Tableau de bord d’investissement</h1>
+      <p class="subtitle">Vue consolidée • PEA • Actions • ETF • Courtiers</p>
+    </div>
+    <div class="topbar-actions">
+      <label class="field compact">
+        <span>Courtier actif</span>
+        <select id="brokerSelect" aria-label="Courtier actif"></select>
+      </label>
+      <button id="refreshBtn" class="btn">Actualiser</button>
+    </div>
+  </header>
 
-const STORAGE_KEYS = {
-  portfolio: 'invest-dashboard-portfolio',
-  watchlist: 'invest-dashboard-watchlist',
-  broker: 'invest-dashboard-active-broker'
-};
+  <main class="shell">
+    <section class="metric-grid" aria-label="Résumé du portefeuille">
+      <article class="metric-card">
+        <span>Valeur du portefeuille</span>
+        <strong id="portfolioValue">—</strong>
+        <small id="portfolioMove">—</small>
+      </article>
+      <article class="metric-card">
+        <span>Capital investi</span>
+        <strong id="investedValue">—</strong>
+        <small>hors liquidités</small>
+      </article>
+      <article class="metric-card">
+        <span>Plus / moins-value</span>
+        <strong id="pnlValue">—</strong>
+        <small id="pnlPercent">—</small>
+      </article>
+      <article class="metric-card">
+        <span>Liquidités</span>
+        <strong id="cashValue">—</strong>
+        <small>disponible pour investir</small>
+      </article>
+    </section>
 
-const money = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
-const pct = new Intl.NumberFormat('fr-FR', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    <section class="layout-main">
+      <div class="stack">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">POSITIONS</p>
+              <h2>Portefeuille</h2>
+            </div>
+            <button class="btn secondary" id="addPositionBtn">Ajouter une position</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Actif</th>
+                  <th>Courtier</th>
+                  <th>Qté</th>
+                  <th>PRU</th>
+                  <th>Cours</th>
+                  <th>Valeur</th>
+                  <th>Perf.</th>
+                </tr>
+              </thead>
+              <tbody id="portfolioTable"></tbody>
+            </table>
+          </div>
+        </article>
 
-const state = {
-  portfolio: load(STORAGE_KEYS.portfolio, defaultPortfolio),
-  watchlist: load(STORAGE_KEYS.watchlist, defaultWatchlist),
-  activeBroker: localStorage.getItem(STORAGE_KEYS.broker) || 'all'
-};
-
-function load(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : structuredClone(fallback);
-  } catch {
-    return structuredClone(fallback);
-  }
-}
-
-function persist() {
-  localStorage.setItem(STORAGE_KEYS.portfolio, JSON.stringify(state.portfolio));
-  localStorage.setItem(STORAGE_KEYS.watchlist, JSON.stringify(state.watchlist));
-  localStorage.setItem(STORAGE_KEYS.broker, state.activeBroker);
-}
-
-function brokerName(id) {
-  return brokers.find(b => b.id === id)?.name || id;
-}
-
-function visiblePositions() {
-  return state.activeBroker === 'all' ? state.portfolio.positions : state.portfolio.positions.filter(p => p.broker === state.activeBroker);
-}
-
-function renderBrokerControls() {
-  const selects = [document.querySelector('#brokerSelect'), document.querySelector('#positionBroker')];
-  for (const [index, select] of selects.entries()) {
-    select.innerHTML = '';
-    if (index === 0) select.add(new Option('Tous les courtiers', 'all'));
-    brokers.forEach(b => select.add(new Option(b.name, b.id)));
-  }
-  document.querySelector('#brokerSelect').value = state.activeBroker;
-
-  document.querySelector('#brokersPanel').innerHTML = brokers.map(b => `
-    <div class="broker-row">
-      <div><strong>${b.name}</strong><small>${b.fractional}</small></div>
-      <span class="badge">${b.status}</span>
-    </div>`).join('');
-}
-
-function renderMetrics() {
-  const filtered = { ...state.portfolio, positions: visiblePositions() };
-  const summary = summarizePortfolio(filtered);
-  document.querySelector('#portfolioValue').textContent = money.format(summary.totalValue);
-  document.querySelector('#investedValue').textContent = money.format(summary.invested);
-  document.querySelector('#pnlValue').textContent = money.format(summary.pnl);
-  document.querySelector('#pnlValue').className = summary.pnl >= 0 ? 'positive' : 'negative';
-  document.querySelector('#pnlPercent').textContent = pct.format(summary.pnlPct / 100);
-  document.querySelector('#cashValue').textContent = money.format(state.portfolio.cash);
-  document.querySelector('#portfolioMove').textContent = `${summary.pnl >= 0 ? '+' : ''}${money.format(summary.pnl)} latent`;
-}
-
-function renderPortfolio() {
-  const rows = visiblePositions();
-  const table = document.querySelector('#portfolioTable');
-  if (!rows.length) {
-    table.innerHTML = '<tr><td colspan="7" class="empty">Aucune position pour ce courtier.</td></tr>';
-    return;
-  }
-  table.innerHTML = rows.map(p => {
-    const invested = p.quantity * p.avgPrice;
-    const value = p.quantity * p.price;
-    const perf = invested ? (value - invested) / invested : 0;
-    return `<tr>
-      <td class="asset-cell"><strong>${p.name}</strong><small>${p.ticker} • ${p.type}</small></td>
-      <td>${brokerName(p.broker)}</td>
-      <td>${p.quantity.toLocaleString('fr-FR', { maximumFractionDigits: 6 })}</td>
-      <td>${money.format(p.avgPrice)}</td>
-      <td>${money.format(p.price)}</td>
-      <td>${money.format(value)}</td>
-      <td class="${perf >= 0 ? 'positive' : 'negative'}">${pct.format(perf)}</td>
-    </tr>`;
-  }).join('');
-}
-
-function renderAllocation() {
-  const filtered = { ...state.portfolio, positions: visiblePositions() };
-  const allocations = allocationByRegion(filtered);
-  document.querySelector('#allocationBars').innerHTML = allocations.length ? allocations.map(a => `
-    <div class="allocation-row">
-      <div class="allocation-meta"><span>${a.label}</span><strong>${a.percent.toFixed(1)} %</strong></div>
-      <div class="bar"><span style="width:${Math.max(2, a.percent)}%"></span></div>
-    </div>`).join('') : '<p class="empty">Aucune donnée.</p>';
-}
-
-function signalClass(signal) {
-  if (signal === 'Achat') return 'buy';
-  if (signal === 'Alléger') return 'sell';
-  return '';
-}
-
-function renderWatchlist() {
-  document.querySelector('#watchlist').innerHTML = state.watchlist.map(item => `
-    <article class="watch-card">
-      <div class="watch-card-top">
-        <div><h3>${item.name}</h3><span class="ticker">${item.ticker}</span></div>
-        <span class="badge ${signalClass(item.signal)}">${item.signal}</span>
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">RADAR QUOTIDIEN</p>
+              <h2>Watchlist</h2>
+            </div>
+            <button class="btn secondary" id="addWatchBtn">Ajouter un actif</button>
+          </div>
+          <div id="watchlist" class="watch-grid"></div>
+        </article>
       </div>
-      <div class="watch-price">${money.format(item.price)}</div>
-      <div class="${item.change >= 0 ? 'positive' : 'negative'}">${item.change >= 0 ? '+' : ''}${item.change.toFixed(2)} % aujourd’hui</div>
-      <p class="watch-note">${item.note || '—'}</p>
-    </article>`).join('');
-}
 
-function renderAlerts() {
-  const alerts = buildAlerts(state.watchlist);
-  document.querySelector('#alertsList').innerHTML = alerts.map(a => `
-    <div class="alert"><strong>${a.title}</strong><small>${a.text}</small></div>`).join('');
-}
+      <aside class="stack">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">ALLOCATION</p>
+              <h2>Répartition</h2>
+            </div>
+          </div>
+          <div id="allocationBars" class="allocation-list"></div>
+        </article>
 
-function renderAll() {
-  renderMetrics();
-  renderPortfolio();
-  renderAllocation();
-  renderWatchlist();
-  renderAlerts();
-}
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">SIGNAL</p>
+              <h2>Alertes</h2>
+            </div>
+          </div>
+          <div id="alertsList" class="alerts-list"></div>
+        </article>
 
-function setupDialogs() {
-  const positionDialog = document.querySelector('#positionDialog');
-  const watchDialog = document.querySelector('#watchDialog');
-  const positionForm = document.querySelector('#positionForm');
-  const watchForm = document.querySelector('#watchForm');
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">COURTIERS</p>
+              <h2>Disponibilité</h2>
+            </div>
+          </div>
+          <div id="brokersPanel" class="broker-list"></div>
+        </article>
+      </aside>
+    </section>
+  </main>
 
-  document.querySelector('#addPositionBtn').addEventListener('click', () => positionDialog.showModal());
-  document.querySelector('#addWatchBtn').addEventListener('click', () => watchDialog.showModal());
+  <dialog id="positionDialog">
+    <form method="dialog" id="positionForm" class="dialog-form">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">NOUVELLE POSITION</p>
+          <h2>Ajouter un actif</h2>
+        </div>
+        <button value="cancel" class="icon-btn" aria-label="Fermer">×</button>
+      </div>
+      <div class="form-grid">
+        <label class="field"><span>Nom</span><input name="name" required placeholder="Ex. Amundi MSCI World" /></label>
+        <label class="field"><span>Ticker</span><input name="ticker" required placeholder="Ex. CW8" /></label>
+        <label class="field"><span>Type</span><select name="type"><option>ETF</option><option>Action</option></select></label>
+        <label class="field"><span>Courtier</span><select name="broker" id="positionBroker"></select></label>
+        <label class="field"><span>Quantité</span><input name="quantity" type="number" step="0.000001" min="0" required /></label>
+        <label class="field"><span>PRU (€)</span><input name="avgPrice" type="number" step="0.01" min="0" required /></label>
+        <label class="field"><span>Cours (€)</span><input name="price" type="number" step="0.01" min="0" required /></label>
+        <label class="field"><span>Zone</span><select name="region"><option>Monde</option><option>États-Unis</option><option>Europe</option><option>Asie émergente</option><option>Autre</option></select></label>
+      </div>
+      <div class="dialog-actions">
+        <button value="cancel" class="btn secondary">Annuler</button>
+        <button value="default" class="btn" id="savePositionBtn">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
 
-  document.querySelector('#savePositionBtn').addEventListener('click', (event) => {
-    event.preventDefault();
-    if (!positionForm.reportValidity()) return;
-    const data = new FormData(positionForm);
-    state.portfolio.positions.push({
-      id: Date.now(),
-      name: String(data.get('name')).trim(),
-      ticker: String(data.get('ticker')).trim().toUpperCase(),
-      type: String(data.get('type')),
-      broker: String(data.get('broker')),
-      quantity: Number(data.get('quantity')),
-      avgPrice: Number(data.get('avgPrice')),
-      price: Number(data.get('price')),
-      region: String(data.get('region'))
-    });
-    persist();
-    renderAll();
-    positionForm.reset();
-    positionDialog.close();
-  });
+  <dialog id="watchDialog">
+    <form method="dialog" id="watchForm" class="dialog-form">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">WATCHLIST</p>
+          <h2>Ajouter un actif</h2>
+        </div>
+        <button value="cancel" class="icon-btn" aria-label="Fermer">×</button>
+      </div>
+      <div class="form-grid">
+        <label class="field"><span>Nom</span><input name="name" required placeholder="Ex. NVIDIA" /></label>
+        <label class="field"><span>Ticker</span><input name="ticker" required placeholder="Ex. NVDA" /></label>
+        <label class="field"><span>Cours (€)</span><input name="price" type="number" step="0.01" min="0" required /></label>
+        <label class="field"><span>Variation jour (%)</span><input name="change" type="number" step="0.01" required /></label>
+        <label class="field"><span>Signal</span><select name="signal"><option>Surveiller</option><option>Achat</option><option>Alléger</option></select></label>
+        <label class="field"><span>Note</span><input name="note" placeholder="Ex. proche du support" /></label>
+      </div>
+      <div class="dialog-actions">
+        <button value="cancel" class="btn secondary">Annuler</button>
+        <button value="default" class="btn" id="saveWatchBtn">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
 
-  document.querySelector('#saveWatchBtn').addEventListener('click', (event) => {
-    event.preventDefault();
-    if (!watchForm.reportValidity()) return;
-    const data = new FormData(watchForm);
-    state.watchlist.push({
-      id: Date.now(),
-      name: String(data.get('name')).trim(),
-      ticker: String(data.get('ticker')).trim().toUpperCase(),
-      price: Number(data.get('price')),
-      change: Number(data.get('change')),
-      signal: String(data.get('signal')),
-      note: String(data.get('note')).trim()
-    });
-    persist();
-    renderAll();
-    watchForm.reset();
-    watchDialog.close();
-  });
-}
-
-renderBrokerControls();
-renderAll();
-setupDialogs();
-
-document.querySelector('#brokerSelect').addEventListener('change', (event) => {
-  state.activeBroker = event.target.value;
-  persist();
-  renderAll();
-});
-
-document.querySelector('#refreshBtn').addEventListener('click', () => {
-  state.watchlist = pseudoRefresh(state.watchlist);
-  state.portfolio.positions = state.portfolio.positions.map(p => ({
-    ...p,
-    price: Number((p.price * (1 + (Math.random() - 0.5) * 0.008)).toFixed(2))
-  }));
-  persist();
-  renderAll();
-});
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
