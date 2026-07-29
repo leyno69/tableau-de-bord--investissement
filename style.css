@@ -571,3 +571,32 @@ hr {
         line-height: 1.4;
     }
 }
+@media (max-width: 600px) {
+    .broker-row {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 12px 0;
+    }
+
+    .broker-row > div {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .broker-row strong,
+    .broker-row small,
+    .broker-row .badge {
+        display: block;
+    }
+
+    .broker-row small {
+        color: #666;
+        line-height: 1.4;
+    }
+
+    .broker-row .badge {
+        align-self: flex-start;
+    }
+}
