@@ -1,9 +1,9 @@
 export default async (request) => {
-  const apiKey = process.env.TWELVE_DATA_API_KEY;
+  const apiKey = process.env.EODHD_API_KEY;
 
   if (!apiKey) {
     return Response.json(
-      { error: "Clé API Twelve Data absente côté serveur." },
+     { error: "Clé API EODHD absente côté serveur." },
       { status: 500 }
     );
   }
@@ -20,44 +20,62 @@ export default async (request) => {
 
   try {
     const response = await fetch(
-      `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(symbol)}`,
-      {
-        headers: {
-          Authorization: `apikey ${apiKey}`,
-        },
-      }
-    );
+  `https://eodhd.com/api/eod/${encodeURIComponent(symbol)}` +
+  `?api_token=${encodeURIComponent(apiKey)}` +
+  `&fmt=json&order=d`
+);
 
     const data = await response.json();
 
     if (!response.ok || data.status === "error") {
       return Response.json(
         {
-          error: data.message || "Erreur Twelve Data.",
+          error: data.message || "Erreur EODHD.",
           code: data.code || response.status,
         },
         { status: response.ok ? 400 : response.status }
       );
     }
 
-    return Response.json({
-      symbol: data.symbol,
-      name: data.name,
-      exchange: data.exchange,
-      currency: data.currency,
-      price: Number(data.close),
-      previousClose: Number(data.previous_close),
-      change: Number(data.change),
-      percentChange: Number(data.percent_change),
-      open: Number(data.open),
-      high: Number(data.high),
-      low: Number(data.low),
-      volume: Number(data.volume),
-      datetime: data.datetime,
-      isMarketOpen: data.is_market_open,
-    });
+    const rows = Array.isArray(data) ? data : [];
+const latest = rows[0];
+const previous = rows[1] || null;
+
+if (!latest) {
+  return Response.json(
+    { error: "Aucune donnée disponible pour ce symbole." },
+    { status: 404 }
+  );
+}
+
+const price = Number(latest.close);
+const previousClose = previous ? Number(previous.close) : null;
+
+const change =
+  Number.isFinite(previousClose)
+    ? price - previousClose
+    : null;
+
+const percentChange =
+  Number.isFinite(previousClose) && previousClose !== 0
+    ? (change / previousClose) * 100
+    : null;
+
+return Response.json({
+  symbol,
+  price,
+  previousClose,
+  change,
+  percentChange,
+  open: Number(latest.open),
+  high: Number(latest.high),
+  low: Number(latest.low),
+  volume: Number(latest.volume),
+  datetime: latest.date,
+  source: "EODHD"
+});
   } catch (error) {
-    console.error("Twelve Data error:", error);
+    console.error("EODHD error:", error);
 
     return Response.json(
       { error: "Impossible de récupérer les données de marché." },
