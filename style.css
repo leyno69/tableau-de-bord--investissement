@@ -530,3 +530,26 @@ hr {
         text-align: right;
     }
 }
+@media (max-width: 600px) {
+    .allocation-row {
+        margin-bottom: 14px;
+    }
+
+    .allocation-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 6px;
+    }
+
+    .allocation-meta span {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .allocation-meta strong {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+}
