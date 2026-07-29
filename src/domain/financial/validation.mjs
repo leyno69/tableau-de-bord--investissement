@@ -4,7 +4,7 @@ const ID_RE = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const CODE_RE = /^[A-Z][A-Z0-9_:-]{1,63}$/;
 const CURRENCY_RE = /^[A-Z]{3}$/;
 const ISIN_RE = /^[A-Z]{2}[A-Z0-9]{9}[0-9]$/;
-const DECIMAL_RE = /^(0|[1-9]\d*)(\.\d+)?$/;
+const DECIMAL_RE = /^-?(0|[1-9]\d*)(\.\d+)?$/;
 
 export function requiredString(value, field) {
   if (typeof value !== 'string' || value.length === 0 || value !== value.trim()) {
@@ -40,9 +40,12 @@ export function optionalIsin(value, field = 'isin') {
 
 export function decimalString(value, field, { positive = false, allowZero = true } = {}) {
   const v = requiredString(value, field);
-  if (!DECIMAL_RE.test(v)) invalid(field, `${field} must be a canonical non-negative decimal string`, value);
-  const isZero = /^0(?:\.0+)?$/.test(v);
-  if (positive && isZero) invalid(field, `${field} must be strictly positive`, value);
+  if (!DECIMAL_RE.test(v)) invalid(field, `${field} must be a canonical decimal string`, value);
+
+  const unsigned = v.startsWith('-') ? v.slice(1) : v;
+  const isZero = /^0(?:\.0+)?$/.test(unsigned);
+  if (v.startsWith('-') && isZero) invalid(field, `${field} must not use negative zero`, value);
+  if (positive && (v.startsWith('-') || isZero)) invalid(field, `${field} must be strictly positive`, value);
   if (!allowZero && isZero) invalid(field, `${field} must be non-zero`, value);
   return v;
 }
