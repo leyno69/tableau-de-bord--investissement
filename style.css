@@ -476,3 +476,21 @@ hr {
         margin-top: 4px;
     }
 }
+@media (max-width: 600px) {
+    #portfolioTable thead,
+    #portfolioTable th {
+        display: none !important;
+    }
+
+    #portfolioTable {
+        min-width: 0 !important;
+    }
+
+    #portfolioTable tr {
+        width: 100%;
+    }
+
+    #portfolioTable td {
+        max-width: none;
+    }
+}
