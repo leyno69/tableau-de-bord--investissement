@@ -553,3 +553,21 @@ hr {
         white-space: nowrap;
     }
 }
+@media (max-width: 600px) {
+    .alert {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 12px 0;
+    }
+
+    .alert strong,
+    .alert small {
+        display: block;
+    }
+
+    .alert small {
+        color: #666;
+        line-height: 1.4;
+    }
+}
