@@ -174,3 +174,29 @@
   <script type="module" src="app.js"></script>
 </body>
 </html>
+@media (max-width: 600px) {
+    .table-wrap > table > thead {
+        display: none !important;
+    }
+
+    .table-wrap > table {
+        width: 100% !important;
+        min-width: 0 !important;
+        display: block;
+    }
+
+    #portfolioTable {
+        display: block;
+        width: 100%;
+    }
+
+    #portfolioTable tr {
+        display: block;
+        width: 100% !important;
+        margin-bottom: 16px;
+    }
+
+    #portfolioTable td {
+        width: 100% !important;
+    }
+}
