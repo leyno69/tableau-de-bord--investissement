@@ -54,18 +54,9 @@ test('creates a valid immutable Instrument and preserves provider mappings', () 
 });
 
 test('rejects structurally invalid Instrument data without normalizing it', () => {
-  assert.throws(
-    () => createInstrument({ ...validInstrument, currency: 'eur' }),
-    FinancialDomainError,
-  );
-  assert.throws(
-    () => createInstrument({ ...validInstrument, isin: 'FR000012007X' }),
-    FinancialDomainError,
-  );
-  assert.throws(
-    () => createInstrument({ ...validInstrument, type: 'equity' }),
-    FinancialDomainError,
-  );
+  assert.throws(() => createInstrument({ ...validInstrument, currency: 'eur' }), FinancialDomainError);
+  assert.throws(() => createInstrument({ ...validInstrument, isin: 'FR000012007X' }), FinancialDomainError);
+  assert.throws(() => createInstrument({ ...validInstrument, type: 'equity' }), FinancialDomainError);
 });
 
 test('creates the minimal Account without fiscal behavior', () => {
@@ -84,6 +75,19 @@ test('creates a valid Transaction and preserves exact decimal text, fees and tax
   assert.equal(tx.context, 'REAL');
   assert.ok(Object.isFrozen(tx));
   assert.ok(Object.isFrozen(tx.execution));
+});
+
+test('preserves the source sign of monetary components without defining the business convention', () => {
+  const tx = createTransaction({
+    ...validTransaction,
+    id: 'transaction:signed-fee',
+    fees: [{ amount: '-1.25', currency: 'EUR', category: 'BROKERAGE' }],
+  });
+  assert.equal(tx.fees[0].amount, '-1.25');
+  assert.throws(
+    () => createTransaction({ ...validTransaction, fees: [{ amount: '-0', currency: 'EUR' }] }),
+    FinancialDomainError,
+  );
 });
 
 test('requires transaction identity, account, instrument, type, temporal value and context', () => {
@@ -109,17 +113,24 @@ test('allows a transaction without execution while validating execution strictly
     FinancialDomainError,
   );
   assert.throws(
+    () => createTransaction({ ...validTransaction, execution: { quantity: '-1', price: '182.37', currency: 'EUR' } }),
+    FinancialDomainError,
+  );
+  assert.throws(
     () => createTransaction({ ...validTransaction, execution: { quantity: '1', price: '182.37000000000000001', currency: 'eur' } }),
     FinancialDomainError,
   );
+  assert.throws(() => createTransaction({ ...validTransaction, fees: [null] }), FinancialDomainError);
 });
 
-test('preserves temporal precision without inventing missing components', () => {
+test('preserves temporal precision without inventing or normalizing invalid components', () => {
   assert.deepEqual(createTemporal({ kind: 'DATE', value: '2026-07-30' }), { kind: 'DATE', value: '2026-07-30' });
   assert.deepEqual(createTemporal({ kind: 'PARTIAL', value: '2026-07' }), { kind: 'PARTIAL', value: '2026-07' });
   assert.deepEqual(createTemporal({ kind: 'PARTIAL', value: '2026' }), { kind: 'PARTIAL', value: '2026' });
   assert.throws(() => createTemporal({ kind: 'INSTANT', value: '2026-07-30T10:15:30' }), FinancialDomainError);
   assert.throws(() => createTemporal({ kind: 'DATE', value: '2026-02-30' }), FinancialDomainError);
+  assert.throws(() => createTemporal({ kind: 'INSTANT', value: '2026-02-30T10:15:30+02:00' }), FinancialDomainError);
+  assert.throws(() => createTemporal({ kind: 'INSTANT', value: '2026-07-30T25:15:30+02:00' }), FinancialDomainError);
 });
 
 test('CalculatedPosition remains a derived projection descriptor only', () => {
