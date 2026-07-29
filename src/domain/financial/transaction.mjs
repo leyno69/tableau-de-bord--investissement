@@ -12,8 +12,9 @@ import { invalid } from './errors.mjs';
 const CONTEXTS = new Set(['REAL', 'SIMULATION']);
 
 function moneyComponent(input, field) {
-  if (input == null) return null;
-  if (typeof input !== 'object' || Array.isArray(input)) invalid(field, `${field} must be an object`, input);
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    invalid(field, `${field} must be an object`, input);
+  }
   return deepFreeze({
     amount: decimalString(input.amount, `${field}.amount`),
     currency: currency(input.currency, `${field}.currency`),
