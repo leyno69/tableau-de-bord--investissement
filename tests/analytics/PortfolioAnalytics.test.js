@@ -43,11 +43,11 @@ test('calcule variations, volatilité et drawdown', () => {
   assert.equal(result.portfolioId, 'portfolio-1');
   assert.equal(result.currency, 'EUR');
   assert.deepEqual(result.absoluteChange.toJSON(), { amount: 8, currency: 'EUR' });
-  assert.equal(result.cumulativeReturn, 0.08000000000000007);
+  assert.equal(result.cumulativeReturn, 0.08);
   assert.deepEqual(result.returns.map(entry => entry.rate), [0.2, -0.25, 0.2]);
-  assert.ok(Math.abs(result.averagePeriodicReturn - 0.05) < 1e-12);
-  assert.ok(Math.abs(result.periodicVolatility - 0.2598076211353316) < 1e-12);
-  assert.ok(Math.abs(result.annualizedVolatility - (result.periodicVolatility * Math.sqrt(252))) < 1e-12);
+  assert.equal(result.averagePeriodicReturn, 0.05);
+  assert.equal(result.periodicVolatility, 0.2598076211);
+  assert.equal(result.annualizedVolatility, 4.1243181255);
   assert.equal(result.maxDrawdown.rate, -0.25);
   assert.equal(result.maxDrawdown.peakAt, '2026-01-02T00:00:00.000Z');
   assert.equal(result.maxDrawdown.troughAt, '2026-01-03T00:00:00.000Z');
