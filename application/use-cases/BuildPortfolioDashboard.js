@@ -26,14 +26,16 @@ export class BuildPortfolioDashboard {
 
     const generatedAt = BuildPortfolioDashboard.#requireDate(this.clock());
     const valuation = await this.valuePortfolio.execute({ positions, cashBalances, baseCurrency, marketDataPolicy });
+    const valuationIssues = Array.isArray(valuation.issues) ? valuation.issues : [];
+    const valuationComplete = valuation.complete !== false;
     const [performance, allocation] = await Promise.all([
       this.calculatePerformance.execute(valuation),
       this.calculateAllocation.execute(valuation)
     ]);
 
-    const currentSnapshot = new PortfolioSnapshot({ portfolioId: normalizedPortfolioId, totalValue: valuation.totalValue, capturedAt: generatedAt, source: valuation.complete ? 'DASHBOARD' : 'DASHBOARD_PARTIAL' });
+    const currentSnapshot = new PortfolioSnapshot({ portfolioId: normalizedPortfolioId, totalValue: valuation.totalValue, capturedAt: generatedAt, source: valuationComplete ? 'DASHBOARD' : 'DASHBOARD_PARTIAL' });
     const analytics = this.analyzeSeries.execute({ snapshots: [...historicalSnapshots, currentSnapshot], periodsPerYear });
-    const combinedIssues = Object.freeze([...marketDataIssues, ...valuation.issues]);
+    const combinedIssues = Object.freeze([...marketDataIssues, ...valuationIssues]);
     const marketData = Object.freeze({
       policy: marketDataPolicy,
       complete: combinedIssues.length === 0,
