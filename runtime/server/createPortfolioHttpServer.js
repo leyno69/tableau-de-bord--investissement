@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 
 import { createPortfolioApplication } from '../../application/composition/createPortfolioApplication.js';
 import { InstrumentCatalog } from '../../application/services/InstrumentCatalog.js';
+import { InstrumentCatalogImporter } from '../../application/services/InstrumentCatalogImporter.js';
 import { InMemoryInstrumentRepository } from '../../infrastructure/instrument/InMemoryInstrumentRepository.js';
 import { PortfolioHttpAdapter } from '../../interfaces/http/PortfolioHttpAdapter.js';
 import { InstrumentCatalogHttpAdapter } from '../../interfaces/http/InstrumentCatalogHttpAdapter.js';
@@ -30,7 +31,8 @@ export function createPortfolioHttpServer({
   });
   const portfolioAdapter = new PortfolioHttpAdapter({ facade: application.facade });
   const instrumentCatalog = new InstrumentCatalog({ instrumentRepository });
-  const instrumentAdapter = new InstrumentCatalogHttpAdapter({ catalog: instrumentCatalog });
+  const instrumentImporter = new InstrumentCatalogImporter({ instrumentRepository });
+  const instrumentAdapter = new InstrumentCatalogHttpAdapter({ catalog: instrumentCatalog, importer: instrumentImporter });
   const httpAdapter = Object.freeze({
     async handle(request) {
       return (await instrumentAdapter.handle(request)) ?? portfolioAdapter.handle(request);
@@ -76,7 +78,7 @@ export function createPortfolioHttpServer({
     return Object.freeze({ host: value.address, port: value.port, family: value.family });
   }
 
-  return Object.freeze({ server, application, instrumentCatalog, instrumentRepository, start, stop, address });
+  return Object.freeze({ server, application, instrumentCatalog, instrumentImporter, instrumentRepository, start, stop, address });
 }
 
 function sendJson(response, statusCode, body) {
