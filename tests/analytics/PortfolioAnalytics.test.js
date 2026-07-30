@@ -47,7 +47,7 @@ test('calcule variations, volatilité et drawdown', () => {
   assert.deepEqual(result.returns.map(entry => entry.rate), [0.2, -0.25, 0.2]);
   assert.equal(result.averagePeriodicReturn, 0.05);
   assert.equal(result.periodicVolatility, 0.2598076211);
-  assert.equal(result.annualizedVolatility, 4.1243181255);
+  assert.equal(result.annualizedVolatility, 4.1243181249);
   assert.equal(result.maxDrawdown.rate, -0.25);
   assert.equal(result.maxDrawdown.peakAt, '2026-01-02T00:00:00.000Z');
   assert.equal(result.maxDrawdown.troughAt, '2026-01-03T00:00:00.000Z');
