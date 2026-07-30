@@ -1,9 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import {
-  Transaction
-} from '../../domain/transaction/Transaction.js';
+import { Transaction } from '../../domain/transaction/Transaction.js';
 
 const validBuyProperties = {
   id: 'transaction_001',
@@ -32,9 +30,7 @@ test('crée une transaction d’achat valide', () => {
 });
 
 test('calcule le montant brut', () => {
-  const transaction = new Transaction(validBuyProperties);
-
-  assert.equal(transaction.grossAmount, 65);
+  assert.equal(new Transaction(validBuyProperties).grossAmount, 65);
 });
 
 test('calcule le coût total avec les frais et les taxes', () => {
@@ -59,23 +55,48 @@ test('calcule le produit net d’une vente', () => {
 });
 
 test('normalise la devise en majuscules', () => {
-  const transaction = new Transaction({
-    ...validBuyProperties,
-    currency: 'eur'
-  });
-
+  const transaction = new Transaction({ ...validBuyProperties, currency: 'eur' });
   assert.equal(transaction.currency, 'EUR');
 });
 
-test('normalise les dates au format ISO', () => {
+test('normalise un instant avec fuseau explicite', () => {
   const transaction = new Transaction({
     ...validBuyProperties,
-    executedAt: '2026-07-30 14:00:00+02:00'
+    executedAt: '2026-07-30T14:00:00+02:00'
   });
 
-  assert.equal(
-    transaction.executedAt,
-    '2026-07-30T12:00:00.000Z'
+  assert.equal(transaction.executedAt, '2026-07-30T12:00:00.000Z');
+  assert.equal(transaction.executedAtPrecision, 'INSTANT');
+});
+
+test('conserve une date civile sans inventer d’heure', () => {
+  const transaction = new Transaction({
+    ...validBuyProperties,
+    executedAt: '2026-07-30'
+  });
+
+  assert.equal(transaction.executedAt, '2026-07-30');
+  assert.equal(transaction.executedAtPrecision, 'DATE');
+  assert.equal(transaction.toJSON().executedAt, '2026-07-30');
+});
+
+test('refuse un horaire local ambigu sans fuseau', () => {
+  assert.throws(
+    () => new Transaction({
+      ...validBuyProperties,
+      executedAt: '2026-07-30T14:00:00'
+    }),
+    /fuseau explicite/
+  );
+});
+
+test('refuse une date civile impossible', () => {
+  assert.throws(
+    () => new Transaction({
+      ...validBuyProperties,
+      executedAt: '2026-02-30'
+    }),
+    /date civile valide/
   );
 });
 
@@ -83,73 +104,52 @@ test('rend la transaction immuable', () => {
   const transaction = new Transaction(validBuyProperties);
 
   assert.equal(Object.isFrozen(transaction), true);
-
   assert.throws(() => {
     transaction.quantity = 100;
   }, TypeError);
-
   assert.equal(transaction.quantity, 10);
 });
 
 test('refuse un achat sans actif', () => {
   assert.throws(
-    () =>
-      new Transaction({
-        ...validBuyProperties,
-        assetId: null
-      }),
+    () => new Transaction({ ...validBuyProperties, assetId: null }),
     /assetId est obligatoire/
   );
 });
 
 test('refuse une quantité nulle pour un achat', () => {
   assert.throws(
-    () =>
-      new Transaction({
-        ...validBuyProperties,
-        quantity: 0
-      }),
+    () => new Transaction({ ...validBuyProperties, quantity: 0 }),
     /quantity doit être strictement positive/
   );
 });
 
 test('refuse un prix nul pour un achat', () => {
   assert.throws(
-    () =>
-      new Transaction({
-        ...validBuyProperties,
-        unitPrice: 0
-      }),
+    () => new Transaction({ ...validBuyProperties, unitPrice: 0 }),
     /unitPrice doit être strictement positif/
   );
 });
 
 test('refuse les frais négatifs', () => {
   assert.throws(
-    () =>
-      new Transaction({
-        ...validBuyProperties,
-        fees: -1
-      }),
+    () => new Transaction({ ...validBuyProperties, fees: -1 }),
     /fees doit être un nombre positif ou nul/
   );
 });
 
 test('refuse une devise invalide', () => {
   assert.throws(
-    () =>
-      new Transaction({
-        ...validBuyProperties,
-        currency: 'EURO'
-      }),
+    () => new Transaction({ ...validBuyProperties, currency: 'EURO' }),
     /code ISO composé de trois lettres/
   );
 });
 
-test('produit un objet sérialisable', () => {
+test('produit un objet sérialisable compatible', () => {
   const transaction = new Transaction(validBuyProperties);
   const serialized = transaction.toJSON();
 
   assert.deepEqual(serialized, validBuyProperties);
   assert.notEqual(serialized, transaction);
+  assert.equal('executedAtPrecision' in serialized, false);
 });
