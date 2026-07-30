@@ -8,6 +8,7 @@ import { BuildPortfolioDashboard } from '../use-cases/BuildPortfolioDashboard.js
 import { PersistDashboardState } from '../use-cases/PersistDashboardState.js';
 import { LoadPortfolioMarketQuotes } from '../use-cases/LoadPortfolioMarketQuotes.js';
 import { PortfolioApplicationFacade } from '../facades/PortfolioApplicationFacade.js';
+import { CachedMarketDataProvider } from '../../infrastructure/market/CachedMarketDataProvider.js';
 import {
   InMemoryTransactionRepository,
   InMemoryPortfolioSnapshotRepository,
@@ -19,6 +20,8 @@ export function createPortfolioApplication({
   marketPriceProvider,
   exchangeRateProvider,
   assetClassificationProvider,
+  marketQuoteCache = null,
+  marketQuoteStaleAfterMs = 15 * 60 * 1000,
   alertRules = [],
   repositories = {},
   clock = () => new Date(),
@@ -27,6 +30,13 @@ export function createPortfolioApplication({
   requireMethod(marketPriceProvider, 'getPrice', 'marketPriceProvider');
   requireMethod(exchangeRateProvider, 'getRate', 'exchangeRateProvider');
   requireMethod(assetClassificationProvider, 'getClassification', 'assetClassificationProvider');
+  if (marketQuoteCache != null) {
+    requireMethod(marketQuoteCache, 'get', 'marketQuoteCache');
+    requireMethod(marketQuoteCache, 'save', 'marketQuoteCache');
+  }
+  if (!Number.isFinite(marketQuoteStaleAfterMs) || marketQuoteStaleAfterMs < 0) {
+    throw new RangeError('marketQuoteStaleAfterMs doit être un nombre positif ou nul.');
+  }
   if (!Array.isArray(alertRules)) throw new TypeError('alertRules doit être un tableau.');
   if (!repositories || typeof repositories !== 'object' || Array.isArray(repositories)) throw new TypeError('repositories doit être un objet.');
   if (typeof clock !== 'function') throw new TypeError('clock doit être une fonction.');
@@ -40,8 +50,16 @@ export function createPortfolioApplication({
   });
 
   const valuePortfolio = new ValuePortfolio({ marketPriceProvider, exchangeRateProvider });
-  const loadMarketQuotes = typeof marketPriceProvider.getQuote === 'function'
-    ? new LoadPortfolioMarketQuotes({ marketDataProvider: marketPriceProvider })
+  const quoteProvider = typeof marketPriceProvider.getQuote === 'function' && marketQuoteCache != null
+    ? new CachedMarketDataProvider({
+      provider: marketPriceProvider,
+      cache: marketQuoteCache,
+      clock,
+      staleAfterMs: marketQuoteStaleAfterMs
+    })
+    : marketPriceProvider;
+  const loadMarketQuotes = typeof quoteProvider.getQuote === 'function'
+    ? new LoadPortfolioMarketQuotes({ marketDataProvider: quoteProvider })
     : null;
   const calculatePerformance = new CalculatePortfolioPerformance({ exchangeRateProvider });
   const calculateAllocation = new CalculatePortfolioAllocation({ assetClassificationProvider });
