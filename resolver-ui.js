@@ -16,13 +16,25 @@ function makeResolver(form, kind) {
 
   const controls = document.createElement('div');
   controls.style.display = 'grid';
-  controls.style.gridTemplateColumns = '1fr auto';
+  controls.style.gridTemplateColumns = '1fr minmax(130px, auto) auto';
   controls.style.gap = '8px';
 
   const input = document.createElement('input');
   input.type = 'search';
-  input.placeholder = 'Nom, ticker ou ISIN — ex. WPEA, NVIDIA, IE0002XZSHO1';
+  input.placeholder = 'Ex. Nvidia, Airbus, MSCI World, WPEA ou un ISIN';
   input.autocomplete = 'off';
+
+  const typeFilter = document.createElement('select');
+  typeFilter.setAttribute('aria-label', 'Type d’instrument recherché');
+  [
+    ['Tous', 'all'],
+    ['Actions', 'stock'],
+    ['ETF', 'etf'],
+    ['Fonds', 'fund'],
+    ['Obligations', 'bond'],
+    ['Indices', 'index'],
+    ['Crypto', 'crypto']
+  ].forEach(([labelText, value]) => typeFilter.add(new Option(labelText, value)));
 
   const button = document.createElement('button');
   button.type = 'button';
@@ -34,9 +46,9 @@ function makeResolver(form, kind) {
   select.setAttribute('aria-label', 'Résultats de recherche instrument');
 
   const status = document.createElement('small');
-  status.textContent = 'La recherche interroge EODHD et vérifie la cotation choisie avant de remplir le formulaire.';
+  status.textContent = 'Vous pouvez saisir un nom courant, un ticker ou un ISIN. La cotation choisie est vérifiée avant remplissage.';
 
-  controls.append(input, button);
+  controls.append(input, typeFilter, button);
   wrapper.append(label, controls, select, status);
   grid.prepend(wrapper);
 
@@ -56,7 +68,7 @@ function makeResolver(form, kind) {
     select.hidden = true;
 
     try {
-      candidates = await searchInstruments(query);
+      candidates = await searchInstruments(query, typeFilter.value);
       select.innerHTML = '';
 
       if (!candidates.length) {
@@ -69,8 +81,9 @@ function makeResolver(form, kind) {
         const primary = candidate.isPrimary ? ' • principale' : '';
         const isin = candidate.isin ? ` • ${candidate.isin}` : '';
         const currency = candidate.currency ? ` • ${candidate.currency}` : '';
+        const assetType = candidate.type ? ` • ${candidate.type}` : '';
         select.add(new Option(
-          `${candidate.name || candidate.code} — ${candidate.marketSymbol}${currency}${isin}${primary}`,
+          `${candidate.name || candidate.code} — ${candidate.marketSymbol}${assetType}${currency}${isin}${primary}`,
           String(index)
         ));
       });
