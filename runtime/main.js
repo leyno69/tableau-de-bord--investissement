@@ -4,11 +4,11 @@ import { loadServerConfig } from './config/loadServerConfig.js';
 import { createBootstrapProviders } from './providers/createBootstrapProviders.js';
 import { createPortfolioHttpServer } from './server/createPortfolioHttpServer.js';
 
-export async function run({ environment = process.env, logger = console } = {}) {
+export async function run({ environment = process.env, logger = console, fetchImplementation = globalThis.fetch } = {}) {
   const config = loadServerConfig(environment);
   const runtime = createPortfolioHttpServer({
     config,
-    providers: createBootstrapProviders(),
+    providers: createBootstrapProviders({ market: config.market, fetchImplementation }),
     logger
   });
 
