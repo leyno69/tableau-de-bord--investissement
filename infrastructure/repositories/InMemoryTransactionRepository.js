@@ -1,4 +1,5 @@
 import { Transaction } from '../../domain/transaction/Transaction.js';
+import { TransactionRepository } from '../../domain/transaction/TransactionRepository.js';
 
 /**
  * Dépôt de transactions conservé uniquement en mémoire.
@@ -7,10 +8,12 @@ import { Transaction } from '../../domain/transaction/Transaction.js';
  * branchements de l'application. Elle pourra être remplacée plus tard par
  * SQLite ou une API sans modifier les cas d'usage.
  */
-export class InMemoryTransactionRepository {
+export class InMemoryTransactionRepository extends TransactionRepository {
   #transactions = new Map();
 
   constructor(initialTransactions = []) {
+    super();
+
     if (!Array.isArray(initialTransactions)) {
       throw new TypeError('initialTransactions doit être un tableau.');
     }
