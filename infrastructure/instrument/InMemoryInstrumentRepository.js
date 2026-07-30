@@ -13,6 +13,22 @@ export class InMemoryInstrumentRepository {
     return instrument;
   }
 
+  async findById(id) {
+    return this.instruments.get(requiredText(id, 'id')) ?? null;
+  }
+
+  async search(query = '') {
+    const needle = String(query ?? '').trim().toUpperCase();
+    const values = [...this.instruments.values()];
+    if (needle === '') return values.sort((a, b) => a.id.localeCompare(b.id));
+    return values.filter(instrument => searchable(instrument).some(value => value.includes(needle)))
+      .sort((a, b) => a.id.localeCompare(b.id));
+  }
+
+  async delete(id) {
+    return this.instruments.delete(requiredText(id, 'id'));
+  }
+
   async findByAnyIdentifier(identifier) {
     const needle = requiredText(identifier, 'identifier').toUpperCase();
     return [...this.instruments.values()].filter(instrument => {
@@ -24,6 +40,12 @@ export class InMemoryInstrumentRepository {
       );
     });
   }
+}
+
+function searchable(instrument) {
+  return [instrument.id, instrument.name, instrument.isin, instrument.ticker, instrument.venue,
+    ...instrument.providerMappings.flatMap(mapping => [mapping.provider, mapping.symbol, mapping.externalId])]
+    .filter(Boolean).map(value => value.toUpperCase());
 }
 
 function requiredText(value, field) { if (typeof value !== 'string' || value.trim() === '') throw new TypeError(`${field} doit être une chaîne non vide.`); return value.trim(); }
