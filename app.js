@@ -9,6 +9,11 @@ const STORAGE_KEYS = {
   broker: 'invest-dashboard-active-broker'
 };
 
+const VERIFIED_ETFS_BY_ISIN = {
+  IE0002XZSHO1: { ticker: 'WPEA', marketSymbol: 'WPEA.PA' },
+  FR0011869312: { ticker: 'PAEJ', marketSymbol: 'PAEJ.PA' }
+};
+
 const money = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
 const pct = new Intl.NumberFormat('fr-FR', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -18,6 +23,8 @@ const state = {
   activeBroker: localStorage.getItem(STORAGE_KEYS.broker) || 'all'
 };
 
+migrateVerifiedEtfs();
+
 function load(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
@@ -25,6 +32,18 @@ function load(key, fallback) {
   } catch {
     return structuredClone(fallback);
   }
+}
+
+function migrateVerifiedEtfs() {
+  let changed = false;
+  state.portfolio.positions = state.portfolio.positions.map(position => {
+    const verified = VERIFIED_ETFS_BY_ISIN[position.isin];
+    if (!verified) return position;
+    if (position.ticker === verified.ticker && position.marketSymbol === verified.marketSymbol) return position;
+    changed = true;
+    return { ...position, ...verified };
+  });
+  if (changed) persist();
 }
 
 function persist() {
