@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CashLedger } from '../../domain/cash/CashLedger.js';
+import { Money } from '../../domain/money/Money.js';
 import { Transaction } from '../../domain/transaction/Transaction.js';
 
 function transaction(overrides = {}) {
@@ -22,36 +23,38 @@ function transaction(overrides = {}) {
   });
 }
 
+const combinedTransactions = () => [
+  transaction({ id: '1', type: Transaction.TYPES.DEPOSIT, unitPrice: 1000 }),
+  transaction({
+    id: '2',
+    type: Transaction.TYPES.BUY,
+    assetId: 'ETF-WORLD',
+    quantity: 2,
+    unitPrice: 100,
+    fees: 1
+  }),
+  transaction({
+    id: '3',
+    type: Transaction.TYPES.DIVIDEND,
+    assetId: 'ETF-WORLD',
+    unitPrice: 10,
+    taxes: 1
+  }),
+  transaction({
+    id: '4',
+    type: Transaction.TYPES.SELL,
+    assetId: 'ETF-WORLD',
+    quantity: 1,
+    unitPrice: 120,
+    fees: 1,
+    taxes: 2
+  }),
+  transaction({ id: '5', type: Transaction.TYPES.FEE, unitPrice: 3 }),
+  transaction({ id: '6', type: Transaction.TYPES.WITHDRAWAL, unitPrice: 100, fees: 1 })
+];
+
 test('reconstruit un solde avec dépôt, achat, dividende, vente, frais et retrait', () => {
-  const balances = CashLedger.rebuildBalances([
-    transaction({ id: '1', type: Transaction.TYPES.DEPOSIT, unitPrice: 1000 }),
-    transaction({
-      id: '2',
-      type: Transaction.TYPES.BUY,
-      assetId: 'ETF-WORLD',
-      quantity: 2,
-      unitPrice: 100,
-      fees: 1
-    }),
-    transaction({
-      id: '3',
-      type: Transaction.TYPES.DIVIDEND,
-      assetId: 'ETF-WORLD',
-      unitPrice: 10,
-      taxes: 1
-    }),
-    transaction({
-      id: '4',
-      type: Transaction.TYPES.SELL,
-      assetId: 'ETF-WORLD',
-      quantity: 1,
-      unitPrice: 120,
-      fees: 1,
-      taxes: 2
-    }),
-    transaction({ id: '5', type: Transaction.TYPES.FEE, unitPrice: 3 }),
-    transaction({ id: '6', type: Transaction.TYPES.WITHDRAWAL, unitPrice: 100, fees: 1 })
-  ]);
+  const balances = CashLedger.rebuildBalances(combinedTransactions());
 
   assert.deepEqual(balances, [{
     portfolioId: 'portfolio-1',
@@ -59,6 +62,16 @@ test('reconstruit un solde avec dépôt, achat, dividende, vente, frais et retra
     currency: 'EUR',
     balance: 821
   }]);
+});
+
+test('reconstruit le même solde sous forme de Money', () => {
+  const balances = CashLedger.rebuildMoneyBalances(combinedTransactions());
+
+  assert.equal(balances.length, 1);
+  assert.equal(balances[0].balance instanceof Money, true);
+  assert.deepEqual(balances[0].balance.toJSON(), { amount: 821, currency: 'EUR' });
+  assert.equal(Object.isFrozen(balances), true);
+  assert.equal(Object.isFrozen(balances[0]), true);
 });
 
 test('sépare les soldes par compte et par devise', () => {
@@ -95,14 +108,20 @@ test('retourne des collections profondément immuables au premier niveau', () =>
 });
 
 test('calcule explicitement chaque impact espèces', () => {
-  assert.equal(CashLedger.cashDelta(transaction({
+  const buy = transaction({
     type: Transaction.TYPES.BUY,
     assetId: 'A',
     quantity: 2,
     unitPrice: 10,
     fees: 1,
     taxes: 2
-  })), -23);
+  });
+
+  assert.equal(CashLedger.cashDelta(buy), -23);
+  assert.deepEqual(CashLedger.cashDeltaMoney(buy).toJSON(), {
+    amount: -23,
+    currency: 'EUR'
+  });
 
   assert.equal(CashLedger.cashDelta(transaction({
     type: Transaction.TYPES.SELL,
@@ -132,4 +151,5 @@ test('refuse les entrées qui ne sont pas des transactions', () => {
   assert.throws(() => CashLedger.rebuildBalances({}), TypeError);
   assert.throws(() => CashLedger.rebuildBalances([{}]), TypeError);
   assert.throws(() => CashLedger.cashDelta({}), TypeError);
+  assert.throws(() => CashLedger.cashDeltaMoney({}), TypeError);
 });
