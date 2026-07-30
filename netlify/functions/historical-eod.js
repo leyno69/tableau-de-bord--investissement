@@ -18,11 +18,12 @@ function checksumRows(rows) {
   return `sha256:${createHash('sha256').update(JSON.stringify(rows)).digest('hex')}`;
 }
 
-function conservativeAvailableAt(lastObservationAt) {
-  // EODHD fournit une date de séance mais pas, dans cette réponse, l'horodatage exact
-  // de publication de la barre EOD. On utilise donc la fin UTC de la date de séance,
-  // volontairement conservatrice pour les backtests journaliers.
-  return lastObservationAt ? `${lastObservationAt}T23:59:59.999Z` : null;
+function conservativeAvailableAt(sessionDate) {
+  // La réponse EOD contient la date de séance, mais pas l'horodatage exact de
+  // publication. Pour un backtest journalier, on considère donc la barre
+  // disponible uniquement à la fin UTC de cette date. C'est volontairement
+  // conservateur et ne doit pas être utilisé pour un modèle intraday.
+  return sessionDate ? `${sessionDate}T23:59:59.999Z` : null;
 }
 
 export default async (request) => {
@@ -44,12 +45,7 @@ export default async (request) => {
       return Response.json({ error: '`from` doit être antérieur ou égal à `to`.' }, { status: 400 });
     }
 
-    const params = new URLSearchParams({
-      api_token: apiKey,
-      fmt: 'json',
-      period: 'd',
-      order: 'a'
-    });
+    const params = new URLSearchParams({ api_token: apiKey, fmt: 'json', period: 'd', order: 'a' });
     if (from) params.set('from', from);
     if (to) params.set('to', to);
 
@@ -62,12 +58,13 @@ export default async (request) => {
       return Response.json({ error: providerMessage }, { status: response.ok ? 502 : response.status });
     }
 
-    const rows = normalizeEodRows(data);
-    const audit = auditPriceHistory(rows);
+    const normalizedRows = normalizeEodRows(data);
+    const audit = auditPriceHistory(normalizedRows);
     if (!audit.valid) {
       return Response.json({ error: 'Historique EOD rejeté par le contrôle qualité.', audit }, { status: 502 });
     }
 
+    const rows = normalizedRows.map(row => ({ ...row, availableAt: conservativeAvailableAt(row.date) }));
     const collectedAt = new Date().toISOString();
     const checksum = checksumRows(rows);
     const sourceUrl = `https://eodhd.com/api/eod/${encodeURIComponent(symbol)}`;
@@ -88,9 +85,11 @@ export default async (request) => {
         requestedTo: to,
         period: 'd',
         order: 'a',
+        observationAvailabilityField: 'availableAt',
         availabilityPolicy: 'session-date-end-utc-conservative',
         availabilityPrecision: 'day',
-        providerPublicationTimestampKnown: false
+        providerPublicationTimestampKnown: false,
+        suitableForIntradayBacktest: false
       }
     });
 
@@ -100,18 +99,8 @@ export default async (request) => {
     }
 
     return Response.json(
-      {
-        symbol,
-        rows,
-        audit,
-        provenance
-      },
-      {
-        headers: {
-          'Cache-Control': 'no-store',
-          'X-Data-Checksum': checksum
-        }
-      }
+      { symbol, rows, audit, provenance },
+      { headers: { 'Cache-Control': 'no-store', 'X-Data-Checksum': checksum } }
     );
   } catch (error) {
     console.error('Historical EOD ingestion error:', error);
