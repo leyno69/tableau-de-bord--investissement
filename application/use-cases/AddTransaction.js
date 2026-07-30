@@ -25,13 +25,13 @@ export class AddTransaction {
     this.transactionRepository = transactionRepository;
   }
 
-  execute(properties) {
+  async execute(properties) {
     const transaction =
       properties instanceof Transaction
         ? properties
         : new Transaction(properties);
 
-    if (this.transactionRepository.findById(transaction.id)) {
+    if (await this.transactionRepository.findById(transaction.id)) {
       throw new Error(
         `Une transaction avec l'identifiant "${transaction.id}" existe déjà.`
       );

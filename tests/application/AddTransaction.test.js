@@ -20,65 +20,62 @@ const transactionProperties = {
   createdAt: '2026-01-15T10:00:00.000Z'
 };
 
-test('AddTransaction crée et enregistre une transaction', () => {
+test('AddTransaction crée et enregistre une transaction', async () => {
   const repository = new InMemoryTransactionRepository();
-  const addTransaction = new AddTransaction({
-    transactionRepository: repository
-  });
+  const addTransaction = new AddTransaction({ transactionRepository: repository });
 
-  const result = addTransaction.execute(transactionProperties);
+  const result = await addTransaction.execute(transactionProperties);
 
   assert.ok(result instanceof Transaction);
   assert.equal(result.id, 'transaction-1');
   assert.equal(repository.size, 1);
-  assert.equal(repository.findById('transaction-1'), result);
+  assert.equal(await repository.findById('transaction-1'), result);
 });
 
-test('AddTransaction accepte une instance de Transaction existante', () => {
+test('AddTransaction accepte une instance de Transaction existante', async () => {
   const repository = new InMemoryTransactionRepository();
-  const addTransaction = new AddTransaction({
-    transactionRepository: repository
-  });
+  const addTransaction = new AddTransaction({ transactionRepository: repository });
   const transaction = new Transaction(transactionProperties);
 
-  const result = addTransaction.execute(transaction);
+  const result = await addTransaction.execute(transaction);
 
   assert.equal(result, transaction);
-  assert.equal(repository.findById(transaction.id), transaction);
+  assert.equal(await repository.findById(transaction.id), transaction);
 });
 
-test('AddTransaction refuse un identifiant déjà utilisé', () => {
+test('AddTransaction refuse un identifiant déjà utilisé', async () => {
   const existingTransaction = new Transaction(transactionProperties);
-  const repository = new InMemoryTransactionRepository([
-    existingTransaction
-  ]);
-  const addTransaction = new AddTransaction({
-    transactionRepository: repository
-  });
+  const repository = new InMemoryTransactionRepository([existingTransaction]);
+  const addTransaction = new AddTransaction({ transactionRepository: repository });
 
-  assert.throws(
+  await assert.rejects(
     () => addTransaction.execute(transactionProperties),
     /existe déjà/
   );
   assert.equal(repository.size, 1);
-  assert.equal(repository.findById(existingTransaction.id), existingTransaction);
+  assert.equal(await repository.findById(existingTransaction.id), existingTransaction);
 });
 
-test('AddTransaction délègue la validation à Transaction', () => {
+test('AddTransaction délègue la validation à Transaction', async () => {
   const repository = new InMemoryTransactionRepository();
-  const addTransaction = new AddTransaction({
-    transactionRepository: repository
-  });
+  const addTransaction = new AddTransaction({ transactionRepository: repository });
 
-  assert.throws(
-    () =>
-      addTransaction.execute({
-        ...transactionProperties,
-        quantity: 0
-      }),
+  await assert.rejects(
+    () => addTransaction.execute({ ...transactionProperties, quantity: 0 }),
     RangeError
   );
   assert.equal(repository.size, 0);
+});
+
+test('AddTransaction attend les dépôts asynchrones avant de contrôler l’unicité', async () => {
+  const existing = new Transaction(transactionProperties);
+  const repository = {
+    async findById() { return existing; },
+    async save() { throw new Error('save ne doit pas être appelé'); }
+  };
+  const addTransaction = new AddTransaction({ transactionRepository: repository });
+
+  await assert.rejects(() => addTransaction.execute(transactionProperties), /existe déjà/);
 });
 
 test('AddTransaction exige un dépôt compatible', () => {
@@ -88,10 +85,7 @@ test('AddTransaction exige un dépôt compatible', () => {
   );
 
   assert.throws(
-    () =>
-      new AddTransaction({
-        transactionRepository: { save() {} }
-      }),
+    () => new AddTransaction({ transactionRepository: { save() {} } }),
     /findById/
   );
 });
