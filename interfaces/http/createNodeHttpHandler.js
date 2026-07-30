@@ -18,11 +18,12 @@ export function createNodeHttpHandler({ httpAdapter, maxBodyBytes = 1_000_000 })
       const result = await httpAdapter.handle({
         method: request.method ?? 'GET',
         path: url.pathname,
+        query: Object.freeze(Object.fromEntries(url.searchParams.entries())),
         body
       });
 
       response.writeHead(result.statusCode, result.headers);
-      response.end(JSON.stringify(result.body));
+      response.end(result.statusCode === 204 ? undefined : JSON.stringify(result.body));
     } catch (error) {
       const statusCode = error?.code === 'BODY_TOO_LARGE' ? 413 : 400;
       response.writeHead(statusCode, { 'content-type': 'application/json; charset=utf-8' });
