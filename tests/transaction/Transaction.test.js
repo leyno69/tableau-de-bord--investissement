@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
+import { Money } from '../../domain/money/Money.js';
 import { Transaction } from '../../domain/transaction/Transaction.js';
 
 const validBuyProperties = {
@@ -26,6 +27,8 @@ test('crée une transaction d’achat valide', () => {
   assert.equal(transaction.id, 'transaction_001');
   assert.equal(transaction.quantity, 10);
   assert.equal(transaction.unitPrice, 6.5);
+  assert.equal(transaction.amount, null);
+  assert.equal(transaction.hasStandaloneAmount, false);
   assert.equal(transaction.currency, 'EUR');
   assert.equal(transaction.context, Transaction.CONTEXTS.REAL);
   assert.equal(transaction.isConfirmed, true);
@@ -60,18 +63,19 @@ test('refuse un contexte inconnu', () => {
   );
 });
 
-test('calcule le montant brut', () => {
-  assert.equal(new Transaction(validBuyProperties).grossAmount, 65);
-});
-
-test('calcule le coût total avec les frais et les taxes', () => {
+test('calcule les montants monétaires d’un achat', () => {
   const transaction = new Transaction({
     ...validBuyProperties,
     fees: 1.5,
     taxes: 0.5
   });
 
+  assert.equal(transaction.grossAmount, 65);
   assert.equal(transaction.totalCost, 67);
+  assert.equal(transaction.grossAmountMoney instanceof Money, true);
+  assert.deepEqual(transaction.totalCostMoney.toJSON(), { amount: 67, currency: 'EUR' });
+  assert.deepEqual(transaction.feesMoney.toJSON(), { amount: 1.5, currency: 'EUR' });
+  assert.deepEqual(transaction.taxesMoney.toJSON(), { amount: 0.5, currency: 'EUR' });
 });
 
 test('calcule le produit net d’une vente', () => {
@@ -83,6 +87,49 @@ test('calcule le produit net d’une vente', () => {
   });
 
   assert.equal(transaction.netProceeds, 63);
+  assert.deepEqual(transaction.netProceedsMoney.toJSON(), { amount: 63, currency: 'EUR' });
+});
+
+test('porte explicitement le montant d’un dépôt sans détourner unitPrice', () => {
+  const transaction = new Transaction({
+    ...validBuyProperties,
+    assetId: null,
+    type: Transaction.TYPES.DEPOSIT,
+    quantity: 0,
+    unitPrice: 0,
+    amount: 250.75,
+    currency: 'usd'
+  });
+
+  assert.equal(transaction.amount, 250.75);
+  assert.equal(transaction.unitPrice, 0);
+  assert.equal(transaction.hasStandaloneAmount, true);
+  assert.deepEqual(transaction.amountMoney.toJSON(), { amount: 250.75, currency: 'USD' });
+});
+
+test('convertit les anciennes opérations autonomes vers amount', () => {
+  const transaction = new Transaction({
+    ...validBuyProperties,
+    assetId: null,
+    type: Transaction.TYPES.WITHDRAWAL,
+    quantity: 0,
+    unitPrice: 100
+  });
+
+  assert.equal(transaction.amount, 100);
+  assert.equal(transaction.toJSON().amount, 100);
+});
+
+test('convertit un ancien dividende quantité × prix vers amount', () => {
+  const transaction = new Transaction({
+    ...validBuyProperties,
+    type: Transaction.TYPES.DIVIDEND,
+    quantity: 4,
+    unitPrice: 1.25
+  });
+
+  assert.equal(transaction.amount, 5);
+  assert.deepEqual(transaction.amountMoney.toJSON(), { amount: 5, currency: 'EUR' });
 });
 
 test('normalise la devise en majuscules', () => {
@@ -162,6 +209,20 @@ test('refuse un prix nul pour un achat', () => {
   );
 });
 
+test('refuse un montant autonome nul', () => {
+  assert.throws(
+    () => new Transaction({
+      ...validBuyProperties,
+      assetId: null,
+      type: Transaction.TYPES.DEPOSIT,
+      quantity: 0,
+      unitPrice: 0,
+      amount: 0
+    }),
+    /amount doit être strictement positif/
+  );
+});
+
 test('refuse les frais négatifs', () => {
   assert.throws(
     () => new Transaction({ ...validBuyProperties, fees: -1 }),
@@ -176,11 +237,11 @@ test('refuse une devise invalide', () => {
   );
 });
 
-test('produit un objet sérialisable compatible', () => {
+test('produit un objet sérialisable avec le nouveau champ amount', () => {
   const transaction = new Transaction(validBuyProperties);
   const serialized = transaction.toJSON();
 
-  assert.deepEqual(serialized, validBuyProperties);
+  assert.deepEqual(serialized, { ...validBuyProperties, amount: null });
   assert.notEqual(serialized, transaction);
   assert.equal('executedAtPrecision' in serialized, false);
 });

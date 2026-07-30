@@ -1,3 +1,4 @@
+import { Money } from '../money/Money.js';
 import {
   parseExecutionTime,
   parseTechnicalInstant
@@ -31,6 +32,14 @@ export class Transaction {
     SIMULATION: 'SIMULATION'
   });
 
+  static STANDALONE_AMOUNT_TYPES = Object.freeze([
+    Transaction.TYPES.DIVIDEND,
+    Transaction.TYPES.DEPOSIT,
+    Transaction.TYPES.WITHDRAWAL,
+    Transaction.TYPES.FEE,
+    Transaction.TYPES.TAX
+  ]);
+
   constructor(properties) {
     if (!properties || typeof properties !== 'object') {
       throw new TypeError('Les propriétés de la transaction sont obligatoires.');
@@ -57,6 +66,7 @@ export class Transaction {
     this.fees = Transaction.#requireNonNegativeNumber(properties.fees ?? 0, 'fees');
     this.taxes = Transaction.#requireNonNegativeNumber(properties.taxes ?? 0, 'taxes');
     this.currency = Transaction.#requireCurrency(properties.currency ?? 'EUR');
+    this.amount = Transaction.#resolveAmount(properties.amount, this);
 
     const executionTime = parseExecutionTime(properties.executedAt);
     this.executedAt = executionTime.value;
@@ -80,12 +90,40 @@ export class Transaction {
     return Transaction.#round(this.quantity * this.unitPrice);
   }
 
+  get grossAmountMoney() {
+    return new Money(this.grossAmount, this.currency);
+  }
+
+  get amountMoney() {
+    return this.amount === null ? null : new Money(this.amount, this.currency);
+  }
+
+  get feesMoney() {
+    return new Money(this.fees, this.currency);
+  }
+
+  get taxesMoney() {
+    return new Money(this.taxes, this.currency);
+  }
+
   get totalCost() {
-    return Transaction.#round(this.grossAmount + this.fees + this.taxes);
+    return this.totalCostMoney.amount;
+  }
+
+  get totalCostMoney() {
+    return this.grossAmountMoney.add(this.feesMoney).add(this.taxesMoney);
   }
 
   get netProceeds() {
-    return Transaction.#round(this.grossAmount - this.fees - this.taxes);
+    return this.netProceedsMoney.amount;
+  }
+
+  get netProceedsMoney() {
+    return this.grossAmountMoney.subtract(this.feesMoney).subtract(this.taxesMoney);
+  }
+
+  get hasStandaloneAmount() {
+    return this.amount !== null;
   }
 
   get isConfirmed() {
@@ -110,6 +148,7 @@ export class Transaction {
       context: this.context,
       quantity: this.quantity,
       unitPrice: this.unitPrice,
+      amount: this.amount,
       fees: this.fees,
       taxes: this.taxes,
       currency: this.currency,
@@ -117,6 +156,24 @@ export class Transaction {
       status: this.status,
       createdAt: this.createdAt
     };
+  }
+
+  static #resolveAmount(value, transaction) {
+    if (value != null) {
+      return Transaction.#requireNonNegativeNumber(value, 'amount');
+    }
+
+    if (!Transaction.STANDALONE_AMOUNT_TYPES.includes(transaction.type)) {
+      return null;
+    }
+
+    if (transaction.type === Transaction.TYPES.DIVIDEND && transaction.quantity > 0) {
+      return transaction.grossAmount;
+    }
+
+    // Compatibilité transitoire avec les anciennes données qui portaient les
+    // montants autonomes dans unitPrice.
+    return transaction.unitPrice;
   }
 
   static #assertBusinessInvariants(transaction) {
@@ -146,8 +203,10 @@ export class Transaction {
       );
     }
 
-    if (transaction.type === Transaction.TYPES.DIVIDEND && transaction.unitPrice <= 0) {
-      throw new RangeError('unitPrice doit représenter un dividende strictement positif.');
+    if (Transaction.STANDALONE_AMOUNT_TYPES.includes(transaction.type) && transaction.amount <= 0) {
+      throw new RangeError(
+        `amount doit être strictement positif pour une transaction de type "${transaction.type}".`
+      );
     }
   }
 

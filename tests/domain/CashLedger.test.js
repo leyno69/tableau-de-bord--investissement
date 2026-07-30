@@ -13,6 +13,7 @@ function transaction(overrides = {}) {
     type: overrides.type ?? Transaction.TYPES.DEPOSIT,
     quantity: overrides.quantity ?? 0,
     unitPrice: overrides.unitPrice ?? 0,
+    amount: overrides.amount,
     fees: overrides.fees ?? 0,
     taxes: overrides.taxes ?? 0,
     currency: overrides.currency ?? 'EUR',
@@ -24,7 +25,7 @@ function transaction(overrides = {}) {
 }
 
 const combinedTransactions = () => [
-  transaction({ id: '1', type: Transaction.TYPES.DEPOSIT, unitPrice: 1000 }),
+  transaction({ id: '1', type: Transaction.TYPES.DEPOSIT, amount: 1000 }),
   transaction({
     id: '2',
     type: Transaction.TYPES.BUY,
@@ -37,7 +38,7 @@ const combinedTransactions = () => [
     id: '3',
     type: Transaction.TYPES.DIVIDEND,
     assetId: 'ETF-WORLD',
-    unitPrice: 10,
+    amount: 10,
     taxes: 1
   }),
   transaction({
@@ -49,8 +50,8 @@ const combinedTransactions = () => [
     fees: 1,
     taxes: 2
   }),
-  transaction({ id: '5', type: Transaction.TYPES.FEE, unitPrice: 3 }),
-  transaction({ id: '6', type: Transaction.TYPES.WITHDRAWAL, unitPrice: 100, fees: 1 })
+  transaction({ id: '5', type: Transaction.TYPES.FEE, amount: 3 }),
+  transaction({ id: '6', type: Transaction.TYPES.WITHDRAWAL, amount: 100, fees: 1 })
 ];
 
 test('reconstruit un solde avec dépôt, achat, dividende, vente, frais et retrait', () => {
@@ -74,11 +75,34 @@ test('reconstruit le même solde sous forme de Money', () => {
   assert.equal(Object.isFrozen(balances[0]), true);
 });
 
+test('utilise amount même lorsque unitPrice vaut zéro', () => {
+  const deposit = transaction({
+    type: Transaction.TYPES.DEPOSIT,
+    unitPrice: 0,
+    amount: 125.5
+  });
+
+  assert.deepEqual(CashLedger.cashDeltaMoney(deposit).toJSON(), {
+    amount: 125.5,
+    currency: 'EUR'
+  });
+});
+
+test('reste compatible avec les anciennes transactions autonomes', () => {
+  const legacyDeposit = transaction({
+    type: Transaction.TYPES.DEPOSIT,
+    unitPrice: 75
+  });
+
+  assert.equal(legacyDeposit.amount, 75);
+  assert.equal(CashLedger.cashDelta(legacyDeposit), 75);
+});
+
 test('sépare les soldes par compte et par devise', () => {
   const balances = CashLedger.rebuildBalances([
-    transaction({ id: '1', accountId: 'account-b', currency: 'USD', unitPrice: 50 }),
-    transaction({ id: '2', accountId: 'account-a', currency: 'EUR', unitPrice: 100 }),
-    transaction({ id: '3', accountId: 'account-a', currency: 'USD', unitPrice: 25 })
+    transaction({ id: '1', accountId: 'account-b', currency: 'USD', amount: 50 }),
+    transaction({ id: '2', accountId: 'account-a', currency: 'EUR', amount: 100 }),
+    transaction({ id: '3', accountId: 'account-a', currency: 'USD', amount: 25 })
   ]);
 
   assert.deepEqual(balances, [
@@ -90,9 +114,9 @@ test('sépare les soldes par compte et par devise', () => {
 
 test('ignore les transactions en attente ou annulées', () => {
   const balances = CashLedger.rebuildBalances([
-    transaction({ id: '1', unitPrice: 100 }),
-    transaction({ id: '2', unitPrice: 200, status: Transaction.STATUSES.PENDING }),
-    transaction({ id: '3', unitPrice: 300, status: Transaction.STATUSES.CANCELLED })
+    transaction({ id: '1', amount: 100 }),
+    transaction({ id: '2', amount: 200, status: Transaction.STATUSES.PENDING }),
+    transaction({ id: '3', amount: 300, status: Transaction.STATUSES.CANCELLED })
   ]);
 
   assert.equal(balances[0].balance, 100);
@@ -100,7 +124,7 @@ test('ignore les transactions en attente ou annulées', () => {
 
 test('retourne des collections profondément immuables au premier niveau', () => {
   const balances = CashLedger.rebuildBalances([
-    transaction({ unitPrice: 100 })
+    transaction({ amount: 100 })
   ]);
 
   assert.equal(Object.isFrozen(balances), true);
@@ -134,14 +158,14 @@ test('calcule explicitement chaque impact espèces', () => {
 
   assert.equal(CashLedger.cashDelta(transaction({
     type: Transaction.TYPES.DEPOSIT,
-    unitPrice: 100,
+    amount: 100,
     fees: 1,
     taxes: 2
   })), 97);
 
   assert.equal(CashLedger.cashDelta(transaction({
     type: Transaction.TYPES.WITHDRAWAL,
-    unitPrice: 100,
+    amount: 100,
     fees: 1,
     taxes: 2
   })), -103);
