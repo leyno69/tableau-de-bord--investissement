@@ -144,13 +144,13 @@ export class Account {
     if (
       value === null ||
       typeof value === 'string' ||
-      typeof value === 'number' ||
-      typeof value === 'boolean'
+      typeof value === 'boolean' ||
+      (typeof value === 'number' && Number.isFinite(value))
     ) {
       return value;
     }
 
-    throw new TypeError('metadata ne peut contenir que des valeurs sérialisables.');
+    throw new TypeError('metadata ne peut contenir que des valeurs JSON sérialisables.');
   }
 
   static #deepFreeze(value) {
