@@ -9,9 +9,14 @@ import { createPortfolioHttpServer } from './server/createPortfolioHttpServer.js
 export async function run({ environment = process.env, logger = console, fetchImplementation = globalThis.fetch } = {}) {
   const config = loadServerConfig(environment);
   const instrumentRepository = await createInstrumentRepository(config.instrumentCatalog);
+  const providers = createBootstrapProviders({
+    market: config.market,
+    instrumentRepository,
+    fetchImplementation
+  });
   const runtime = createPortfolioHttpServer({
     config,
-    providers: createBootstrapProviders({ market: config.market, fetchImplementation }),
+    providers,
     instrumentRepository,
     logger
   });
