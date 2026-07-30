@@ -76,12 +76,18 @@ export class HttpMarketPriceProvider {
       const mapped = await this.responseMapper(await response.json(), { assetId, requestedAt, endpoint });
       if (!mapped || typeof mapped !== 'object') throw new MarketDataProviderError('responseMapper doit retourner un objet.', { code: 'INVALID_MAPPING' });
 
-      const quote = new MarketQuote({
-        assetId,
-        price: new Money(positiveNumber(mapped.price, 'price'), currency(mapped.currency)),
-        quotedAt: instant(mapped.quotedAt ?? requestedAt, 'quotedAt'),
-        source: text(mapped.source ?? new URL(endpoint).hostname, 'source')
-      });
+      let quote;
+      try {
+        quote = new MarketQuote({
+          assetId,
+          price: new Money(positiveNumber(mapped.price, 'price'), currency(mapped.currency)),
+          quotedAt: instant(mapped.quotedAt ?? requestedAt, 'quotedAt'),
+          source: text(mapped.source ?? new URL(endpoint).hostname, 'source')
+        });
+      } catch (cause) {
+        throw new MarketDataProviderError(`La cotation ${assetId} ne respecte pas le contrat attendu.`, { code: 'INVALID_MAPPING', cause });
+      }
+
       this.cache.set(assetId, { quote, cachedAt: Date.parse(requestedAt) });
       return quote;
     } catch (cause) {
