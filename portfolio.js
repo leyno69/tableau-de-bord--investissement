@@ -4,8 +4,9 @@ export const defaultPortfolio = {
     {
       id: 1,
       name: 'iShares MSCI World Swap PEA UCITS ETF EUR (Acc)',
-      ticker: 'A000',
+      ticker: 'WPEA',
       isin: 'IE0002XZSHO1',
+      marketSymbol: 'WPEA.PA',
       type: 'ETF',
       broker: 'trade-republic',
       quantity: 276.121345,
@@ -16,8 +17,9 @@ export const defaultPortfolio = {
     {
       id: 2,
       name: 'Amundi PEA Asie Pacifique MSCI AC Asia Pacific Ex Japan UCITS ETF Acc',
-      ticker: 'NK4W',
+      ticker: 'PAEJ',
       isin: 'FR0011869312',
+      marketSymbol: 'PAEJ.PA',
       type: 'ETF',
       broker: 'trade-republic',
       quantity: 9,
