@@ -27,7 +27,9 @@ test('résout un identifiant interne, un ISIN et un ticker vers le symbole fourn
     clock: () => new Date('2026-07-31T00:00:00Z')
   });
 
-  assert.equal(await resolver.resolveSymbol('asset-msci-world'), 'CW8:PARIS');
+  const resolution = await resolver.resolve('asset-msci-world');
+  assert.equal(resolution.symbol, 'CW8:PARIS');
+  assert.equal(resolution.externalId, 'td-cw8');
   assert.equal(await resolver.resolveSymbol('LU1781541179'), 'CW8:PARIS');
   assert.equal(await resolver.resolveSymbol('cw8'), 'CW8:PARIS');
 });
