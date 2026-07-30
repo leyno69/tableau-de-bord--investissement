@@ -86,33 +86,27 @@ export class CashLedger {
   static cashDeltaMoney(transaction) {
     CashLedger.#requireTransaction(transaction);
 
-    const money = amount => new Money(amount, transaction.currency);
-    const fees = money(transaction.fees);
-    const taxes = money(transaction.taxes);
-
     switch (transaction.type) {
       case Transaction.TYPES.BUY:
-        return money(transaction.grossAmount).add(fees).add(taxes).negate();
+        return transaction.totalCostMoney.negate();
       case Transaction.TYPES.SELL:
-        return money(transaction.grossAmount).subtract(fees).subtract(taxes);
+        return transaction.netProceedsMoney;
       case Transaction.TYPES.DIVIDEND:
-        return money(CashLedger.#standaloneAmount(transaction)).subtract(fees).subtract(taxes);
       case Transaction.TYPES.DEPOSIT:
-        return money(transaction.unitPrice).subtract(fees).subtract(taxes);
+        return transaction.amountMoney
+          .subtract(transaction.feesMoney)
+          .subtract(transaction.taxesMoney);
       case Transaction.TYPES.WITHDRAWAL:
-        return money(transaction.unitPrice).add(fees).add(taxes).negate();
+        return transaction.amountMoney
+          .add(transaction.feesMoney)
+          .add(transaction.taxesMoney)
+          .negate();
       case Transaction.TYPES.FEE:
       case Transaction.TYPES.TAX:
-        return money(transaction.unitPrice).negate();
+        return transaction.amountMoney.negate();
       default:
         return Money.zero(transaction.currency);
     }
-  }
-
-  static #standaloneAmount(transaction) {
-    return transaction.quantity > 0
-      ? transaction.grossAmount
-      : transaction.unitPrice;
   }
 
   static #balanceKey(transaction) {
