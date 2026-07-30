@@ -1,6 +1,6 @@
 import { brokers } from './brokers.js';
 import { defaultPortfolio, summarizePortfolio, allocationByRegion } from './portfolio.js';
-import { defaultWatchlist, pseudoRefresh } from './market.js';
+import { defaultWatchlist, refreshMarketItems } from './market.js';
 import { buildAlerts } from './alerts.js';
 
 const STORAGE_KEYS = {
@@ -39,6 +39,12 @@ function brokerName(id) {
 
 function visiblePositions() {
   return state.activeBroker === 'all' ? state.portfolio.positions : state.portfolio.positions.filter(p => p.broker === state.activeBroker);
+}
+
+function marketStatus(item) {
+  if (item.marketError) return `Donnée marché indisponible : ${item.marketError}`;
+  if (item.marketUpdatedAt) return `EODHD • ${item.marketUpdatedAt}`;
+  return item.marketSymbol ? `EODHD • ${item.marketSymbol}` : 'Cours enregistré localement';
 }
 
 function renderBrokerControls() {
@@ -80,8 +86,8 @@ function renderPortfolio() {
     const invested = p.quantity * p.avgPrice;
     const value = p.quantity * p.price;
     const perf = invested ? (value - invested) / invested : 0;
-    return `<tr>
-      <td class="asset-cell"><strong>${p.name}</strong><small>${p.ticker} • ${p.type}</small></td>
+    return `<tr title="${marketStatus(p)}">
+      <td class="asset-cell"><strong>${p.name}</strong><small>${p.ticker} • ${p.type}${p.marketError ? ' • ⚠ marché' : ''}</small></td>
       <td>${brokerName(p.broker)}</td>
       <td>${p.quantity.toLocaleString('fr-FR', { maximumFractionDigits: 6 })}</td>
       <td>${money.format(p.avgPrice)}</td>
@@ -110,14 +116,14 @@ function signalClass(signal) {
 
 function renderWatchlist() {
   document.querySelector('#watchlist').innerHTML = state.watchlist.map(item => `
-    <article class="watch-card">
+    <article class="watch-card" title="${marketStatus(item)}">
       <div class="watch-card-top">
-        <div><h3>${item.name}</h3><span class="ticker">${item.ticker}</span></div>
+        <div><h3>${item.name}</h3><span class="ticker">${item.ticker}${item.marketError ? ' • ⚠' : ''}</span></div>
         <span class="badge ${signalClass(item.signal)}">${item.signal}</span>
       </div>
       <div class="watch-price">${money.format(item.price)}</div>
-      <div class="${item.change >= 0 ? 'positive' : 'negative'}">${item.change >= 0 ? '+' : ''}${item.change.toFixed(2)} % aujourd’hui</div>
-      <p class="watch-note">${item.note || '—'}</p>
+      <div class="${item.change >= 0 ? 'positive' : 'negative'}">${item.change >= 0 ? '+' : ''}${Number(item.change || 0).toFixed(2)} % aujourd’hui</div>
+      <p class="watch-note">${item.marketError || item.note || '—'}</p>
     </article>`).join('');
 }
 
@@ -152,6 +158,7 @@ function setupDialogs() {
       id: Date.now(),
       name: String(data.get('name')).trim(),
       ticker: String(data.get('ticker')).trim().toUpperCase(),
+      marketSymbol: String(data.get('marketSymbol') || '').trim().toUpperCase() || undefined,
       type: String(data.get('type')),
       broker: String(data.get('broker')),
       quantity: Number(data.get('quantity')),
@@ -173,6 +180,7 @@ function setupDialogs() {
       id: Date.now(),
       name: String(data.get('name')).trim(),
       ticker: String(data.get('ticker')).trim().toUpperCase(),
+      marketSymbol: String(data.get('marketSymbol') || '').trim().toUpperCase() || undefined,
       price: Number(data.get('price')),
       change: Number(data.get('change')),
       signal: String(data.get('signal')),
@@ -185,6 +193,36 @@ function setupDialogs() {
   });
 }
 
+async function refreshMarketData() {
+  const button = document.querySelector('#refreshBtn');
+  const originalLabel = button.textContent;
+  button.disabled = true;
+  button.textContent = 'Actualisation…';
+
+  try {
+    const [watchlist, positions] = await Promise.all([
+      refreshMarketItems(state.watchlist),
+      refreshMarketItems(state.portfolio.positions)
+    ]);
+
+    state.watchlist = watchlist;
+    state.portfolio.positions = positions;
+    persist();
+    renderAll();
+
+    const failures = [...watchlist, ...positions].filter(item => item.marketError).length;
+    button.textContent = failures ? `Actualisé • ${failures} erreur${failures > 1 ? 's' : ''}` : 'Actualisé';
+  } catch (error) {
+    console.error('Market refresh error:', error);
+    button.textContent = 'Erreur marché';
+  } finally {
+    button.disabled = false;
+    window.setTimeout(() => {
+      button.textContent = originalLabel;
+    }, 2500);
+  }
+}
+
 renderBrokerControls();
 renderAll();
 setupDialogs();
@@ -195,12 +233,4 @@ document.querySelector('#brokerSelect').addEventListener('change', (event) => {
   renderAll();
 });
 
-document.querySelector('#refreshBtn').addEventListener('click', () => {
-  state.watchlist = pseudoRefresh(state.watchlist);
-  state.portfolio.positions = state.portfolio.positions.map(p => ({
-    ...p,
-    price: Number((p.price * (1 + (Math.random() - 0.5) * 0.008)).toFixed(2))
-  }));
-  persist();
-  renderAll();
-});
+document.querySelector('#refreshBtn').addEventListener('click', refreshMarketData);
