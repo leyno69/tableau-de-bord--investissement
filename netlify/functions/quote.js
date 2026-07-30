@@ -3,82 +3,102 @@ export default async (request) => {
 
   if (!apiKey) {
     return Response.json(
-     { error: "Clé API EODHD absente côté serveur." },
+      { error: 'Clé API EODHD absente côté serveur.' },
       { status: 500 }
     );
   }
 
   const url = new URL(request.url);
-  const symbol = (url.searchParams.get("symbol") || "").trim().toUpperCase();
+  const symbol = (url.searchParams.get('symbol') || '').trim().toUpperCase();
 
-  if (!symbol || !/^[A-Z0-9.\-:]{1,20}$/.test(symbol)) {
+  if (!symbol || !/^[A-Z0-9.\-:]{1,30}$/.test(symbol)) {
     return Response.json(
-      { error: "Symbole invalide." },
+      { error: 'Symbole invalide.' },
       { status: 400 }
     );
   }
 
+  const from = new Date();
+  from.setUTCDate(from.getUTCDate() - 14);
+  const fromDate = from.toISOString().slice(0, 10);
+
   try {
-    const response = await fetch(
-  `https://eodhd.com/api/eod/${encodeURIComponent(symbol)}` +
-  `?api_token=${encodeURIComponent(apiKey)}` +
-  `&fmt=json&order=d`
-);
+    const endpoint = new URL(`https://eodhd.com/api/eod/${encodeURIComponent(symbol)}`);
+    endpoint.searchParams.set('api_token', apiKey);
+    endpoint.searchParams.set('fmt', 'json');
+    endpoint.searchParams.set('order', 'd');
+    endpoint.searchParams.set('period', 'd');
+    endpoint.searchParams.set('from', fromDate);
 
-    const data = await response.json();
+    const response = await fetch(endpoint, {
+      headers: { Accept: 'application/json' }
+    });
 
-    if (!response.ok || data.status === "error") {
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
       return Response.json(
         {
-          error: data.message || "Erreur EODHD.",
-          code: data.code || response.status,
+          error: data?.message || `Erreur EODHD (${response.status}).`,
+          code: data?.code || response.status
         },
-        { status: response.ok ? 400 : response.status }
+        { status: response.status }
+      );
+    }
+
+    if (data?.status === 'error') {
+      return Response.json(
+        {
+          error: data.message || 'Erreur EODHD.',
+          code: data.code || 400
+        },
+        { status: 400 }
       );
     }
 
     const rows = Array.isArray(data) ? data : [];
-const latest = rows[0];
-const previous = rows[1] || null;
+    const latest = rows[0];
+    const previous = rows[1] || null;
 
-if (!latest) {
-  return Response.json(
-    { error: "Aucune donnée disponible pour ce symbole." },
-    { status: 404 }
-  );
-}
+    if (!latest) {
+      return Response.json(
+        { error: `Aucune donnée EODHD disponible pour ${symbol}.` },
+        { status: 404 }
+      );
+    }
 
-const price = Number(latest.close);
-const previousClose = previous ? Number(previous.close) : null;
+    const price = Number(latest.close);
+    const previousClose = previous ? Number(previous.close) : null;
 
-const change =
-  Number.isFinite(previousClose)
-    ? price - previousClose
-    : null;
+    if (!Number.isFinite(price)) {
+      return Response.json(
+        { error: `Cours EODHD invalide pour ${symbol}.` },
+        { status: 502 }
+      );
+    }
 
-const percentChange =
-  Number.isFinite(previousClose) && previousClose !== 0
-    ? (change / previousClose) * 100
-    : null;
+    const hasPreviousClose = Number.isFinite(previousClose) && previousClose !== 0;
+    const change = hasPreviousClose ? price - previousClose : null;
+    const percentChange = hasPreviousClose ? (change / previousClose) * 100 : null;
 
-return Response.json({
-  symbol,
-  price,
-  previousClose,
-  change,
-  percentChange,
-  open: Number(latest.open),
-  high: Number(latest.high),
-  low: Number(latest.low),
-  volume: Number(latest.volume),
-  datetime: latest.date,
-  source: "EODHD"
-});
+    return Response.json({
+      symbol,
+      price,
+      previousClose: hasPreviousClose ? previousClose : null,
+      change,
+      percentChange,
+      open: Number.isFinite(Number(latest.open)) ? Number(latest.open) : null,
+      high: Number.isFinite(Number(latest.high)) ? Number(latest.high) : null,
+      low: Number.isFinite(Number(latest.low)) ? Number(latest.low) : null,
+      volume: Number.isFinite(Number(latest.volume)) ? Number(latest.volume) : null,
+      datetime: latest.date || null,
+      source: 'EODHD'
+    });
   } catch (error) {
-    console.error("EODHD error:", error);
+    console.error('EODHD error:', error);
 
     return Response.json(
-      { error: "Impossible de récupérer les données de marché." },
+      { error: 'Impossible de récupérer les données de marché.' },
       { status: 502 }
     );
   }
