@@ -1,5 +1,6 @@
-export async function searchInstruments(query) {
-  const response = await fetch(`/.netlify/functions/resolve-instrument?q=${encodeURIComponent(query)}`);
+export async function searchInstruments(query, type = 'all') {
+  const params = new URLSearchParams({ q: query, type });
+  const response = await fetch(`/.netlify/functions/resolve-instrument?${params.toString()}`);
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
@@ -21,7 +22,13 @@ export async function verifyMarketSymbol(marketSymbol) {
 }
 
 export function instrumentType(type) {
-  return /ETF|FUND/i.test(type || '') ? 'ETF' : 'Action';
+  const value = String(type || '');
+  if (/ETF/i.test(value)) return 'ETF';
+  if (/FUND/i.test(value)) return 'ETF';
+  if (/BOND/i.test(value)) return 'Obligation';
+  if (/INDEX/i.test(value)) return 'Indice';
+  if (/CRYPTO/i.test(value)) return 'Crypto';
+  return 'Action';
 }
 
 export function regionFromCandidate(candidate) {
