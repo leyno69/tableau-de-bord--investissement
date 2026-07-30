@@ -30,12 +30,13 @@ test('valorise positions et espèces dans la devise de référence', async () =>
       'USD/EUR': 0.9
     }
   });
+  const positions = [
+    new Position({ assetId: 'WORLD', quantity: 2, currency: 'EUR' }),
+    new Position({ assetId: 'US_STOCK', quantity: 4, currency: 'USD' })
+  ];
 
   const result = await useCase.execute({
-    positions: [
-      new Position({ assetId: 'WORLD', quantity: 2, currency: 'EUR' }),
-      new Position({ assetId: 'US_STOCK', quantity: 4, currency: 'USD' })
-    ],
+    positions,
     cashBalances: [
       { portfolioId: 'portfolio-1', accountId: 'cash-eur', balance: new Money(100, 'EUR') },
       { portfolioId: 'portfolio-1', accountId: 'cash-usd', balance: new Money(100, 'USD') }
@@ -48,6 +49,7 @@ test('valorise positions et espèces dans la devise de référence', async () =>
   assert.deepEqual(result.totalValue.toJSON(), { amount: 570, currency: 'EUR' });
   assert.equal(result.positions[1].nativeValue.amount, 200);
   assert.equal(result.positions[1].convertedValue.amount, 180);
+  assert.equal(result.positions[1].position, positions[1]);
   assert.equal(Object.isFrozen(result), true);
   assert.equal(Object.isFrozen(result.positions), true);
 });
