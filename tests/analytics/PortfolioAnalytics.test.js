@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { AnalyzePortfolioSeries } from '../../src/application/use-cases/AnalyzePortfolioSeries.js';
-import { PortfolioSnapshot } from '../../src/domain/analytics/PortfolioSnapshot.js';
-import { Money } from '../../src/domain/money/Money.js';
+import { AnalyzePortfolioSeries } from '../../application/use-cases/AnalyzePortfolioSeries.js';
+import { PortfolioSnapshot } from '../../domain/analytics/PortfolioSnapshot.js';
+import { Money } from '../../domain/money/Money.js';
 
 function snapshot(amount, capturedAt, options = {}) {
   return new PortfolioSnapshot({
