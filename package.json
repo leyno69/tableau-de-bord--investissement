@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Noyau métier de la plateforme Leynor.",
   "scripts": {
+    "start": "node runtime/main.js",
     "test": "node --test",
     "test:transaction": "node --test tests/transaction/Transaction.test.js"
   },
