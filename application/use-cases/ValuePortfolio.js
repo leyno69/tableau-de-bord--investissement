@@ -42,6 +42,7 @@ export class ValuePortfolio {
 
       positionsValue = positionsValue.add(convertedValue);
       valuedPositions.push(Object.freeze({
+        position,
         assetId: position.assetId,
         quantity: position.quantity,
         marketPrice,
