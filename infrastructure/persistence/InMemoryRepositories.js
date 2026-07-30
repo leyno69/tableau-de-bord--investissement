@@ -27,7 +27,7 @@ export class InMemoryTransactionRepository {
     const normalized = text(portfolioId, 'portfolioId');
     return Object.freeze([...this.#items.values()]
       .filter(item => item.portfolioId === normalized)
-      .sort((a, b) => Date.parse(a.occurredAt) - Date.parse(b.occurredAt) || a.id.localeCompare(b.id)));
+      .sort((a, b) => Date.parse(a.executedAt) - Date.parse(b.executedAt) || a.id.localeCompare(b.id)));
   }
 }
 
