@@ -45,7 +45,10 @@ export function createPortfolioApplication({
   const evaluateAlerts = new EvaluatePortfolioAlerts({ rules: alertRules, clock, ...(idGenerator == null ? {} : { idGenerator }) });
   const addTransaction = new AddTransaction({ transactionRepository: resolvedRepositories.transactions });
   const buildDashboard = new BuildPortfolioDashboard({ valuePortfolio, calculatePerformance, calculateAllocation, analyzeSeries, evaluateAlerts, clock });
-  const persistDashboardState = new PersistDashboardState({ snapshotRepository: resolvedRepositories.snapshots, alertRepository: resolvedRepositories.alerts });
+  const persistDashboardState = new PersistDashboardState({
+    snapshotRepository: resolvedRepositories.snapshots,
+    alertEventRepository: resolvedRepositories.alerts
+  });
 
   const facade = new PortfolioApplicationFacade({
     addTransaction,
