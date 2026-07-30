@@ -1,4 +1,5 @@
 import { PortfolioLedger } from '../../domain/portfolio/PortfolioLedger.js';
+import { Transaction } from '../../domain/transaction/Transaction.js';
 
 /**
  * Reconstruit un portefeuille à partir de son historique de transactions.
@@ -21,10 +22,11 @@ export class RebuildPortfolio {
     this.transactionRepository = transactionRepository;
   }
 
-  execute(portfolioId) {
+  execute(portfolioId, { context = Transaction.CONTEXTS.REAL } = {}) {
     const normalizedPortfolioId = RebuildPortfolio.#requirePortfolioId(
       portfolioId
     );
+    const normalizedContext = RebuildPortfolio.#requireContext(context);
     const transactions = this.transactionRepository.findByPortfolioId(
       normalizedPortfolioId
     );
@@ -35,13 +37,14 @@ export class RebuildPortfolio {
       );
     }
 
-    const orderedTransactions = [...transactions].sort(
-      RebuildPortfolio.#compareTransactions
-    );
+    const orderedTransactions = transactions
+      .filter(transaction => transaction.context === normalizedContext)
+      .sort(RebuildPortfolio.#compareTransactions);
     const positions = PortfolioLedger.rebuildPositions(orderedTransactions);
 
     return Object.freeze({
       portfolioId: normalizedPortfolioId,
+      context: normalizedContext,
       transactions: Object.freeze(orderedTransactions),
       positions: Object.freeze(positions)
     });
@@ -53,6 +56,16 @@ export class RebuildPortfolio {
     }
 
     return value.trim();
+  }
+
+  static #requireContext(value) {
+    if (!Object.values(Transaction.CONTEXTS).includes(value)) {
+      throw new TypeError(
+        `context doit être l'une des valeurs suivantes : ${Object.values(Transaction.CONTEXTS).join(', ')}.`
+      );
+    }
+
+    return value;
   }
 
   static #compareTransactions(left, right) {

@@ -9,6 +9,7 @@ const validBuyProperties = {
   accountId: 'trade_republic',
   assetId: 'IE0002XZSHO1',
   type: Transaction.TYPES.BUY,
+  context: Transaction.CONTEXTS.REAL,
   quantity: 10,
   unitPrice: 6.5,
   fees: 1,
@@ -26,7 +27,37 @@ test('crée une transaction d’achat valide', () => {
   assert.equal(transaction.quantity, 10);
   assert.equal(transaction.unitPrice, 6.5);
   assert.equal(transaction.currency, 'EUR');
+  assert.equal(transaction.context, Transaction.CONTEXTS.REAL);
   assert.equal(transaction.isConfirmed, true);
+  assert.equal(transaction.isReal, true);
+  assert.equal(transaction.isSimulation, false);
+});
+
+test('utilise le contexte réel pour les anciennes données sans contexte', () => {
+  const { context, ...legacyProperties } = validBuyProperties;
+  const transaction = new Transaction(legacyProperties);
+
+  assert.equal(transaction.context, Transaction.CONTEXTS.REAL);
+  assert.equal(transaction.toJSON().context, Transaction.CONTEXTS.REAL);
+});
+
+test('crée et sérialise une transaction simulée', () => {
+  const transaction = new Transaction({
+    ...validBuyProperties,
+    context: Transaction.CONTEXTS.SIMULATION
+  });
+
+  assert.equal(transaction.context, Transaction.CONTEXTS.SIMULATION);
+  assert.equal(transaction.isReal, false);
+  assert.equal(transaction.isSimulation, true);
+  assert.equal(transaction.toJSON().context, Transaction.CONTEXTS.SIMULATION);
+});
+
+test('refuse un contexte inconnu', () => {
+  assert.throws(
+    () => new Transaction({ ...validBuyProperties, context: 'PAPER' }),
+    /context doit être l'une des valeurs/
+  );
 });
 
 test('calcule le montant brut', () => {

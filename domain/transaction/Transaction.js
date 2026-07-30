@@ -26,6 +26,11 @@ export class Transaction {
     CANCELLED: 'cancelled'
   });
 
+  static CONTEXTS = Object.freeze({
+    REAL: 'REAL',
+    SIMULATION: 'SIMULATION'
+  });
+
   constructor(properties) {
     if (!properties || typeof properties !== 'object') {
       throw new TypeError('Les propriétés de la transaction sont obligatoires.');
@@ -41,6 +46,11 @@ export class Transaction {
       properties.type,
       Object.values(Transaction.TYPES),
       'type'
+    );
+    this.context = Transaction.#requireEnumValue(
+      properties.context ?? Transaction.CONTEXTS.REAL,
+      Object.values(Transaction.CONTEXTS),
+      'context'
     );
     this.quantity = Transaction.#requireNonNegativeNumber(properties.quantity ?? 0, 'quantity');
     this.unitPrice = Transaction.#requireNonNegativeNumber(properties.unitPrice ?? 0, 'unitPrice');
@@ -82,6 +92,14 @@ export class Transaction {
     return this.status === Transaction.STATUSES.CONFIRMED;
   }
 
+  get isReal() {
+    return this.context === Transaction.CONTEXTS.REAL;
+  }
+
+  get isSimulation() {
+    return this.context === Transaction.CONTEXTS.SIMULATION;
+  }
+
   toJSON() {
     return {
       id: this.id,
@@ -89,6 +107,7 @@ export class Transaction {
       accountId: this.accountId,
       assetId: this.assetId,
       type: this.type,
+      context: this.context,
       quantity: this.quantity,
       unitPrice: this.unitPrice,
       fees: this.fees,

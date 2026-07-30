@@ -13,6 +13,7 @@ const createTransaction = (overrides = {}) =>
     accountId: 'account-1',
     assetId: 'asset-1',
     type: Transaction.TYPES.BUY,
+    context: Transaction.CONTEXTS.REAL,
     quantity: 2,
     unitPrice: 100,
     fees: 0,
@@ -23,7 +24,7 @@ const createTransaction = (overrides = {}) =>
     ...overrides
   });
 
-test('RebuildPortfolio reconstruit les positions du portefeuille demandé', () => {
+test('RebuildPortfolio reconstruit les positions réelles par défaut', () => {
   const repository = new InMemoryTransactionRepository([
     createTransaction({
       id: 'transaction-2',
@@ -32,6 +33,11 @@ test('RebuildPortfolio reconstruit les positions du portefeuille demandé', () =
       executedAt: '2026-02-01T10:00:00.000Z'
     }),
     createTransaction(),
+    createTransaction({
+      id: 'transaction-simulation',
+      context: Transaction.CONTEXTS.SIMULATION,
+      quantity: 100
+    }),
     createTransaction({
       id: 'transaction-other-portfolio',
       portfolioId: 'portfolio-2',
@@ -45,6 +51,7 @@ test('RebuildPortfolio reconstruit les positions du portefeuille demandé', () =
   const result = rebuildPortfolio.execute('portfolio-1');
 
   assert.equal(result.portfolioId, 'portfolio-1');
+  assert.equal(result.context, Transaction.CONTEXTS.REAL);
   assert.equal(result.transactions.length, 2);
   assert.deepEqual(
     result.transactions.map(transaction => transaction.id),
@@ -57,6 +64,47 @@ test('RebuildPortfolio reconstruit les positions du portefeuille demandé', () =
     quantity: 3,
     totalCost: 330,
     averageCost: 110,
+    realizedPnL: 0,
+    dividends: 0,
+    currency: 'EUR'
+  });
+});
+
+test('RebuildPortfolio reconstruit séparément un scénario simulé', () => {
+  const repository = new InMemoryTransactionRepository([
+    createTransaction(),
+    createTransaction({
+      id: 'simulation-1',
+      context: Transaction.CONTEXTS.SIMULATION,
+      quantity: 5,
+      unitPrice: 80
+    }),
+    createTransaction({
+      id: 'simulation-2',
+      context: Transaction.CONTEXTS.SIMULATION,
+      quantity: 2,
+      unitPrice: 110,
+      executedAt: '2026-02-01T10:00:00.000Z'
+    })
+  ]);
+  const rebuildPortfolio = new RebuildPortfolio({
+    transactionRepository: repository
+  });
+
+  const result = rebuildPortfolio.execute('portfolio-1', {
+    context: Transaction.CONTEXTS.SIMULATION
+  });
+
+  assert.equal(result.context, Transaction.CONTEXTS.SIMULATION);
+  assert.deepEqual(
+    result.transactions.map(transaction => transaction.id),
+    ['simulation-1', 'simulation-2']
+  );
+  assert.deepEqual(result.positions[0].toJSON(), {
+    assetId: 'asset-1',
+    quantity: 7,
+    totalCost: 620,
+    averageCost: 88.5714285714,
     realizedPnL: 0,
     dividends: 0,
     currency: 'EUR'
@@ -101,7 +149,7 @@ test('RebuildPortfolio retourne un résultat immuable', () => {
   assert.ok(Object.isFrozen(result.positions));
 });
 
-test('RebuildPortfolio valide son entrée et son dépôt', () => {
+test('RebuildPortfolio valide son entrée, son contexte et son dépôt', () => {
   assert.throws(
     () => new RebuildPortfolio({ transactionRepository: null }),
     /obligatoire/
@@ -126,5 +174,9 @@ test('RebuildPortfolio valide son entrée et son dépôt', () => {
   assert.throws(
     () => rebuildPortfolio.execute('portfolio-1'),
     /retourner un tableau/
+  );
+  assert.throws(
+    () => rebuildPortfolio.execute('portfolio-1', { context: 'PAPER' }),
+    /context doit être l'une des valeurs/
   );
 });
