@@ -4,6 +4,20 @@ export const defaultWatchlist = [
   { id: 3, name: 'Schneider Electric', ticker: 'SU', marketSymbol: 'SU.PA', price: 229.5, change: 0.73, signal: 'Achat', note: 'Électrification / data centers' }
 ];
 
+const LEGACY_MARKET_SYMBOLS = new Map([
+  ['NVDA', 'NVDA.US'],
+  ['TSM', 'TSM.US'],
+  ['SU', 'SU.PA']
+]);
+
+export function resolveMarketSymbol(item) {
+  const explicit = String(item.marketSymbol || '').trim().toUpperCase();
+  if (explicit) return explicit;
+
+  const ticker = String(item.ticker || '').trim().toUpperCase();
+  return LEGACY_MARKET_SYMBOLS.get(ticker) || ticker;
+}
+
 export async function fetchQuote(symbol) {
   const normalized = String(symbol || '').trim().toUpperCase();
 
@@ -33,7 +47,7 @@ export async function fetchQuote(symbol) {
 export async function refreshMarketItems(items) {
   const results = await Promise.allSettled(
     items.map(async item => {
-      const marketSymbol = item.marketSymbol || item.ticker;
+      const marketSymbol = resolveMarketSymbol(item);
       const quote = await fetchQuote(marketSymbol);
 
       return {
