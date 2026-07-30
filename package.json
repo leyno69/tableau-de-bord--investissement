@@ -1,0 +1,14 @@
+{
+  "name": "leynor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Noyau métier de la plateforme Leynor.",
+  "scripts": {
+    "test": "node --test",
+    "test:transaction": "node --test tests/transaction/Transaction.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
