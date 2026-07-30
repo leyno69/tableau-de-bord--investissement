@@ -166,7 +166,12 @@ test('refuse une devise invalide', () => {
 test('refuse des métadonnées non sérialisables', () => {
   assert.throws(
     () => new Account({ ...validAccountProperties, metadata: { importedAt: new Date() } }),
-    /valeurs sérialisables/
+    /valeurs JSON sérialisables/
+  );
+
+  assert.throws(
+    () => new Account({ ...validAccountProperties, metadata: { ratio: Number.NaN } }),
+    /valeurs JSON sérialisables/
   );
 
   assert.throws(
