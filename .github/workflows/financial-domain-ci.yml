@@ -36,4 +36,4 @@ jobs:
           done
 
       - name: Check whitespace errors
-        run: git diff --check HEAD^ HEAD
+        run: git diff --check
