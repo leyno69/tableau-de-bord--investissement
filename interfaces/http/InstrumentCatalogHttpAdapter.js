@@ -1,11 +1,13 @@
 const JSON_HEADERS = Object.freeze({ 'content-type': 'application/json; charset=utf-8' });
 
 export class InstrumentCatalogHttpAdapter {
-  constructor({ catalog }) {
+  constructor({ catalog, importer = null }) {
     for (const method of ['create', 'get', 'search', 'update', 'replaceProviderMappings', 'remove']) {
       if (!catalog || typeof catalog[method] !== 'function') throw new TypeError(`catalog doit implémenter ${method}().`);
     }
+    if (importer !== null && typeof importer.import !== 'function') throw new TypeError('importer doit implémenter import().');
     this.catalog = catalog;
+    this.importer = importer;
   }
 
   async handle(request) {
@@ -13,6 +15,10 @@ export class InstrumentCatalogHttpAdapter {
     if (!route) return null;
     try {
       let data;
+      if (route.name === 'import') {
+        if (!this.importer) return response(501, { error: { code: 'IMPORT_NOT_CONFIGURED', message: 'Import non configuré.' } });
+        data = await this.importer.import(body(request.body));
+      }
       if (route.name === 'create') data = await this.catalog.create(body(request.body));
       if (route.name === 'list') data = await this.catalog.search(request.query?.q ?? '');
       if (route.name === 'get') data = await this.catalog.get(route.id);
@@ -24,6 +30,7 @@ export class InstrumentCatalogHttpAdapter {
       const code = error?.code;
       if (code === 'INSTRUMENT_NOT_FOUND') return response(404, { error: { code, message: error.message } });
       if (code === 'INSTRUMENT_CONFLICT') return response(409, { error: { code, message: error.message } });
+      if (code === 'IMPORT_PARSE_ERROR') return response(400, { error: { code, message: error.message } });
       if (error instanceof TypeError || error instanceof RangeError) return response(400, { error: { code: 'INVALID_REQUEST', message: error.message } });
       return response(500, { error: { code: 'INTERNAL_ERROR', message: 'Une erreur interne est survenue.' } });
     }
@@ -33,6 +40,7 @@ export class InstrumentCatalogHttpAdapter {
 function match(method, path) {
   const normalizedMethod = String(method ?? '').toUpperCase();
   const normalizedPath = String(path ?? '').split('?')[0];
+  if (normalizedMethod === 'POST' && /^\/instruments\/import\/?$/.test(normalizedPath)) return { name: 'import' };
   if (normalizedMethod === 'POST' && /^\/instruments\/?$/.test(normalizedPath)) return { name: 'create' };
   if (normalizedMethod === 'GET' && /^\/instruments\/?$/.test(normalizedPath)) return { name: 'list' };
   const mappings = normalizedPath.match(/^\/instruments\/([^/]+)\/provider-mappings\/?$/);
