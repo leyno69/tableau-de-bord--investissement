@@ -74,5 +74,5 @@ test('traduit les statuts HTTP et erreurs réseau', async () => {
 test('valide les contrats de construction et le mapping', async () => {
   assert.throws(() => new HttpMarketPriceProvider({}), /endpointBuilder/);
   const invalid = createProvider({ responseMapper: () => ({ price: 0, currency: 'EUR' }) });
-  await assert.rejects(() => invalid.getPrice('asset-1'), RangeError);
+  await assert.rejects(() => invalid.getPrice('asset-1'), error => error instanceof MarketDataProviderError && error.code === 'INVALID_MAPPING');
 });
