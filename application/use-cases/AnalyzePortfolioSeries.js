@@ -1,6 +1,8 @@
 import { Money } from '../../domain/money/Money.js';
 import { PortfolioSnapshot } from '../../domain/analytics/PortfolioSnapshot.js';
 
+const PRECISION = 10;
+
 /**
  * Analyse une série chronologique de valorisations.
  *
@@ -56,7 +58,9 @@ export class AnalyzePortfolioSeries {
       const current = ordered[index];
       const rate = previous.totalValue.amount === 0
         ? null
-        : (current.totalValue.amount / previous.totalValue.amount) - 1;
+        : AnalyzePortfolioSeries.#round(
+            (current.totalValue.amount / previous.totalValue.amount) - 1
+          );
 
       returns.push(Object.freeze({
         from: previous.capturedAt,
@@ -73,21 +77,27 @@ export class AnalyzePortfolioSeries {
 
     const averagePeriodicReturn = numericReturns.length === 0
       ? null
-      : numericReturns.reduce((sum, value) => sum + value, 0) /
-        numericReturns.length;
+      : AnalyzePortfolioSeries.#round(
+          numericReturns.reduce((sum, value) => sum + value, 0) /
+            numericReturns.length
+        );
 
     const periodicVolatility = numericReturns.length < 2
       ? null
-      : Math.sqrt(
-          numericReturns.reduce(
-            (sum, value) => sum + ((value - averagePeriodicReturn) ** 2),
-            0
-          ) / (numericReturns.length - 1)
+      : AnalyzePortfolioSeries.#round(
+          Math.sqrt(
+            numericReturns.reduce(
+              (sum, value) => sum + ((value - averagePeriodicReturn) ** 2),
+              0
+            ) / (numericReturns.length - 1)
+          )
         );
 
     const cumulativeReturn = first.totalValue.amount === 0
       ? null
-      : (last.totalValue.amount / first.totalValue.amount) - 1;
+      : AnalyzePortfolioSeries.#round(
+          (last.totalValue.amount / first.totalValue.amount) - 1
+        );
 
     const maxDrawdown = this.#calculateMaxDrawdown(ordered);
 
@@ -107,7 +117,9 @@ export class AnalyzePortfolioSeries {
       periodicVolatility,
       annualizedVolatility: periodicVolatility === null || periodsPerYear === null
         ? null
-        : periodicVolatility * Math.sqrt(periodsPerYear),
+        : AnalyzePortfolioSeries.#round(
+            periodicVolatility * Math.sqrt(periodsPerYear)
+          ),
       maxDrawdown
     });
   }
@@ -156,7 +168,9 @@ export class AnalyzePortfolioSeries {
 
       const rate = peak.totalValue.amount === 0
         ? null
-        : (snapshot.totalValue.amount / peak.totalValue.amount) - 1;
+        : AnalyzePortfolioSeries.#round(
+            (snapshot.totalValue.amount / peak.totalValue.amount) - 1
+          );
 
       if (rate !== null && (deepest === null || rate < deepest.rate)) {
         deepest = {
@@ -174,5 +188,10 @@ export class AnalyzePortfolioSeries {
     }
 
     return deepest === null ? null : Object.freeze(deepest);
+  }
+
+  static #round(value) {
+    const factor = 10 ** PRECISION;
+    return Math.round((value + Number.EPSILON) * factor) / factor;
   }
 }
