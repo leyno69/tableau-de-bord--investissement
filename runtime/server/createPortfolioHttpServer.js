@@ -61,11 +61,13 @@ export function createPortfolioHttpServer({
 
   async function stop() {
     ready = false;
-    if (!server.listening) return;
-    const timeout = setTimeout(() => server.closeAllConnections?.(), config.shutdownTimeoutMilliseconds);
-    timeout.unref?.();
-    await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
-    clearTimeout(timeout);
+    if (server.listening) {
+      const timeout = setTimeout(() => server.closeAllConnections?.(), config.shutdownTimeoutMilliseconds);
+      timeout.unref?.();
+      await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+      clearTimeout(timeout);
+    }
+    await instrumentRepository.flush?.();
   }
 
   function address() {
