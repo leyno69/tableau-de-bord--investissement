@@ -6,6 +6,7 @@ import { AnalyzePortfolioSeries } from '../use-cases/AnalyzePortfolioSeries.js';
 import { EvaluatePortfolioAlerts } from '../use-cases/EvaluatePortfolioAlerts.js';
 import { BuildPortfolioDashboard } from '../use-cases/BuildPortfolioDashboard.js';
 import { PersistDashboardState } from '../use-cases/PersistDashboardState.js';
+import { LoadPortfolioMarketQuotes } from '../use-cases/LoadPortfolioMarketQuotes.js';
 import { PortfolioApplicationFacade } from '../facades/PortfolioApplicationFacade.js';
 import {
   InMemoryTransactionRepository,
@@ -39,6 +40,9 @@ export function createPortfolioApplication({
   });
 
   const valuePortfolio = new ValuePortfolio({ marketPriceProvider, exchangeRateProvider });
+  const loadMarketQuotes = typeof marketPriceProvider.getQuote === 'function'
+    ? new LoadPortfolioMarketQuotes({ marketDataProvider: marketPriceProvider })
+    : null;
   const calculatePerformance = new CalculatePortfolioPerformance({ exchangeRateProvider });
   const calculateAllocation = new CalculatePortfolioAllocation({ assetClassificationProvider });
   const analyzeSeries = new AnalyzePortfolioSeries();
@@ -54,6 +58,7 @@ export function createPortfolioApplication({
     addTransaction,
     buildDashboard,
     persistDashboardState,
+    loadMarketQuotes,
     transactionRepository: resolvedRepositories.transactions,
     snapshotRepository: resolvedRepositories.snapshots,
     alertRepository: resolvedRepositories.alerts,
@@ -63,7 +68,7 @@ export function createPortfolioApplication({
   return Object.freeze({
     facade,
     repositories: resolvedRepositories,
-    useCases: Object.freeze({ addTransaction, valuePortfolio, calculatePerformance, calculateAllocation, analyzeSeries, evaluateAlerts, buildDashboard, persistDashboardState })
+    useCases: Object.freeze({ addTransaction, valuePortfolio, loadMarketQuotes, calculatePerformance, calculateAllocation, analyzeSeries, evaluateAlerts, buildDashboard, persistDashboardState })
   });
 }
 

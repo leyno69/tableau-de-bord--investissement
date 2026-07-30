@@ -13,6 +13,7 @@ export class PortfolioApplicationFacade {
     addTransaction,
     buildDashboard,
     persistDashboardState,
+    loadMarketQuotes = null,
     transactionRepository,
     snapshotRepository,
     alertRepository,
@@ -23,6 +24,7 @@ export class PortfolioApplicationFacade {
     PortfolioApplicationFacade.#useCase(addTransaction, 'addTransaction');
     PortfolioApplicationFacade.#useCase(buildDashboard, 'buildDashboard');
     PortfolioApplicationFacade.#useCase(persistDashboardState, 'persistDashboardState');
+    if (loadMarketQuotes != null) PortfolioApplicationFacade.#useCase(loadMarketQuotes, 'loadMarketQuotes');
     PortfolioApplicationFacade.#repository(transactionRepository, ['listByPortfolio'], 'transactionRepository');
     PortfolioApplicationFacade.#repository(snapshotRepository, ['listByPortfolio'], 'snapshotRepository');
     PortfolioApplicationFacade.#repository(alertRepository, ['listByPortfolio', 'listFingerprints'], 'alertRepository');
@@ -38,6 +40,7 @@ export class PortfolioApplicationFacade {
     this.addTransaction = addTransaction;
     this.buildDashboard = buildDashboard;
     this.persistDashboardState = persistDashboardState;
+    this.loadMarketQuotes = loadMarketQuotes;
     this.transactionRepository = transactionRepository;
     this.snapshotRepository = snapshotRepository;
     this.alertRepository = alertRepository;
@@ -83,8 +86,8 @@ export class PortfolioApplicationFacade {
     });
   }
 
-  async generateDashboard({ portfolioId, marketQuotes = [] }) {
-    if (!Array.isArray(marketQuotes)) {
+  async generateDashboard({ portfolioId, marketQuotes } = {}) {
+    if (marketQuotes != null && !Array.isArray(marketQuotes)) {
       throw new TypeError('marketQuotes doit être un tableau.');
     }
 
@@ -93,19 +96,25 @@ export class PortfolioApplicationFacade {
       throw new Error(`Aucune préférence n'est configurée pour le portefeuille "${state.portfolioId}".`);
     }
 
+    const resolvedMarketQuotes = marketQuotes ?? await this.#loadQuotes(state.positions);
     const dashboard = await this.buildDashboard.execute({
       portfolioId: state.portfolioId,
       positions: state.positions,
       cashBalances: state.cashBalances,
       baseCurrency: state.preferences.baseCurrency,
       historicalSnapshots: state.historicalSnapshots,
-      marketQuotes,
+      marketQuotes: resolvedMarketQuotes,
       existingFingerprints: state.existingFingerprints,
       periodsPerYear: state.preferences.periodsPerYear
     });
 
     await this.persistDashboardState.execute(dashboard);
     return dashboard;
+  }
+
+  async #loadQuotes(positions) {
+    if (this.loadMarketQuotes == null) return Object.freeze([]);
+    return this.loadMarketQuotes.execute({ positions });
   }
 
   static #useCase(value, field) {

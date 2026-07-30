@@ -48,7 +48,7 @@ export class PortfolioHttpAdapter {
         const body = request.body == null ? {} : PortfolioHttpAdapter.#body(request.body);
         const dashboard = await this.facade.generateDashboard({
           portfolioId,
-          marketQuotes: body.marketQuotes ?? []
+          ...(Object.hasOwn(body, 'marketQuotes') ? { marketQuotes: body.marketQuotes } : {})
         });
         return { statusCode: 200, body: { data: dashboard } };
       }
