@@ -1,10 +1,10 @@
-export function createBootstrapProviders() {
+import { TwelveDataMarketPriceProvider } from '../../infrastructure/market/TwelveDataMarketPriceProvider.js';
+
+export function createBootstrapProviders({ market = {}, fetchImplementation = globalThis.fetch } = {}) {
+  const marketPriceProvider = createMarketPriceProvider({ market, fetchImplementation });
+
   return Object.freeze({
-    marketPriceProvider: Object.freeze({
-      async getPrice(assetId) {
-        throw new Error(`Aucun fournisseur de prix n'est configuré pour l'actif "${assetId}".`);
-      }
-    }),
+    marketPriceProvider,
     exchangeRateProvider: Object.freeze({
       async getRate(fromCurrency, toCurrency) {
         if (fromCurrency === toCurrency) return 1;
@@ -16,5 +16,27 @@ export function createBootstrapProviders() {
         return Object.freeze({ assetClass: 'UNKNOWN', region: 'UNKNOWN', sector: 'UNKNOWN' });
       }
     })
+  });
+}
+
+function createMarketPriceProvider({ market, fetchImplementation }) {
+  const provider = market.provider ?? 'bootstrap';
+  if (provider === 'twelve-data') {
+    if (typeof market.apiKey !== 'string' || market.apiKey.trim() === '') {
+      throw new Error('TWELVE_DATA_API_KEY est obligatoire lorsque MARKET_PROVIDER=twelve-data.');
+    }
+    return new TwelveDataMarketPriceProvider({
+      apiKey: market.apiKey,
+      baseUrl: market.baseUrl,
+      timeoutMilliseconds: market.timeoutMilliseconds,
+      cacheTtlMilliseconds: market.cacheTtlMilliseconds,
+      fetchImplementation
+    });
+  }
+
+  return Object.freeze({
+    async getPrice(assetId) {
+      throw new Error(`Aucun fournisseur de prix n'est configuré pour l'actif "${assetId}".`);
+    }
   });
 }
