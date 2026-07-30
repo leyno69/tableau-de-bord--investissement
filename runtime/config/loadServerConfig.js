@@ -5,7 +5,9 @@ const DEFAULTS = Object.freeze({
   shutdownTimeoutMilliseconds: 10_000,
   marketProvider: 'bootstrap',
   marketTimeoutMilliseconds: 5_000,
-  marketCacheTtlMilliseconds: 30_000
+  marketCacheTtlMilliseconds: 30_000,
+  instrumentRepository: 'json',
+  instrumentCatalogPath: './data/instruments.json'
 });
 
 export function loadServerConfig(environment = process.env) {
@@ -17,6 +19,12 @@ export function loadServerConfig(environment = process.env) {
   if (!['bootstrap', 'twelve-data'].includes(marketProvider)) {
     throw new RangeError('MARKET_PROVIDER doit valoir "bootstrap" ou "twelve-data".');
   }
+  const instrumentRepository = optionalText(
+    environment.INSTRUMENT_REPOSITORY ?? DEFAULTS.instrumentRepository
+  ).toLowerCase();
+  if (!['memory', 'json'].includes(instrumentRepository)) {
+    throw new RangeError('INSTRUMENT_REPOSITORY doit valoir "memory" ou "json".');
+  }
 
   return Object.freeze({
     host: text(environment.HOST ?? DEFAULTS.host, 'HOST'),
@@ -27,6 +35,13 @@ export function loadServerConfig(environment = process.env) {
       'SHUTDOWN_TIMEOUT_MS',
       { minimum: 1 }
     ),
+    instrumentCatalog: Object.freeze({
+      repository: instrumentRepository,
+      filePath: text(
+        environment.INSTRUMENT_CATALOG_PATH ?? DEFAULTS.instrumentCatalogPath,
+        'INSTRUMENT_CATALOG_PATH'
+      )
+    }),
     market: Object.freeze({
       provider: marketProvider,
       apiKey: optionalText(environment.TWELVE_DATA_API_KEY),
