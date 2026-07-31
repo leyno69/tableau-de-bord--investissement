@@ -1,7 +1,14 @@
 const API_TOKEN_KEY = 'invest-dashboard-api-token';
 
+function readStoredToken() {
+  const storage = globalThis.localStorage;
+  return storage && typeof storage.getItem === 'function'
+    ? storage.getItem(API_TOKEN_KEY) || ''
+    : '';
+}
+
 export class PortfolioApiClient {
-  constructor({ baseUrl = '', fetchImpl = globalThis.fetch, tokenProvider = () => localStorage.getItem(API_TOKEN_KEY) || '' } = {}) {
+  constructor({ baseUrl = '', fetchImpl = globalThis.fetch, tokenProvider = readStoredToken } = {}) {
     if (typeof fetchImpl !== 'function') throw new TypeError('fetchImpl doit être une fonction.');
     if (typeof tokenProvider !== 'function') throw new TypeError('tokenProvider doit être une fonction.');
     this.baseUrl = String(baseUrl).replace(/\/$/, '');
