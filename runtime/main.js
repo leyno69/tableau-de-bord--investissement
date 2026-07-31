@@ -1,5 +1,6 @@
 import { pathToFileURL } from 'node:url';
 
+import { Portfolio } from '../domain/portfolio/Portfolio.js';
 import { JsonFileInstrumentRepository } from '../infrastructure/instrument/JsonFileInstrumentRepository.js';
 import { InMemoryInstrumentRepository } from '../infrastructure/instrument/InMemoryInstrumentRepository.js';
 import { openJsonFilePortfolioRepositories } from '../infrastructure/persistence/JsonFilePortfolioRepositories.js';
@@ -17,6 +18,9 @@ export async function run({ environment = process.env, logger = console, fetchIm
     JsonFileMarketQuoteCache.open({ filePath: config.storage.marketQuoteCachePath }),
     JsonFileExchangeRateCache.open({ filePath: config.storage.exchangeRateCachePath })
   ]);
+
+  await ensureDefaultPortfolio(repositories, logger);
+
   const providers = createBootstrapProviders({
     market: config.market,
     instrumentRepository,
@@ -50,6 +54,27 @@ export async function run({ environment = process.env, logger = console, fetchIm
   process.once('SIGTERM', shutdown);
   await runtime.start();
   return runtime;
+}
+
+async function ensureDefaultPortfolio(repositories, logger) {
+  const portfolioRepository = repositories?.portfolios;
+  if (!portfolioRepository || typeof portfolioRepository.list !== 'function' || typeof portfolioRepository.save !== 'function') {
+    throw new TypeError('Le dépôt persistant de portefeuilles est indisponible.');
+  }
+
+  const existing = await portfolioRepository.list();
+  if (existing.length > 0) return existing[0];
+
+  const portfolio = new Portfolio({
+    id: 'principal',
+    name: 'Portefeuille principal',
+    baseCurrency: 'EUR',
+    status: Portfolio.STATUSES.ACTIVE
+  });
+  await portfolioRepository.save(portfolio);
+  await repositories.flush?.();
+  logger.info?.('Portefeuille principal créé automatiquement.');
+  return portfolio;
 }
 
 async function createInstrumentRepository(config) {
