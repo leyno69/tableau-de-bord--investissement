@@ -21,7 +21,7 @@ test('le chargement donne un retour visible et mémorise le scénario actif', ()
 });
 
 test('la PWA force la mise à jour des fichiers de simulation', () => {
-  assert.match(worker, /leynor-shell-v5/);
+  assert.match(worker, /leynor-shell-v(?:[5-9]|[1-9]\d+)/);
   assert.match(worker, /'\/simulator\.html'/);
   assert.match(worker, /'\/simulator-ui\.js'/);
   assert.match(worker, /'\/simulation-presets\.js'/);

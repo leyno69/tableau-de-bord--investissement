@@ -9,6 +9,22 @@ test('beta presets are available and uniquely identified', () => {
   assert.equal(findSimulationPreset('beginner')?.label, 'Débutant prudent');
 });
 
+test('each preset explains risk, horizon, allocation and assumptions', () => {
+  for (const preset of simulationPresets) {
+    assert.match(preset.riskLevel, /^(PRUDENT|BALANCED|DYNAMIC)$/);
+    assert.ok(preset.riskLabel.length > 0);
+    assert.ok(preset.horizonYears > 0);
+    assert.ok(preset.assumptions.annualReturn > -1);
+    assert.ok(preset.assumptions.annualVolatility >= 0);
+    assert.ok(preset.assumptions.disclaimer.length > 0);
+    const allocationTotal = preset.allocation.reduce((total, item) => total + item.weight, 0);
+    assert.ok(Math.abs(allocationTotal - 1) < 1e-9);
+    assert.ok(Object.isFrozen(preset));
+    assert.ok(Object.isFrozen(preset.allocation));
+    assert.ok(Object.isFrozen(preset.assumptions));
+  }
+});
+
 test('a preset creates an isolated populated simulation', () => {
   const { simulation, preset } = createSimulationFromPreset('growth');
   const summary = summarizeSimulation(simulation);
