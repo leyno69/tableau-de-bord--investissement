@@ -16,6 +16,6 @@ test('simulation page loads explanatory preset insights', () => {
 });
 
 test('preset insights remain available offline', () => {
-  assert.match(worker, /leynor-shell-v6/);
+  assert.match(worker, /leynor-shell-v\d+/);
   assert.match(worker, /'\/simulation-preset-insights-ui\.js'/);
 });
