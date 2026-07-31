@@ -1,3 +1,5 @@
+import './leynor-logo.js';
+
 const BRAND_STYLESHEET_ID = 'leynor-brand-styles';
 
 function ensureStylesheet() {

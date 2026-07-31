@@ -27,13 +27,13 @@ test('PWA resources remain valid on a GitHub Pages repository subpath', async ()
   assert.doesNotMatch(source, /href = '\/manifest\.webmanifest'/);
 });
 
-test('official icons carry the blue-night, gold and stars identity', async () => {
+test('official icons carry the approved sapphire, gold and stars identity', async () => {
   const icon = await read('icons/leynor-icon.svg');
   const maskable = await read('icons/leynor-maskable.svg');
 
   for (const svg of [icon, maskable]) {
-    assert.match(svg, /#071426/);
-    assert.match(svg, /#f3cc72/);
+    assert.match(svg, /#0(?:6|7)1426|#020711|#050b18/);
+    assert.match(svg, /#(?:ffd66f|ffd774|f5c14f|f1bd49|f4b83e)/i);
     assert.match(svg, /LEYNOR/);
   }
   assert.match(icon, /deux étoiles/);

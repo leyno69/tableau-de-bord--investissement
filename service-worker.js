@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'leynor-shell-v1';
+const CACHE_VERSION = 'leynor-shell-v2';
 const OFFLINE_URL = '/offline.html';
 const APP_SHELL = [
   '/',
@@ -8,13 +8,18 @@ const APP_SHELL = [
   '/app.js',
   '/server-sync.js',
   '/resolver-ui.js',
+  '/leynor-brand.js',
+  '/leynor-brand.css',
+  '/leynor-logo.js',
+  '/leynor-logo.css',
   '/leynor-assistant.js',
   '/leynor-assistant.css',
   '/leynor-conversation.js',
   '/pwa.js',
   '/manifest.webmanifest',
   '/icons/leynor-icon.svg',
-  '/icons/leynor-maskable.svg'
+  '/icons/leynor-maskable.svg',
+  '/icons/leynor-laboratory-premium.svg'
 ];
 
 self.addEventListener('install', event => {
