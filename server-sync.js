@@ -3,6 +3,7 @@ import './profile-menu.js';
 import './pwa.js';
 import './api-fetch-router.js';
 import './leynor-assistant.js';
+import './browser-voice.js';
 import './opportunity-radar-ui.js';
 import { apiUrl, getApiBaseUrl, getApiToken, setApiBaseUrl, setApiToken, usesSecureProxy } from './api-connection.js';
 
