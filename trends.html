@@ -6,19 +6,36 @@
   <title>LEYNOR — Tendances de marché</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    .trends-page{max-width:1240px;margin:auto;padding:34px}.trends-head{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:26px}.trends-actions{display:flex;gap:10px;flex-wrap:wrap}.trends-grid{display:grid;grid-template-columns:1.5fr .9fr;gap:22px}.trend-list,.news-list{display:grid;gap:14px}.trend-card,.news-card{padding:20px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(255,255,255,.035)}.trend-top,.news-top{display:flex;justify-content:space-between;gap:16px}.probability{font-size:2rem;font-weight:800}.up{color:#5bd39a}.down{color:#ff8a8a}.evidence{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}.evidence div{padding:12px;border-radius:12px;background:rgba(255,255,255,.04)}.evidence strong{display:block;margin-bottom:6px}.news-score{font-weight:800;font-size:1.2rem}.disclaimer{padding:14px 16px;border-radius:14px;background:rgba(255,190,92,.1);border:1px solid rgba(255,190,92,.24);margin-bottom:22px}.back-link{color:inherit;text-decoration:none}@media(max-width:850px){.trends-grid{grid-template-columns:1fr}.trends-head{align-items:start;flex-direction:column}.evidence{grid-template-columns:1fr}.trends-page{padding:22px}}
+    .trends-page{max-width:1420px;margin:auto;padding:34px}.trends-head{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:26px}.trends-actions,.trend-toolbar{display:flex;gap:10px;flex-wrap:wrap}.trends-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px}.trend-list,.news-list{display:grid;gap:14px}.trend-card,.news-card{padding:20px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(255,255,255,.035)}.trend-card{position:relative}.trend-top,.news-top,.trend-meta,.trend-instruments{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.trend-meta,.trend-instruments{justify-content:flex-start;flex-wrap:wrap;margin-top:12px}.trend-chip{padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.06);font-size:.72rem;color:var(--muted)}.trend-chip.megatrend{color:var(--accent);background:rgba(124,230,195,.1)}.probability{font-size:1.7rem;font-weight:800;text-align:right}.score{font-size:.72rem;color:var(--muted)}.up{color:#5bd39a}.down{color:#ff8a8a}.evidence{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}.evidence div{padding:12px;border-radius:12px;background:rgba(255,255,255,.04)}.evidence strong{display:block;margin-bottom:6px}.news-score{font-weight:800;font-size:1.2rem}.disclaimer{padding:14px 16px;border-radius:14px;background:rgba(255,190,92,.1);border:1px solid rgba(255,190,92,.24);margin-bottom:22px}.back-link{color:inherit;text-decoration:none}.trend-toolbar{padding:16px;margin-bottom:18px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(255,255,255,.025)}.trend-toolbar input,.trend-toolbar select{min-height:44px;color:var(--text);background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:10px 12px}.trend-toolbar input{flex:1;min-width:220px}.trend-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}.trend-summary article{padding:16px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(255,255,255,.03)}.trend-summary strong{display:block;font-size:1.4rem;margin-top:5px}.favorite-btn{position:absolute;top:16px;right:16px;border:0;background:transparent;color:var(--muted);font-size:1.25rem;cursor:pointer}.favorite-btn[aria-pressed="true"]{color:#ffd56a}.trend-card .trend-top{padding-right:38px}.empty-state{padding:30px;text-align:center;color:var(--muted)}@media(max-width:1000px){.trends-grid{grid-template-columns:1fr}.trend-summary{grid-template-columns:repeat(2,1fr)}}@media(max-width:700px){.trends-head{align-items:start;flex-direction:column}.evidence{grid-template-columns:1fr}.trends-page{padding:20px 14px}.trend-summary{grid-template-columns:1fr 1fr}.trend-top{flex-direction:column}.probability{text-align:left}}
   </style>
 </head>
 <body>
   <main class="trends-page">
     <header class="trends-head">
-      <div><p class="eyebrow">INTELLIGENCE DE MARCHÉ</p><h1>Tendances et probabilités</h1><p class="subtitle">Chaque estimation affiche son horizon, sa méthode, ses preuves et ses limites.</p></div>
+      <div><p class="eyebrow">INTELLIGENCE DE MARCHÉ</p><h1>Radar des secteurs et mégatendances</h1><p class="subtitle">Explore les grandes classes d’actifs, secteurs économiques et thèmes structurels depuis une seule vue.</p></div>
       <div class="trends-actions"><a class="btn" href="simulator.html">◉ Tester en simulation</a><a class="btn secondary back-link" href="index.html">← Tableau de bord</a></div>
     </header>
-    <div class="disclaimer"><strong>Transparence :</strong> les exemples actuels servent à valider l’interface. Ils ne sont pas encore alimentés par un flux de marché temps réel et ne constituent pas des conseils d’investissement.</div>
+    <div class="disclaimer"><strong>Transparence :</strong> les scores actuels servent à valider l’interface et la méthode. Ils ne sont pas encore alimentés par un flux temps réel et ne constituent pas des conseils d’investissement.</div>
+
+    <section class="trend-summary" aria-label="Résumé du radar">
+      <article><span>Secteurs suivis</span><strong id="categoryCount">—</strong></article>
+      <article><span>Signaux affichés</span><strong id="signalCount">—</strong></article>
+      <article><span>Mégatendances</span><strong id="megatrendCount">—</strong></article>
+      <article><span>Favoris</span><strong id="favoriteCount">0</strong></article>
+    </section>
+
+    <section class="trend-toolbar" aria-label="Filtres des tendances">
+      <input id="trendSearch" type="search" placeholder="Rechercher un secteur, une tendance ou un instrument…" aria-label="Rechercher" />
+      <select id="categoryFilter" aria-label="Filtrer par catégorie"><option value="">Toutes les catégories</option></select>
+      <select id="themeFilter" aria-label="Filtrer par type"><option value="">Secteurs et mégatendances</option><option value="Secteur">Secteurs</option><option value="Mégatendance">Mégatendances</option></select>
+      <select id="directionFilter" aria-label="Filtrer par direction"><option value="">Hausse et baisse</option><option value="hausse">Hausse</option><option value="baisse">Baisse</option></select>
+      <select id="sortFilter" aria-label="Trier"><option value="score">Score décroissant</option><option value="probability">Probabilité</option><option value="name">Nom</option></select>
+      <button id="favoritesOnly" class="btn secondary" type="button" aria-pressed="false">☆ Favoris uniquement</button>
+    </section>
+
     <section class="trends-grid">
       <article class="panel">
-        <div class="panel-head"><div><p class="eyebrow">SIGNAUX</p><h2>Probabilités de hausse ou de baisse</h2></div></div>
+        <div class="panel-head"><div><p class="eyebrow">RADAR ÉLARGI</p><h2>Classement des opportunités et risques</h2></div></div>
         <div id="trendSignals" class="trend-list"></div>
       </article>
       <aside class="panel">
@@ -29,10 +46,54 @@
     </section>
   </main>
   <script type="module">
-    import { demoTrendSignals, demoMarketNews } from './market-trends.js';
+    import { demoTrendSignals, demoMarketNews, trendCategories, rankTrendSignals } from './market-trends.js';
+    const FAVORITES_KEY = 'leynor-trend-favorites';
     const esc = value => { const node=document.createElement('div'); node.textContent=value; return node.innerHTML; };
-    document.querySelector('#trendSignals').innerHTML = demoTrendSignals.map(signal => `<article class="trend-card"><div class="trend-top"><div><h3>${esc(signal.asset)}</h3><small>${esc(signal.horizon)} · ${esc(signal.label)}</small></div><div class="probability ${signal.direction === 'hausse' ? 'up' : 'down'}">${Math.round(signal.probability*100)} % ${signal.direction === 'hausse' ? '↑' : '↓'}</div></div><div class="evidence"><div><strong>Éléments favorables</strong>${signal.forecast.evidence.map(x=>`<small>• ${esc(x)}</small><br>`).join('')}</div><div><strong>Éléments contradictoires</strong>${signal.forecast.counterEvidence.length ? signal.forecast.counterEvidence.map(x=>`<small>• ${esc(x)}</small><br>`).join('') : '<small>Aucun renseigné</small>'}</div><div><strong>Méthode</strong><small>${esc(signal.forecast.method)}</small></div><div><strong>Limites</strong>${signal.forecast.limitations.map(x=>`<small>• ${esc(x)}</small><br>`).join('')}</div></div></article>`).join('');
-    document.querySelector('#marketNews').innerHTML = demoMarketNews.map(item => `<article class="news-card"><div class="news-top"><h3>${esc(item.title)}</h3><span class="news-score">${item.importanceScore}/100</span></div><p>${esc(item.summary)}</p><small>Score statistique de priorité, pas probabilité de marché.</small></article>`).join('');
+    const state = { favorites: loadFavorites(), favoritesOnly:false };
+
+    function loadFavorites(){ try{return JSON.parse(localStorage.getItem(FAVORITES_KEY)||'[]')}catch{return[]} }
+    function saveFavorites(){ localStorage.setItem(FAVORITES_KEY,JSON.stringify(state.favorites)); }
+    function toggleFavorite(id){ state.favorites=state.favorites.includes(id)?state.favorites.filter(x=>x!==id):[...state.favorites,id];saveFavorites();render(); }
+
+    const categoryFilter=document.querySelector('#categoryFilter');
+    categoryFilter.insertAdjacentHTML('beforeend',trendCategories.map(category=>`<option value="${esc(category)}">${esc(category)}</option>`).join(''));
+
+    function filteredSignals(){
+      const query=document.querySelector('#trendSearch').value.trim().toLowerCase();
+      const category=categoryFilter.value;
+      const theme=document.querySelector('#themeFilter').value;
+      const direction=document.querySelector('#directionFilter').value;
+      const sort=document.querySelector('#sortFilter').value;
+      let items=demoTrendSignals.filter(signal=>{
+        const haystack=[signal.asset,signal.category,signal.theme,...signal.instruments].join(' ').toLowerCase();
+        return (!query||haystack.includes(query))&&(!category||signal.category===category)&&(!theme||signal.theme===theme)&&(!direction||signal.direction===direction)&&(!state.favoritesOnly||state.favorites.includes(signal.id));
+      });
+      if(sort==='name') items.sort((a,b)=>a.asset.localeCompare(b.asset,'fr'));
+      else if(sort==='probability') items.sort((a,b)=>b.probability-a.probability);
+      else items=rankTrendSignals(items,{favorites:state.favorites});
+      return items;
+    }
+
+    function render(){
+      const items=filteredSignals();
+      document.querySelector('#categoryCount').textContent=trendCategories.length;
+      document.querySelector('#signalCount').textContent=items.length;
+      document.querySelector('#megatrendCount').textContent=demoTrendSignals.filter(x=>x.theme==='Mégatendance').length;
+      document.querySelector('#favoriteCount').textContent=state.favorites.length;
+      document.querySelector('#trendSignals').innerHTML=items.length?items.map(signal=>`<article class="trend-card">
+        <button class="favorite-btn" type="button" data-favorite="${signal.id}" aria-label="Ajouter ${esc(signal.asset)} aux favoris" aria-pressed="${state.favorites.includes(signal.id)}">${state.favorites.includes(signal.id)?'★':'☆'}</button>
+        <div class="trend-top"><div><h3>${esc(signal.asset)}</h3><small>${esc(signal.category)} · ${esc(signal.horizon)} · ${esc(signal.label)}</small></div><div class="probability ${signal.direction==='hausse'?'up':'down'}">${Math.round(signal.probability*100)} % ${signal.direction==='hausse'?'↑':'↓'}<div class="score">Score LEYNOR ${signal.score}/100</div></div></div>
+        <div class="trend-meta"><span class="trend-chip ${signal.theme==='Mégatendance'?'megatrend':''}">${esc(signal.theme)}</span><span class="trend-chip">Momentum : ${esc(signal.momentum)}</span><span class="trend-chip">Volatilité : ${esc(signal.volatility)}</span><span class="trend-chip">Risque : ${esc(signal.risk)}</span></div>
+        <div class="trend-instruments">${signal.instruments.map(x=>`<span class="trend-chip">${esc(x)}</span>`).join('')}</div>
+        <div class="evidence"><div><strong>Éléments favorables</strong>${signal.forecast.evidence.map(x=>`<small>• ${esc(x)}</small><br>`).join('')}</div><div><strong>Éléments contradictoires</strong>${signal.forecast.counterEvidence.length?signal.forecast.counterEvidence.map(x=>`<small>• ${esc(x)}</small><br>`).join(''):'<small>Aucun renseigné</small>'}</div><div><strong>Méthode</strong><small>${esc(signal.forecast.method)}</small></div><div><strong>Limites</strong>${signal.forecast.limitations.map(x=>`<small>• ${esc(x)}</small><br>`).join('')}</div></div>
+      </article>`).join(''):'<div class="empty-state">Aucune tendance ne correspond à ces filtres.</div>';
+      document.querySelectorAll('[data-favorite]').forEach(button=>button.addEventListener('click',()=>toggleFavorite(button.dataset.favorite)));
+    }
+
+    document.querySelectorAll('#trendSearch,#categoryFilter,#themeFilter,#directionFilter,#sortFilter').forEach(control=>control.addEventListener('input',render));
+    document.querySelector('#favoritesOnly').addEventListener('click',event=>{state.favoritesOnly=!state.favoritesOnly;event.currentTarget.setAttribute('aria-pressed',String(state.favoritesOnly));event.currentTarget.textContent=state.favoritesOnly?'★ Tous les favoris':'☆ Favoris uniquement';render();});
+    document.querySelector('#marketNews').innerHTML=demoMarketNews.map(item=>`<article class="news-card"><div class="news-top"><h3>${esc(item.title)}</h3><span class="news-score">${item.importanceScore}/100</span></div><p>${esc(item.summary)}</p><small>Score statistique de priorité, pas probabilité de marché.</small></article>`).join('');
+    render();
   </script>
 </body>
 </html>
