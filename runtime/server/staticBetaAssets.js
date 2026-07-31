@@ -13,6 +13,11 @@ export const STATIC_BETA_ASSETS = Object.freeze([
   ['leynor-financial-cards.js', 'text/javascript; charset=utf-8'],
   ['browser-voice.js', 'text/javascript; charset=utf-8'],
   ['opportunity-radar-ui.js', 'text/javascript; charset=utf-8'],
+  ['leynor-lab.html', 'text/html; charset=utf-8'],
+  ['leynor-lab-ui.js', 'text/javascript; charset=utf-8'],
+  ['leynor-premium-lab.js', 'text/javascript; charset=utf-8'],
+  ['leynor-premium-lab-advanced.js', 'text/javascript; charset=utf-8'],
+  ['leynor-lab-regimes.js', 'text/javascript; charset=utf-8'],
   ['icons/leynor-icon.svg', 'image/svg+xml'],
   ['icons/leynor-maskable.svg', 'image/svg+xml']
 ]);
