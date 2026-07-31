@@ -7,9 +7,11 @@ import { createPortfolioApplication } from '../../application/composition/create
 import { PortfolioAdminService } from '../../application/admin/PortfolioAdminService.js';
 import { InstrumentCatalog } from '../../application/services/InstrumentCatalog.js';
 import { InstrumentCatalogImporter } from '../../application/services/InstrumentCatalogImporter.js';
+import { MarketWeatherService } from '../../application/services/MarketWeatherService.js';
 import { InMemoryInstrumentRepository } from '../../infrastructure/instrument/InMemoryInstrumentRepository.js';
 import { PortfolioHttpAdapter } from '../../interfaces/http/PortfolioHttpAdapter.js';
 import { InstrumentCatalogHttpAdapter } from '../../interfaces/http/InstrumentCatalogHttpAdapter.js';
+import { MarketWeatherHttpAdapter } from '../../interfaces/http/MarketWeatherHttpAdapter.js';
 import { createNodeHttpHandler } from '../../interfaces/http/createNodeHttpHandler.js';
 import { createSecureHttpHandler } from './createSecureHttpHandler.js';
 
@@ -66,8 +68,14 @@ export function createPortfolioHttpServer({
   const instrumentCatalog = new InstrumentCatalog({ instrumentRepository });
   const instrumentImporter = new InstrumentCatalogImporter({ instrumentRepository });
   const instrumentAdapter = new InstrumentCatalogHttpAdapter({ catalog: instrumentCatalog, importer: instrumentImporter });
+  const marketWeatherService = new MarketWeatherService();
+  const marketWeatherAdapter = new MarketWeatherHttpAdapter({ marketWeatherService });
   const httpAdapter = Object.freeze({
-    async handle(request) { return (await instrumentAdapter.handle(request)) ?? portfolioAdapter.handle(request); }
+    async handle(request) {
+      return (await marketWeatherAdapter.handle(request))
+        ?? (await instrumentAdapter.handle(request))
+        ?? portfolioAdapter.handle(request);
+    }
   });
   const applicationHandler = createNodeHttpHandler({ httpAdapter, maxBodyBytes: config.maxBodyBytes });
   const secureApplicationHandler = createSecureHttpHandler({ handler: applicationHandler, token: config.authToken ?? '', logger, clock });
@@ -117,7 +125,7 @@ export function createPortfolioHttpServer({
     return Object.freeze({ host: value.address, port: value.port, family: value.family });
   }
 
-  return Object.freeze({ server, application, adminService, instrumentCatalog, instrumentImporter, instrumentRepository, start, stop, address });
+  return Object.freeze({ server, application, adminService, instrumentCatalog, instrumentImporter, instrumentRepository, marketWeatherService, start, stop, address });
 }
 
 async function sendStaticFile(response, pathname, logger) {
