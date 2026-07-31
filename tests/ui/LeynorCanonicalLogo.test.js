@@ -5,11 +5,12 @@ import { readFile } from 'node:fs/promises';
 const read = path => readFile(new URL(`../../${path}`, import.meta.url), 'utf8');
 
 test('LEYNOR uses approved classic and premium canonical SVG assets', async () => {
-  const [brand, logo, manifest, classicIcon, premiumIcon, serviceWorker] = await Promise.all([
+  const [brand, logo, manifest, classicIcon, maskableIcon, premiumIcon, serviceWorker] = await Promise.all([
     read('leynor-brand.js'),
     read('leynor-logo.js'),
     read('manifest.webmanifest'),
     read('icons/leynor-icon.svg'),
+    read('icons/leynor-maskable.svg'),
     read('icons/leynor-laboratory-premium.svg'),
     read('service-worker.js')
   ]);
@@ -21,8 +22,10 @@ test('LEYNOR uses approved classic and premium canonical SVG assets', async () =
   assert.match(logo, /\.brand-mark/);
   assert.match(logo, /\.ai-orb/);
   assert.match(logo, /\.leynor-presence-core/);
-  assert.match(manifest, /\.\/icons\/leynor-icon\.svg/);
+  assert.match(manifest, /"src": "\.\/icons\/leynor-icon\.svg"/);
+  assert.match(manifest, /"src": "\.\/icons\/leynor-maskable\.svg"/);
   assert.match(classicIcon, /L bleu saphir prolongé par une courbe dorée vers deux étoiles/);
+  assert.match(maskableIcon, /Icône adaptative LEYNOR bleu saphir et or/);
   assert.match(premiumIcon, /Laboratoire Premium/);
   assert.match(serviceWorker, /leynor-laboratory-premium\.svg/);
 });
