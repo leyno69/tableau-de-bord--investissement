@@ -48,3 +48,60 @@ test('le service orchestre STT, assistant et TTS sans dépendre de leurs fournis
   assert.equal(result.session.turns.length, 1);
   assert.deepEqual(calls.map(call => call[0]), ['wake', 'stt', 'assistant', 'tts']);
 });
+
+test('le service enrichit la réponse avec la mémoire et conserve les deux messages', async () => {
+  const calls = [];
+  const storedMessages = [];
+  const memory = Object.freeze({
+    user: Object.freeze({ preferredRisk: 'modéré' }),
+    conversation: Object.freeze({ id: 'conversation-1', summary: 'Suivi du PEA', messages: Object.freeze([]) })
+  });
+  const service = new VoiceAssistantService({
+    wakeWordProvider: { detect: async () => true },
+    speechToTextProvider: { transcribe: async () => ({ text: 'Que dois-je surveiller aujourd’hui ?', confidence: 0.91 }) },
+    memoryService: {
+      buildContext: async input => (calls.push(['context', input]), memory),
+      appendConversationMessage: async input => {
+        calls.push(['append', input.message.role]);
+        storedMessages.push(input.message);
+      }
+    },
+    assistant: {
+      answer: async input => {
+        calls.push(['assistant', input.memory]);
+        return { answer: 'Surveillez votre exposition technologique.', confidence: 0.76, risks: ['Volatilité'] };
+      }
+    },
+    textToSpeechProvider: { synthesize: async () => ({ bytes: 'audio' }) }
+  });
+
+  const result = await service.handle({
+    sessionId: 'voice-memory-1',
+    userId: 'user-1',
+    conversationId: 'conversation-1',
+    messageLimit: 8,
+    audio: new Uint8Array([1])
+  });
+
+  assert.equal(result.response.text, 'Surveillez votre exposition technologique.');
+  assert.deepEqual(calls[0], ['context', { userId: 'user-1', conversationId: 'conversation-1', messageLimit: 8 }]);
+  assert.deepEqual(calls[2], ['assistant', memory]);
+  assert.deepEqual(storedMessages.map(message => message.role), ['user', 'assistant']);
+  assert.equal(storedMessages[0].content, 'Que dois-je surveiller aujourd’hui ?');
+  assert.equal(storedMessages[1].content, 'Surveillez votre exposition technologique.');
+  assert.equal(storedMessages[0].metadata.channel, 'voice');
+  assert.equal(storedMessages[1].metadata.confidence, 0.76);
+});
+
+test('la mémoire reste optionnelle pour les intégrations existantes', async () => {
+  let assistantInput;
+  const service = new VoiceAssistantService({
+    wakeWordProvider: { detect: async () => true },
+    speechToTextProvider: { transcribe: async () => ({ text: 'Bonjour', confidence: 1 }) },
+    assistant: { answer: async input => (assistantInput = input, { answer: 'Bonjour Oscar.', confidence: 1 }) },
+    textToSpeechProvider: { synthesize: async () => ({ bytes: 'audio' }) }
+  });
+
+  await service.handle({ sessionId: 'voice-no-memory', audio: new Uint8Array([1]) });
+  assert.equal('memory' in assistantInput, false);
+});
