@@ -12,6 +12,8 @@ export class PortfolioApiClient {
   listPortfolios() { return this.#request('GET', '/portfolios'); }
   createPortfolio(input) { return this.#request('POST', '/portfolios', input); }
   loadPortfolio(id) { return this.#request('GET', `/portfolios/${encodeURIComponent(id)}`); }
+  listAccounts(id) { return this.#request('GET', `/portfolios/${encodeURIComponent(id)}/accounts`); }
+  createAccount(id, input) { return this.#request('POST', `/portfolios/${encodeURIComponent(id)}/accounts`, input); }
   loadDashboard(id) { return this.#request('POST', `/portfolios/${encodeURIComponent(id)}/dashboard`, { marketDataPolicy: 'partial' }); }
   listAlerts(id) { return this.#request('GET', `/portfolios/${encodeURIComponent(id)}/alerts`); }
   importTransactions(id, transactions) { return this.#request('POST', `/portfolios/${encodeURIComponent(id)}/transactions/import`, { transactions }); }
