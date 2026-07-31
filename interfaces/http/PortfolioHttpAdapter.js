@@ -65,6 +65,10 @@ export class PortfolioHttpAdapter {
         PortfolioHttpAdapter.#facadeMethod(this.facade, 'loadValuationHistory');
         return { statusCode: 200, body: { data: await this.facade.loadValuationHistory({ portfolioId, from: request.query.from, to: request.query.to, marketDataPolicy: request.query.marketDataPolicy ?? 'partial' }) } };
       }
+      case 'periodPerformance': {
+        PortfolioHttpAdapter.#facadeMethod(this.facade, 'calculatePeriodPerformance');
+        return { statusCode: 200, body: { data: await this.facade.calculatePeriodPerformance({ portfolioId, date: request.query.date, marketDataPolicy: request.query.marketDataPolicy ?? 'partial' }) } };
+      }
       case 'loadPortfolio': return { statusCode: 200, body: { data: await this.facade.loadPortfolio(portfolioId) } };
       case 'listAlerts': {
         const state = await this.facade.loadPortfolio(portfolioId);
@@ -91,8 +95,10 @@ export class PortfolioHttpAdapter {
     const patterns = [
       ['GET', /^\/portfolio\/valuation\/?$/, 'valuation', false],
       ['GET', /^\/portfolio\/history\/?$/, 'valuationHistory', false],
+      ['GET', /^\/portfolio\/performance-periods\/?$/, 'periodPerformance', false],
       ['GET', /^\/portfolios\/([^/]+)\/valuation\/?$/, 'valuation', false],
       ['GET', /^\/portfolios\/([^/]+)\/history\/?$/, 'valuationHistory', false],
+      ['GET', /^\/portfolios\/([^/]+)\/performance-periods\/?$/, 'periodPerformance', false],
       ['POST', /^\/portfolios\/?$/, 'createPortfolio', true],
       ['GET', /^\/portfolios\/?$/, 'listPortfolios', true],
       ['PUT', /^\/portfolios\/([^/]+)\/?$/, 'updatePortfolio', true],
@@ -128,7 +134,7 @@ export class PortfolioHttpAdapter {
   }
 
   static #facadeMethod(facade, method) {
-    if (typeof facade[method] !== 'function') throw new Error("Le moteur de valorisation historique n'est pas configuré.");
+    if (typeof facade[method] !== 'function') throw new Error("Le moteur demandé n'est pas configuré.");
   }
 
   static #response(statusCode, body) {
@@ -139,7 +145,7 @@ export class PortfolioHttpAdapter {
     const message = error instanceof Error ? error.message : 'Erreur inconnue.';
     if (/existe déjà|contenu différent/i.test(message)) return PortfolioHttpAdapter.#response(409, { error: { code: 'CONFLICT', message } });
     if (/Aucune préférence|introuvable|n'existe pas/i.test(message)) return PortfolioHttpAdapter.#response(404, { error: { code: 'NOT_FOUND', message } });
-    if (/n'est pas configuré/i.test(message)) return PortfolioHttpAdapter.#response(501, { error: { code: 'VALUATION_API_DISABLED', message } });
+    if (/n'est pas configuré/i.test(message)) return PortfolioHttpAdapter.#response(501, { error: { code: 'FEATURE_DISABLED', message } });
     if (error instanceof TypeError || error instanceof RangeError) return PortfolioHttpAdapter.#response(400, { error: { code: 'INVALID_REQUEST', message } });
     return PortfolioHttpAdapter.#response(500, { error: { code: 'INTERNAL_ERROR', message: 'Une erreur interne est survenue.' } });
   }
