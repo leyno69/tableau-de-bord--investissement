@@ -1,18 +1,11 @@
 import { loadAssistantHistory, rememberAssistantExchange } from './assistant-memory.js';
+import { buildPortfolioReply, loadPortfolioFromStorage } from './portfolio-assistant.js';
 
 const suggestedPrompts = [
   'Analyse la concentration de mon portefeuille',
   'Que puis-je renforcer avec mes liquidités ?',
   'Résume mes alertes prioritaires'
 ];
-
-function buildReply(question) {
-  const normalized = question.toLowerCase();
-  if (normalized.includes('concentration')) return 'Votre exposition principale semble concentrée sur les grandes capitalisations américaines. LEYNOR recommande de surveiller la part géographique avant tout nouveau renforcement.';
-  if (normalized.includes('liquidit') || normalized.includes('renforcer')) return 'Conservez une réserve de sécurité et utilisez le solde destiné à l’investissement par étapes. Priorité aux actifs déjà cohérents avec votre stratégie long terme.';
-  if (normalized.includes('alerte')) return 'Les alertes actuelles doivent être classées par impact : risque de concentration, variation inhabituelle et opportunité proche de votre zone d’achat.';
-  return 'Votre demande est désormais conservée par la mémoire LEYNOR. La prochaine étape connectera cette conversation au moteur d’analyse de portefeuille.';
-}
 
 function escapeHtml(value) {
   const element = document.createElement('div');
@@ -36,7 +29,7 @@ async function mountAssistant() {
   const drawer = document.createElement('aside');
   drawer.className = 'assistant-drawer';
   drawer.setAttribute('aria-hidden', 'true');
-  drawer.innerHTML = `<header class="assistant-head"><div><strong>✦ Assistant LEYNOR</strong><small>Mémoire métier active</small></div><button class="assistant-close" aria-label="Fermer">×</button></header><div><div class="assistant-thread" aria-live="polite"></div><div class="assistant-suggestions">${suggestedPrompts.map(prompt => `<button type="button">${prompt}</button>`).join('')}</div></div><form class="assistant-form"><input aria-label="Votre question" placeholder="Posez une question à LEYNOR…" required /><button>Envoyer</button></form>`;
+  drawer.innerHTML = `<header class="assistant-head"><div><strong>✦ Assistant LEYNOR</strong><small>Mémoire et portefeuille actifs</small></div><button class="assistant-close" aria-label="Fermer">×</button></header><div><div class="assistant-thread" aria-live="polite"></div><div class="assistant-suggestions">${suggestedPrompts.map(prompt => `<button type="button">${prompt}</button>`).join('')}</div></div><form class="assistant-form"><input aria-label="Votre question" placeholder="Posez une question à LEYNOR…" required /><button>Envoyer</button></form>`;
   document.body.append(backdrop, drawer);
 
   const thread = drawer.querySelector('.assistant-thread');
@@ -45,7 +38,7 @@ async function mountAssistant() {
   let history = await loadAssistantHistory();
 
   function render() {
-    thread.innerHTML = history.length ? history.map(item => `<div class="assistant-message ${item.role}">${escapeHtml(item.content)}</div>`).join('') : '<div class="assistant-message assistant">Bonjour Oscar. Je peux analyser votre portefeuille, vos liquidités et vos alertes.</div>';
+    thread.innerHTML = history.length ? history.map(item => `<div class="assistant-message ${item.role}">${escapeHtml(item.content)}</div>`).join('') : '<div class="assistant-message assistant">Bonjour Oscar. Je peux maintenant analyser les positions et les liquidités enregistrées dans votre portefeuille.</div>';
     thread.scrollTop = thread.scrollHeight;
   }
   function open() { drawer.classList.add('open'); backdrop.classList.add('open'); drawer.setAttribute('aria-hidden', 'false'); input.focus(); }
@@ -53,7 +46,8 @@ async function mountAssistant() {
   async function ask(question) {
     const content = question.trim();
     if (!content) return;
-    const answer = buildReply(content);
+    const portfolio = loadPortfolioFromStorage(window.localStorage);
+    const answer = buildPortfolioReply(content, portfolio);
     history.push({ role: 'user', content }, { role: 'assistant', content: answer });
     render();
     await rememberAssistantExchange(content, answer);
