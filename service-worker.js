@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'leynor-shell-v6';
+const CACHE_VERSION = 'leynor-shell-v7';
 const OFFLINE_URL = '/offline.html';
 const APP_SHELL = [
   '/',
@@ -58,6 +58,7 @@ self.addEventListener('fetch', event => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith('/api/')) return;
 
   if (request.mode === 'navigate') {
     event.respondWith(networkFirst(request, OFFLINE_URL));
