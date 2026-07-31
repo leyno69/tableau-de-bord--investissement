@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'leynor-shell-v6';
+const CACHE_VERSION = 'leynor-shell-v8';
 const OFFLINE_URL = '/offline.html';
 const APP_SHELL = [
   '/',
@@ -12,6 +12,8 @@ const APP_SHELL = [
   '/server-sync.js',
   '/api-connection.js',
   '/api-fetch-router.js',
+  '/profile-menu.js',
+  '/profile-menu.css',
   '/resolver-ui.js',
   '/market-trends.js',
   '/probability-assessment.js',
@@ -58,6 +60,7 @@ self.addEventListener('fetch', event => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith('/api/')) return;
 
   if (request.mode === 'navigate') {
     event.respondWith(networkFirst(request, OFFLINE_URL));
