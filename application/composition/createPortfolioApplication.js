@@ -7,6 +7,7 @@ import { EvaluatePortfolioAlerts } from '../use-cases/EvaluatePortfolioAlerts.js
 import { BuildPortfolioDashboard } from '../use-cases/BuildPortfolioDashboard.js';
 import { PersistDashboardState } from '../use-cases/PersistDashboardState.js';
 import { LoadPortfolioMarketQuotes } from '../use-cases/LoadPortfolioMarketQuotes.js';
+import { PortfolioValuationService } from '../services/PortfolioValuationService.js';
 import { PortfolioApplicationFacade } from '../facades/PortfolioApplicationFacade.js';
 import { CachedMarketDataProvider } from '../../infrastructure/market/CachedMarketDataProvider.js';
 import { CachedExchangeRateProvider } from '../../infrastructure/exchange/CachedExchangeRateProvider.js';
@@ -66,6 +67,14 @@ export function createPortfolioApplication({
   const loadMarketQuotes = typeof quoteProvider.getQuote === 'function'
     ? new LoadPortfolioMarketQuotes({ marketDataProvider: quoteProvider })
     : null;
+  const valuationService = typeof marketPriceProvider.getHistory === 'function'
+    ? new PortfolioValuationService({
+        transactionRepository: resolvedRepositories.transactions,
+        preferencesRepository: resolvedRepositories.preferences,
+        marketDataProvider: marketPriceProvider,
+        exchangeRateProvider: resolvedExchangeRateProvider
+      })
+    : null;
   const calculatePerformance = new CalculatePortfolioPerformance({ exchangeRateProvider: resolvedExchangeRateProvider });
   const calculateAllocation = new CalculatePortfolioAllocation({ assetClassificationProvider });
   const analyzeSeries = new AnalyzePortfolioSeries();
@@ -75,7 +84,7 @@ export function createPortfolioApplication({
   const persistDashboardState = new PersistDashboardState({ snapshotRepository: resolvedRepositories.snapshots, alertEventRepository: resolvedRepositories.alerts });
 
   const facade = new PortfolioApplicationFacade({
-    addTransaction, buildDashboard, persistDashboardState, loadMarketQuotes,
+    addTransaction, buildDashboard, persistDashboardState, loadMarketQuotes, valuationService,
     transactionRepository: resolvedRepositories.transactions,
     snapshotRepository: resolvedRepositories.snapshots,
     alertRepository: resolvedRepositories.alerts,
@@ -86,7 +95,7 @@ export function createPortfolioApplication({
     facade,
     repositories: resolvedRepositories,
     providers: Object.freeze({ marketPrice: marketPriceProvider, exchangeRate: resolvedExchangeRateProvider }),
-    useCases: Object.freeze({ addTransaction, valuePortfolio, loadMarketQuotes, calculatePerformance, calculateAllocation, analyzeSeries, evaluateAlerts, buildDashboard, persistDashboardState })
+    useCases: Object.freeze({ addTransaction, valuePortfolio, loadMarketQuotes, valuationService, calculatePerformance, calculateAllocation, analyzeSeries, evaluateAlerts, buildDashboard, persistDashboardState })
   });
 }
 

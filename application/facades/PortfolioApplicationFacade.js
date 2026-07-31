@@ -3,24 +3,35 @@ import { CashLedger } from '../../domain/cash/CashLedger.js';
 import { PortfolioPreferences } from '../../domain/portfolio/PortfolioPreferences.js';
 
 export class PortfolioApplicationFacade {
-  constructor({ addTransaction, buildDashboard, persistDashboardState, loadMarketQuotes = null, transactionRepository, snapshotRepository, alertRepository, preferencesRepository, portfolioLedger = PortfolioLedger, cashLedger = CashLedger }) {
+  constructor({ addTransaction, buildDashboard, persistDashboardState, loadMarketQuotes = null, valuationService = null, transactionRepository, snapshotRepository, alertRepository, preferencesRepository, portfolioLedger = PortfolioLedger, cashLedger = CashLedger }) {
     PortfolioApplicationFacade.#useCase(addTransaction, 'addTransaction');
     PortfolioApplicationFacade.#useCase(buildDashboard, 'buildDashboard');
     PortfolioApplicationFacade.#useCase(persistDashboardState, 'persistDashboardState');
     if (loadMarketQuotes != null) PortfolioApplicationFacade.#useCase(loadMarketQuotes, 'loadMarketQuotes');
+    if (valuationService != null) {
+      for (const method of ['valueAt', 'history']) if (typeof valuationService[method] !== 'function') throw new TypeError(`valuationService doit implémenter ${method}().`);
+    }
     PortfolioApplicationFacade.#repository(transactionRepository, ['listByPortfolio'], 'transactionRepository');
     PortfolioApplicationFacade.#repository(snapshotRepository, ['listByPortfolio'], 'snapshotRepository');
     PortfolioApplicationFacade.#repository(alertRepository, ['listByPortfolio', 'listFingerprints'], 'alertRepository');
     PortfolioApplicationFacade.#repository(preferencesRepository, ['save', 'findByPortfolio'], 'preferencesRepository');
     if (!portfolioLedger || typeof portfolioLedger.rebuildPositions !== 'function') throw new TypeError('portfolioLedger doit implémenter rebuildPositions().');
     if (!cashLedger || typeof cashLedger.rebuildMoneyBalances !== 'function') throw new TypeError('cashLedger doit implémenter rebuildMoneyBalances().');
-    Object.assign(this, { addTransaction, buildDashboard, persistDashboardState, loadMarketQuotes, transactionRepository, snapshotRepository, alertRepository, preferencesRepository, portfolioLedger, cashLedger });
+    Object.assign(this, { addTransaction, buildDashboard, persistDashboardState, loadMarketQuotes, valuationService, transactionRepository, snapshotRepository, alertRepository, preferencesRepository, portfolioLedger, cashLedger });
   }
 
   async recordTransaction(properties) { return this.addTransaction.execute(properties); }
   async savePreferences(properties) {
     const preferences = properties instanceof PortfolioPreferences ? properties : new PortfolioPreferences(properties);
     return this.preferencesRepository.save(preferences);
+  }
+  async valuePortfolioAt(input) {
+    if (this.valuationService == null) throw new Error("Le moteur de valorisation historique n'est pas configuré.");
+    return this.valuationService.valueAt(input);
+  }
+  async loadValuationHistory(input) {
+    if (this.valuationService == null) throw new Error("Le moteur de valorisation historique n'est pas configuré.");
+    return this.valuationService.history(input);
   }
 
   async loadPortfolio(portfolioId) {
