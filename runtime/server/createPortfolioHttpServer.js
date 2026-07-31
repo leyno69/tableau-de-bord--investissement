@@ -8,9 +8,12 @@ import { PortfolioAdminService } from '../../application/admin/PortfolioAdminSer
 import { InstrumentCatalog } from '../../application/services/InstrumentCatalog.js';
 import { InstrumentCatalogImporter } from '../../application/services/InstrumentCatalogImporter.js';
 import { LeynorAnalysisPipeline } from '../../application/services/LeynorAnalysisPipeline.js';
+import { LeynorAssistantService } from '../../application/services/LeynorAssistantService.js';
 import { MarketWeatherService } from '../../application/services/MarketWeatherService.js';
+import { HttpLanguageModelProvider } from '../../infrastructure/ai/HttpLanguageModelProvider.js';
 import { InMemoryInstrumentRepository } from '../../infrastructure/instrument/InMemoryInstrumentRepository.js';
 import { LeynorAnalysisHttpAdapter } from '../../interfaces/http/LeynorAnalysisHttpAdapter.js';
+import { LeynorAssistantHttpAdapter } from '../../interfaces/http/LeynorAssistantHttpAdapter.js';
 import { PortfolioHttpAdapter } from '../../interfaces/http/PortfolioHttpAdapter.js';
 import { InstrumentCatalogHttpAdapter } from '../../interfaces/http/InstrumentCatalogHttpAdapter.js';
 import { MarketWeatherHttpAdapter } from '../../interfaces/http/MarketWeatherHttpAdapter.js';
@@ -44,7 +47,8 @@ export function createPortfolioHttpServer({
   alertRules = [],
   clock = () => new Date(),
   idGenerator,
-  logger = console
+  logger = console,
+  fetchImplementation = globalThis.fetch
 }) {
   requireConfig(config);
   requireProviders(providers);
@@ -74,9 +78,15 @@ export function createPortfolioHttpServer({
   const marketWeatherAdapter = new MarketWeatherHttpAdapter({ marketWeatherService });
   const leynorAnalysisPipeline = new LeynorAnalysisPipeline({ marketWeatherService });
   const leynorAnalysisAdapter = new LeynorAnalysisHttpAdapter({ pipeline: leynorAnalysisPipeline });
+  const languageModelProvider = createLanguageModelProvider(config.languageModel ?? { provider: 'disabled' }, fetchImplementation);
+  const leynorAssistantService = languageModelProvider == null
+    ? null
+    : new LeynorAssistantService({ pipeline: leynorAnalysisPipeline, languageModelProvider });
+  const leynorAssistantAdapter = new LeynorAssistantHttpAdapter({ assistantService: leynorAssistantService });
   const httpAdapter = Object.freeze({
     async handle(request) {
-      return (await leynorAnalysisAdapter.handle(request))
+      return (await leynorAssistantAdapter.handle(request))
+        ?? (await leynorAnalysisAdapter.handle(request))
         ?? (await marketWeatherAdapter.handle(request))
         ?? (await instrumentAdapter.handle(request))
         ?? portfolioAdapter.handle(request);
@@ -130,7 +140,34 @@ export function createPortfolioHttpServer({
     return Object.freeze({ host: value.address, port: value.port, family: value.family });
   }
 
-  return Object.freeze({ server, application, adminService, instrumentCatalog, instrumentImporter, instrumentRepository, marketWeatherService, leynorAnalysisPipeline, start, stop, address });
+  return Object.freeze({
+    server,
+    application,
+    adminService,
+    instrumentCatalog,
+    instrumentImporter,
+    instrumentRepository,
+    marketWeatherService,
+    leynorAnalysisPipeline,
+    leynorAssistantService,
+    languageModelProvider,
+    start,
+    stop,
+    address
+  });
+}
+
+function createLanguageModelProvider(config = {}, fetchImplementation) {
+  if (!config || config.provider == null || config.provider === 'disabled') return null;
+  if (config.provider !== 'openai-compatible-http') throw new RangeError('Fournisseur IA LEYNOR non pris en charge.');
+  if (!config.apiKey) throw new Error('LEYNOR_LLM_API_KEY est obligatoire lorsque le fournisseur IA est activé.');
+  return new HttpLanguageModelProvider({
+    baseUrl: config.baseUrl,
+    apiKey: config.apiKey,
+    model: config.model,
+    timeoutMilliseconds: config.timeoutMilliseconds,
+    fetchImplementation
+  });
 }
 
 async function sendStaticFile(response, pathname, logger) {
