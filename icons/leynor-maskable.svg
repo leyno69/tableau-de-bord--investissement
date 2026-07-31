@@ -1,26 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">LEYNOR</title>
-  <desc id="desc">Icône adaptative LEYNOR bleu nuit et or.</desc>
+  <desc id="desc">Icône adaptative LEYNOR bleu saphir et or.</desc>
   <defs>
-    <radialGradient id="bg" cx="38%" cy="28%" r="86%">
-      <stop stop-color="#11335b"/>
-      <stop offset=".62" stop-color="#071426"/>
-      <stop offset="1" stop-color="#02060e"/>
+    <radialGradient id="bg" cx="34%" cy="24%" r="92%">
+      <stop stop-color="#102b52"/>
+      <stop offset=".55" stop-color="#061426"/>
+      <stop offset="1" stop-color="#020711"/>
     </radialGradient>
-    <linearGradient id="blue" x1="170" y1="142" x2="326" y2="376" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#3297ff"/>
-      <stop offset="1" stop-color="#123b80"/>
+    <linearGradient id="blue" x1="159" y1="129" x2="272" y2="390" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#61d5ff"/>
+      <stop offset=".38" stop-color="#138fff"/>
+      <stop offset="1" stop-color="#0753ba"/>
     </linearGradient>
-    <linearGradient id="gold" x1="172" y1="350" x2="380" y2="164" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#9b6a20"/>
-      <stop offset=".5" stop-color="#f3cc72"/>
-      <stop offset="1" stop-color="#b7802d"/>
+    <linearGradient id="gold" x1="193" y1="395" x2="382" y2="246" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#a66d17"/>
+      <stop offset=".46" stop-color="#f1bd49"/>
+      <stop offset=".78" stop-color="#ffd774"/>
+      <stop offset="1" stop-color="#f4b83e"/>
     </linearGradient>
   </defs>
   <rect width="512" height="512" fill="url(#bg)"/>
-  <circle cx="256" cy="256" r="190" fill="#06101f" stroke="#1e4f86" stroke-width="8"/>
-  <path d="M169 142c0-16 13-29 29-29h52v199c0 15 12 27 27 27h98v61H246c-43 0-77-35-77-77V142z" fill="url(#blue)"/>
-  <path d="M169 341c62 1 111-18 149-57 25-25 45-57 63-96" fill="none" stroke="url(#gold)" stroke-width="30" stroke-linecap="round"/>
-  <path d="M383 134l8 19 20 8-20 8-8 20-8-20-20-8 20-8z" fill="#f6d788"/>
-  <path d="M347 188l5 11 11 5-11 5-5 12-5-12-12-5 12-5z" fill="#d8a84d"/>
+  <path d="M158 143c0-22 18-40 40-40h68c-22 17-33 38-33 63v160h99c38 0 65-14 84-43-7 75-48 127-122 127H158V143z" fill="url(#blue)"/>
+  <path d="M197 410c64-1 116-16 155-45 42-31 67-74 75-130 13 73-11 131-69 175H197z" fill="url(#gold)"/>
+  <path d="M366 125l11 27 28 11-28 11-11 28-11-28-28-11 28-11z" fill="#ffd66f"/>
+  <path d="M315 196l6 15 16 6-16 6-6 16-6-16-16-6 16-6z" fill="#f5c14f"/>
 </svg>
