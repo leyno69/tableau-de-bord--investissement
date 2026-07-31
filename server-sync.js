@@ -1,8 +1,7 @@
 import './leynor-brand.js';
 import './pwa.js';
 import './leynor-assistant.js';
-
-const API_TOKEN_KEY = 'invest-dashboard-api-token';
+import { apiUrl, getApiBaseUrl, getApiToken, setApiBaseUrl, setApiToken } from './api-connection.js';
 
 function addNavigationLink({ href, label, icon, marker, before }) {
   const nav = document.querySelector('.main-nav');
@@ -28,7 +27,8 @@ function createConnectionControl() {
   const status = document.createElement('span');
   status.id = 'serverConnectionStatus';
   status.className = 'badge';
-  status.textContent = 'Serveur à vérifier';
+  status.textContent = 'Serveur à configurer';
+  status.title = 'Touchez Connexion serveur pour renseigner l’adresse du backend.';
   const button = document.createElement('button');
   button.id = 'serverConnectionBtn';
   button.className = 'btn secondary';
@@ -41,42 +41,73 @@ function createConnectionControl() {
 }
 
 async function configureConnection() {
-  const existing = localStorage.getItem(API_TOKEN_KEY) || '';
-  const token = window.prompt('Colle la valeur APP_AUTH_TOKEN configurée dans Railway :', existing);
-  if (token == null) return;
-  const normalized = token.trim();
-  if (normalized) localStorage.setItem(API_TOKEN_KEY, normalized);
-  else localStorage.removeItem(API_TOKEN_KEY);
+  const currentUrl = getApiBaseUrl();
+  const url = window.prompt('Adresse publique du serveur LEYNOR (ex. https://votre-projet.up.railway.app) :', currentUrl);
+  if (url == null) return;
+  try {
+    setApiBaseUrl(url);
+  } catch (error) {
+    window.alert(error instanceof Error ? error.message : 'Adresse serveur invalide.');
+    return;
+  }
+
+  const token = window.prompt('Jeton APP_AUTH_TOKEN du serveur (laisser vide si non configuré) :', getApiToken());
+  if (token != null) setApiToken(token);
   await verifyConnection();
 }
 
-async function verifyConnection() {
+function setConnectionStatus(message, detail = message) {
   const status = document.querySelector('#serverConnectionStatus');
-  const button = document.querySelector('#serverConnectionBtn');
-  if (!status || !button) return;
-  status.textContent = 'Vérification…';
-  button.disabled = true;
-  try {
-    const healthResponse = await fetch('/health', { cache: 'no-store' });
-    if (!healthResponse.ok) throw new Error(`Healthcheck HTTP ${healthResponse.status}`);
-    const token = localStorage.getItem(API_TOKEN_KEY) || '';
-    if (!token) { status.textContent = 'Serveur actif • token requis'; return; }
-    const response = await fetch('/portfolios', { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
-    if (response.status === 401) { status.textContent = 'Token invalide'; return; }
-    if (!response.ok) throw new Error(`API HTTP ${response.status}`);
-    const payload = await response.json();
-    updatePortfolioCount(Array.isArray(payload?.data) ? payload.data.length : 0);
-  } catch (error) {
-    console.error('Server connection error:', error);
-    status.textContent = 'Serveur indisponible';
-  } finally { button.disabled = false; }
+  if (!status) return;
+  status.textContent = message;
+  status.title = detail;
 }
 
-function updatePortfolioCount(count) {
-  const status = document.querySelector('#serverConnectionStatus');
-  if (status) status.textContent = `Serveur connecté • ${count} portefeuille${count > 1 ? 's' : ''}`;
+async function verifyConnection() {
+  const button = document.querySelector('#serverConnectionBtn');
+  if (!button) return;
+  const baseUrl = getApiBaseUrl();
+  if (!baseUrl) {
+    setConnectionStatus('Serveur non configuré', 'Aucune adresse de backend n’est enregistrée.');
+    return;
+  }
+
+  setConnectionStatus('Vérification…', `Test de ${baseUrl}`);
+  button.disabled = true;
+  try {
+    const healthResponse = await fetch(apiUrl('/health'), { cache: 'no-store' });
+    if (!healthResponse.ok) throw new Error(`Le serveur répond HTTP ${healthResponse.status} sur /health.`);
+
+    const token = getApiToken();
+    if (!token) {
+      setConnectionStatus('Serveur actif • token requis', `${baseUrl} répond, mais aucun APP_AUTH_TOKEN n’est enregistré.`);
+      return;
+    }
+
+    const response = await fetch(apiUrl('/portfolios'), { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
+    if (response.status === 401) {
+      setConnectionStatus('Token invalide', `${baseUrl} répond, mais refuse le jeton enregistré.`);
+      return;
+    }
+    if (!response.ok) throw new Error(`L’API répond HTTP ${response.status} sur /portfolios.`);
+    const payload = await response.json();
+    updatePortfolioCount(Array.isArray(payload?.data) ? payload.data.length : 0, baseUrl);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : 'Erreur réseau inconnue.';
+    console.error('Server connection error:', error);
+    setConnectionStatus('Serveur indisponible', `${baseUrl} — ${reason}`);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function updatePortfolioCount(count, baseUrl = getApiBaseUrl()) {
+  setConnectionStatus(`Serveur connecté • ${count} portefeuille${count > 1 ? 's' : ''}`, baseUrl);
 }
 
 window.addEventListener('portfolio-server-ready', event => updatePortfolioCount(Number(event.detail?.count || 0)));
+window.addEventListener('leynor-api-connection-changed', verifyConnection);
 createProductNavigation();
 createConnectionControl();
+
+export { configureConnection, verifyConnection };
