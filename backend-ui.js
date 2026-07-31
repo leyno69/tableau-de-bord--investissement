@@ -107,12 +107,15 @@ async function importTransactions() {
     const text = await file.text();
     let transactions;
     let sourceLabel;
+    let skippedBeforeImport = 0;
 
     if (/\.csv$/i.test(file.name) || file.type === 'text/csv') {
       const rows = parseCsv(text);
       if (!isTradeRepublicCsv(rows)) throw new Error('Ce CSV ne correspond pas au format Trade Republic attendu.');
       await ensureTradeRepublicAccounts(portfolioId, rows);
-      transactions = rows.map(row => mapTradeRepublicTransaction(row, portfolioId)).filter(Boolean);
+      const mapped = rows.map(row => mapTradeRepublicTransaction(row, portfolioId));
+      transactions = mapped.filter(Boolean);
+      skippedBeforeImport = mapped.length - transactions.length;
       sourceLabel = 'Trade Republic';
     } else {
       const parsed = JSON.parse(text);
@@ -126,9 +129,15 @@ async function importTransactions() {
     const result = await client.importTransactions(portfolioId, transactions);
     const imported = result?.imported?.length ?? 0;
     const errors = result?.errors ?? [];
-    setStatus(`${imported} importée(s)${errors.length ? ` • ${errors.length} ignorée(s)` : ''}`, errors.length === 0);
+    const rejected = errors.length + skippedBeforeImport;
+    setStatus(`${imported} importée(s)${rejected ? ` • ${rejected} ignorée(s)` : ''}`, rejected === 0);
+
+    const errorPreview = errors.slice(0, 3)
+      .map(error => `Ligne ${Number(error.index) + 2} : ${error.message}`)
+      .join(' • ');
     marketDataState.innerHTML = `
-      <div class="alert"><strong>Import ${escapeHtml(sourceLabel)}</strong><small>${imported} transaction(s) enregistrée(s)${errors.length ? ` • ${errors.length} ligne(s) déjà présente(s) ou invalide(s)` : ''}</small></div>`;
+      <div class="alert"><strong>Import ${escapeHtml(sourceLabel)}</strong><small>${imported} transaction(s) enregistrée(s)${rejected ? ` • ${rejected} ligne(s) ignorée(s)` : ''}</small></div>
+      ${errorPreview ? `<div class="alert"><strong>Détails</strong><small>${escapeHtml(errorPreview)}</small></div>` : ''}`;
     await synchronize();
   } catch (error) {
     setStatus('Import impossible', false);
@@ -180,7 +189,7 @@ function mapTradeRepublicTransaction(row, portfolioId) {
     taxes,
     currency,
     executedAt,
-    status: 'CONFIRMED',
+    status: 'confirmed',
     createdAt: executedAt
   };
 
@@ -189,13 +198,13 @@ function mapTradeRepublicTransaction(row, portfolioId) {
     const quantity = absoluteNumber(row.shares);
     const unitPrice = absoluteNumber(row.price);
     if (!assetId || quantity <= 0 || unitPrice <= 0) return null;
-    return { ...base, assetId, type: brokerType, quantity, unitPrice, amount: null };
+    return { ...base, assetId, type: brokerType.toLowerCase(), quantity, unitPrice, amount: null };
   }
 
   const cashTypes = new Map([
-    ['CUSTOMER_INPAYMENT', 'DEPOSIT'], ['TRANSFER_INSTANT_INBOUND', 'DEPOSIT'],
-    ['TRANSFER_IN', 'DEPOSIT'], ['REFERRAL', 'DEPOSIT'], ['PEA_MARKETING', 'DEPOSIT'],
-    ['TRANSFER_OUT', 'WITHDRAWAL']
+    ['CUSTOMER_INPAYMENT', 'deposit'], ['TRANSFER_INSTANT_INBOUND', 'deposit'],
+    ['TRANSFER_IN', 'deposit'], ['REFERRAL', 'deposit'], ['PEA_MARKETING', 'deposit'],
+    ['TRANSFER_OUT', 'withdrawal']
   ]);
   const type = cashTypes.get(brokerType);
   const amount = absoluteNumber(row.amount);
