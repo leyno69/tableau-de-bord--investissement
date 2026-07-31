@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LEYNOR — Mode Simulation</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="workspace" style="max-width:1200px;margin:0 auto;padding:32px">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">BAC À SABLE FICTIF</p>
+        <h1>Mode Simulation</h1>
+        <p class="subtitle">Testez des achats, ventes et versements programmés sans modifier votre portefeuille réel.</p>
+      </div>
+      <div class="topbar-actions"><a class="btn secondary" href="index.html">Retour au tableau de bord</a></div>
+    </header>
+
+    <section class="metric-grid" aria-label="Résumé du scénario fictif">
+      <article class="metric-card"><span>Capital fictif</span><strong id="simTotal">—</strong><small>positions et liquidités</small></article>
+      <article class="metric-card"><span>Liquidités fictives</span><strong id="simCash">—</strong><small>aucun argent réel</small></article>
+      <article class="metric-card"><span>Résultat simulé</span><strong id="simPnl">—</strong><small>selon les cours saisis</small></article>
+      <article class="metric-card"><span>Transactions</span><strong id="simTransactions">0</strong><small>achats et ventes fictifs</small></article>
+    </section>
+
+    <section class="layout-main" style="margin-top:24px">
+      <div class="stack">
+        <article class="panel">
+          <div class="panel-head"><div><p class="eyebrow">PAPER TRADING</p><h2>Nouvelle opération fictive</h2></div><span class="badge">SIMULATION</span></div>
+          <div class="form-grid">
+            <label class="field"><span>Opération</span><select id="simOperation"><option value="buy">Acheter</option><option value="sell">Vendre</option></select></label>
+            <label class="field"><span>Actif / ticker</span><input id="simTicker" value="WPEA" /></label>
+            <label class="field"><span>Nom</span><input id="simName" value="ETF Monde fictif" /></label>
+            <label class="field"><span>Cours simulé (€)</span><input id="simPrice" type="number" min="0.01" step="0.01" value="5.50" /></label>
+            <label class="field"><span>Montant d’achat (€)</span><input id="simAmount" type="number" min="0.01" step="0.01" value="500" /></label>
+            <label class="field"><span>Quantité à vendre</span><input id="simQuantity" type="number" min="0.000001" step="0.000001" value="1" /></label>
+          </div>
+          <div class="dialog-actions"><button id="resetSimulation" class="btn secondary" type="button">Réinitialiser</button><button id="executeSimulation" class="btn" type="button">Exécuter fictivement</button></div>
+          <p id="simStatus" class="subtitle" aria-live="polite">Le mode simulation est isolé du portefeuille réel.</p>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head"><div><p class="eyebrow">POSITIONS FICTIVES</p><h2>Portefeuille simulé</h2></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Actif</th><th>Quantité</th><th>PRU</th><th>Cours</th><th>Valeur</th></tr></thead><tbody id="simPositions"></tbody></table></div>
+        </article>
+      </div>
+
+      <aside class="stack insights-column">
+        <article class="panel">
+          <div class="panel-head"><div><p class="eyebrow">PROJECTION</p><h2>Simulation DCA</h2></div></div>
+          <div class="stack">
+            <label class="field"><span>Apport initial (€)</span><input id="dcaInitial" type="number" min="0" value="2000" /></label>
+            <label class="field"><span>Versement mensuel (€)</span><input id="dcaMonthly" type="number" min="0" value="100" /></label>
+            <label class="field"><span>Durée (mois)</span><input id="dcaMonths" type="number" min="1" value="240" /></label>
+            <label class="field"><span>Rendement annuel hypothétique (%)</span><input id="dcaReturn" type="number" min="-99" step="0.1" value="7" /></label>
+            <button id="runDca" class="btn" type="button">Calculer le scénario</button>
+          </div>
+          <div id="dcaResult" class="alerts-list" style="margin-top:16px"></div>
+          <small>Projection mathématique, non garantie et sans frais ni fiscalité.</small>
+        </article>
+      </aside>
+    </section>
+  </main>
+  <script type="module" src="simulator-ui.js"></script>
+</body>
+</html>
