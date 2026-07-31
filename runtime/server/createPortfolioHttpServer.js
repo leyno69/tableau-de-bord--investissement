@@ -1,4 +1,7 @@
 import { createServer } from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { createPortfolioApplication } from '../../application/composition/createPortfolioApplication.js';
 import { PortfolioAdminService } from '../../application/admin/PortfolioAdminService.js';
@@ -9,6 +12,19 @@ import { PortfolioHttpAdapter } from '../../interfaces/http/PortfolioHttpAdapter
 import { InstrumentCatalogHttpAdapter } from '../../interfaces/http/InstrumentCatalogHttpAdapter.js';
 import { createNodeHttpHandler } from '../../interfaces/http/createNodeHttpHandler.js';
 import { createSecureHttpHandler } from './createSecureHttpHandler.js';
+
+const PROJECT_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const STATIC_FILES = new Map([
+  ['/', ['index.html', 'text/html; charset=utf-8']],
+  ['/index.html', ['index.html', 'text/html; charset=utf-8']],
+  ['/style.css', ['style.css', 'text/css; charset=utf-8']],
+  ['/app.js', ['app.js', 'text/javascript; charset=utf-8']],
+  ['/brokers.js', ['brokers.js', 'text/javascript; charset=utf-8']],
+  ['/portfolio.js', ['portfolio.js', 'text/javascript; charset=utf-8']],
+  ['/market.js', ['market.js', 'text/javascript; charset=utf-8']],
+  ['/alerts.js', ['alerts.js', 'text/javascript; charset=utf-8']],
+  ['/resolver-ui.js', ['resolver-ui.js', 'text/javascript; charset=utf-8']]
+]);
 
 export function createPortfolioHttpServer({
   config,
@@ -54,8 +70,10 @@ export function createPortfolioHttpServer({
 
   let ready = false;
   const server = createServer(async (request, response) => {
-    if (request.method === 'GET' && request.url === '/health') return sendJson(response, 200, { status: 'ok' });
-    if (request.method === 'GET' && request.url === '/ready') return sendJson(response, ready ? 200 : 503, { status: ready ? 'ready' : 'starting' });
+    const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
+    if (request.method === 'GET' && pathname === '/health') return sendJson(response, 200, { status: 'ok' });
+    if (request.method === 'GET' && pathname === '/ready') return sendJson(response, ready ? 200 : 503, { status: ready ? 'ready' : 'starting' });
+    if (request.method === 'GET' && STATIC_FILES.has(pathname)) return sendStaticFile(response, pathname, logger);
     return secureApplicationHandler(request, response);
   });
 
@@ -96,6 +114,22 @@ export function createPortfolioHttpServer({
   }
 
   return Object.freeze({ server, application, adminService, instrumentCatalog, instrumentImporter, instrumentRepository, start, stop, address });
+}
+
+async function sendStaticFile(response, pathname, logger) {
+  const [relativePath, contentType] = STATIC_FILES.get(pathname);
+  try {
+    const body = await readFile(join(PROJECT_ROOT, relativePath));
+    response.writeHead(200, {
+      'content-type': contentType,
+      'cache-control': pathname === '/' || pathname === '/index.html' ? 'no-cache' : 'public, max-age=300',
+      'x-content-type-options': 'nosniff'
+    });
+    response.end(body);
+  } catch (error) {
+    logger.error?.(`Impossible de servir ${relativePath}.`, error);
+    sendJson(response, 500, { error: 'static_asset_unavailable' });
+  }
 }
 
 function sendJson(response, statusCode, body) {
