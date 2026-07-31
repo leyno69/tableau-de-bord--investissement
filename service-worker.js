@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'leynor-shell-v7';
+const CACHE_VERSION = 'leynor-shell-v8';
 const OFFLINE_URL = '/offline.html';
 const APP_SHELL = [
   '/',
@@ -12,6 +12,8 @@ const APP_SHELL = [
   '/server-sync.js',
   '/api-connection.js',
   '/api-fetch-router.js',
+  '/profile-menu.js',
+  '/profile-menu.css',
   '/resolver-ui.js',
   '/market-trends.js',
   '/probability-assessment.js',
