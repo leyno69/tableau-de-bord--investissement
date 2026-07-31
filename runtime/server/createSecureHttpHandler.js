@@ -1,9 +1,17 @@
 import { randomUUID, timingSafeEqual } from 'node:crypto';
+import { createCorsHandler } from './createCorsHandler.js';
 
-export function createSecureHttpHandler({ handler, token = '', logger = console, clock = () => new Date() } = {}) {
+export function createSecureHttpHandler({
+  handler,
+  token = '',
+  logger = console,
+  clock = () => new Date(),
+  allowedOrigins = readAllowedOrigins(process.env.CORS_ALLOWED_ORIGINS)
+} = {}) {
   if (typeof handler !== 'function') throw new TypeError('handler doit être une fonction.');
   if (typeof token !== 'string') throw new TypeError('token doit être une chaîne.');
   if (!logger || typeof logger !== 'object') throw new TypeError('logger doit être un objet.');
+  const cors = createCorsHandler({ allowedOrigins });
 
   return async function secureHandler(request, response) {
     const requestId = request.headers['x-request-id'] || randomUUID();
@@ -14,6 +22,11 @@ export function createSecureHttpHandler({ handler, token = '', logger = console,
     response.setHeader('referrer-policy', 'no-referrer');
     response.setHeader('content-security-policy', "default-src 'none'; frame-ancestors 'none'");
     response.setHeader('cache-control', 'no-store');
+
+    if (cors.apply(request, response)) {
+      log(logger, request, response.statusCode, requestId, startedAt, clock);
+      return;
+    }
 
     if (token && !authorized(request.headers.authorization, token)) {
       response.writeHead(401, { 'content-type': 'application/json; charset=utf-8', 'www-authenticate': 'Bearer' });
@@ -28,6 +41,13 @@ export function createSecureHttpHandler({ handler, token = '', logger = console,
       log(logger, request, response.statusCode, requestId, startedAt, clock);
     }
   };
+}
+
+function readAllowedOrigins(value) {
+  const configured = typeof value === 'string' && value.trim()
+    ? value
+    : 'https://leyno69.github.io';
+  return configured.split(',').map(item => item.trim()).filter(Boolean);
 }
 
 function authorized(header, expected) {
