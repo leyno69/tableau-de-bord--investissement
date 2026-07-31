@@ -7,8 +7,10 @@ import { createPortfolioApplication } from '../../application/composition/create
 import { PortfolioAdminService } from '../../application/admin/PortfolioAdminService.js';
 import { InstrumentCatalog } from '../../application/services/InstrumentCatalog.js';
 import { InstrumentCatalogImporter } from '../../application/services/InstrumentCatalogImporter.js';
+import { LeynorAnalysisPipeline } from '../../application/services/LeynorAnalysisPipeline.js';
 import { MarketWeatherService } from '../../application/services/MarketWeatherService.js';
 import { InMemoryInstrumentRepository } from '../../infrastructure/instrument/InMemoryInstrumentRepository.js';
+import { LeynorAnalysisHttpAdapter } from '../../interfaces/http/LeynorAnalysisHttpAdapter.js';
 import { PortfolioHttpAdapter } from '../../interfaces/http/PortfolioHttpAdapter.js';
 import { InstrumentCatalogHttpAdapter } from '../../interfaces/http/InstrumentCatalogHttpAdapter.js';
 import { MarketWeatherHttpAdapter } from '../../interfaces/http/MarketWeatherHttpAdapter.js';
@@ -70,9 +72,12 @@ export function createPortfolioHttpServer({
   const instrumentAdapter = new InstrumentCatalogHttpAdapter({ catalog: instrumentCatalog, importer: instrumentImporter });
   const marketWeatherService = new MarketWeatherService();
   const marketWeatherAdapter = new MarketWeatherHttpAdapter({ marketWeatherService });
+  const leynorAnalysisPipeline = new LeynorAnalysisPipeline({ marketWeatherService });
+  const leynorAnalysisAdapter = new LeynorAnalysisHttpAdapter({ pipeline: leynorAnalysisPipeline });
   const httpAdapter = Object.freeze({
     async handle(request) {
-      return (await marketWeatherAdapter.handle(request))
+      return (await leynorAnalysisAdapter.handle(request))
+        ?? (await marketWeatherAdapter.handle(request))
         ?? (await instrumentAdapter.handle(request))
         ?? portfolioAdapter.handle(request);
     }
@@ -125,7 +130,7 @@ export function createPortfolioHttpServer({
     return Object.freeze({ host: value.address, port: value.port, family: value.family });
   }
 
-  return Object.freeze({ server, application, adminService, instrumentCatalog, instrumentImporter, instrumentRepository, marketWeatherService, start, stop, address });
+  return Object.freeze({ server, application, adminService, instrumentCatalog, instrumentImporter, instrumentRepository, marketWeatherService, leynorAnalysisPipeline, start, stop, address });
 }
 
 async function sendStaticFile(response, pathname, logger) {

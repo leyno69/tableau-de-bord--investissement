@@ -24,12 +24,20 @@ export class LeynorContextBuilder {
         dataQuality: LeynorContextBuilder.#enum(market.dataQuality, ['complete', 'partial', 'stale'], 'complete'),
         asOf: LeynorContextBuilder.#optionalDateTime(market.asOf),
         summary: LeynorContextBuilder.#text(market.summary),
-        materialRisk: Boolean(market.materialRisk)
+        materialRisk: Boolean(market.materialRisk),
+        weather: LeynorContextBuilder.#weather(market.weather)
       },
       goals: LeynorContextBuilder.#normalizeItems(goals, ['id', 'name', 'status', 'progressRate', 'targetAmount', 'currency']),
       alerts: LeynorContextBuilder.#normalizeItems(alerts, ['id', 'type', 'severity', 'message']),
       generatedAt
     });
+  }
+
+  static #weather(value) {
+    if (value == null) return null;
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('market.weather doit être un objet.');
+    const allowed = ['condition', 'label', 'score', 'confidence', 'summary', 'indicators', 'evidence', 'warnings'];
+    return Object.fromEntries(allowed.filter(field => value[field] !== undefined).map(field => [field, value[field]]));
   }
 
   static #normalizeItems(items, fields) {
