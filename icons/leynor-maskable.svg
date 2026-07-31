@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">LEYNOR</title>
+  <rect width="512" height="512" fill="#102c46"/>
+  <circle cx="256" cy="256" r="184" fill="#173f63"/>
+  <path d="M178 142v228h164v-54H232V142z" fill="#f6f3ec"/>
+  <circle cx="342" cy="174" r="22" fill="#c6a15b"/>
+</svg>
