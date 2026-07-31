@@ -2,13 +2,21 @@ import { pathToFileURL } from 'node:url';
 
 import { JsonFileInstrumentRepository } from '../infrastructure/instrument/JsonFileInstrumentRepository.js';
 import { InMemoryInstrumentRepository } from '../infrastructure/instrument/InMemoryInstrumentRepository.js';
+import { openJsonFilePortfolioRepositories } from '../infrastructure/persistence/JsonFilePortfolioRepositories.js';
+import { JsonFileMarketQuoteCache } from '../infrastructure/market/JsonFileMarketQuoteCache.js';
+import { JsonFileExchangeRateCache } from '../infrastructure/exchange/JsonFileExchangeRateCache.js';
 import { loadServerConfig } from './config/loadServerConfig.js';
 import { createBootstrapProviders } from './providers/createBootstrapProviders.js';
 import { createPortfolioHttpServer } from './server/createPortfolioHttpServer.js';
 
 export async function run({ environment = process.env, logger = console, fetchImplementation = globalThis.fetch } = {}) {
   const config = loadServerConfig(environment);
-  const instrumentRepository = await createInstrumentRepository(config.instrumentCatalog);
+  const [instrumentRepository, repositories, marketQuoteCache, exchangeRateCache] = await Promise.all([
+    createInstrumentRepository(config.instrumentCatalog),
+    openJsonFilePortfolioRepositories({ filePath: config.storage.portfolioDataPath }),
+    JsonFileMarketQuoteCache.open({ filePath: config.storage.marketQuoteCachePath }),
+    JsonFileExchangeRateCache.open({ filePath: config.storage.exchangeRateCachePath })
+  ]);
   const providers = createBootstrapProviders({
     market: config.market,
     instrumentRepository,
@@ -17,6 +25,9 @@ export async function run({ environment = process.env, logger = console, fetchIm
   const runtime = createPortfolioHttpServer({
     config,
     providers,
+    repositories,
+    marketQuoteCache,
+    exchangeRateCache,
     instrumentRepository,
     logger
   });
