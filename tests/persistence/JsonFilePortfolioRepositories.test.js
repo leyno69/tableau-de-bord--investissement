@@ -9,14 +9,18 @@ import { Transaction } from '../../domain/transaction/Transaction.js';
 import { PortfolioSnapshot } from '../../domain/analytics/PortfolioSnapshot.js';
 import { AlertEvent } from '../../domain/alerts/AlertEvent.js';
 import { PortfolioPreferences } from '../../domain/portfolio/PortfolioPreferences.js';
+import { Portfolio } from '../../domain/portfolio/Portfolio.js';
+import { Account } from '../../domain/account/Account.js';
 import { Money } from '../../domain/money/Money.js';
 
-test('recharge transactions, snapshots, alertes et préférences après redémarrage', async t => {
+test('recharge toutes les données du portefeuille après redémarrage', async t => {
   const directory = await mkdtemp(join(tmpdir(), 'portfolio-store-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const filePath = join(directory, 'portfolio.json');
   const repositories = await openJsonFilePortfolioRepositories({ filePath });
 
+  await repositories.portfolios.save(new Portfolio({ id: 'p-1', name: 'Principal', baseCurrency: 'EUR' }));
+  await repositories.accounts.save(new Account({ id: 'a-1', portfolioId: 'p-1', name: 'PEA', providerId: 'trade-republic', kind: 'SECURITIES', taxWrapper: 'PEA', currency: 'EUR' }));
   await repositories.transactions.save(new Transaction({
     id: 'tx-1', portfolioId: 'p-1', accountId: 'a-1', assetId: 'asset-1', type: 'buy',
     quantity: 2, unitPrice: 10, currency: 'EUR', executedAt: '2026-07-30', createdAt: '2026-07-30T10:00:00.000Z'
@@ -27,6 +31,8 @@ test('recharge transactions, snapshots, alertes et préférences après redémar
   await repositories.flush();
 
   const reopened = await openJsonFilePortfolioRepositories({ filePath });
+  assert.equal((await reopened.portfolios.findById('p-1')).name, 'Principal');
+  assert.equal((await reopened.accounts.findById('a-1')).taxWrapper, 'PEA');
   assert.equal((await reopened.transactions.listByPortfolio('p-1')).length, 1);
   assert.equal((await reopened.snapshots.listByPortfolio('p-1'))[0].totalValue.amount, 100);
   assert.deepEqual(await reopened.alerts.listFingerprints('p-1'), ['fp-1']);
@@ -45,4 +51,14 @@ test('déduplique les transactions et alertes de façon durable', async t => {
   await repositories.alerts.saveAll([new AlertEvent({ ...alert.toJSON(), id: 'a-2' })]);
   assert.equal((await repositories.transactions.listByPortfolio('p-1')).length, 1);
   assert.equal((await repositories.alerts.listByPortfolio('p-1')).length, 1);
+});
+
+test('reste compatible avec un stockage version 1 sans portefeuilles ni comptes', async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'portfolio-store-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const filePath = join(directory, 'portfolio.json');
+  await import('node:fs/promises').then(({ writeFile }) => writeFile(filePath, JSON.stringify({ version: 1, transactions: [], snapshots: [], alerts: [], preferences: [] })));
+  const repositories = await openJsonFilePortfolioRepositories({ filePath });
+  assert.deepEqual(await repositories.portfolios.list(), []);
+  assert.deepEqual(await repositories.accounts.list(), []);
 });
