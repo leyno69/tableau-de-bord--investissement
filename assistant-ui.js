@@ -47,10 +47,10 @@ async function mountAssistant() {
   const thread = drawer.querySelector('.assistant-thread');
   const form = drawer.querySelector('form');
   const input = drawer.querySelector('input');
-  let history = await loadAssistantHistory();
+  let conversationHistory = await loadAssistantHistory();
 
   function render() {
-    thread.innerHTML = history.length ? history.map(item => {
+    thread.innerHTML = conversationHistory.length ? conversationHistory.map(item => {
       const insight = item.insight;
       const metadata = insight ? `<div class="assistant-meta"><span class="assistant-confidence">Confiance ${Math.round(insight.confidence * 100)} %</span></div><div class="assistant-actions">${insight.actions.map(action => `<button type="button" data-action="${escapeHtml(action)}">${escapeHtml(action)}</button>`).join('')}</div>` : '';
       return `<div class="assistant-message ${item.role} ${insight?.severity ?? ''}">${escapeHtml(item.content)}${metadata}</div>`;
@@ -64,7 +64,7 @@ async function mountAssistant() {
     backdrop.classList.add('open');
     drawer.setAttribute('aria-hidden', 'false');
     document.body.classList.add('assistant-open');
-    history.pushState({ leynorAssistant: true }, '');
+    window.history.pushState({ leynorAssistant: true }, '');
     window.setTimeout(() => input.focus({ preventScroll: true }), 180);
   }
 
@@ -73,7 +73,7 @@ async function mountAssistant() {
     backdrop.classList.remove('open');
     drawer.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('assistant-open');
-    if (!fromHistory && history.state?.leynorAssistant) history.back();
+    if (!fromHistory && window.history.state?.leynorAssistant) window.history.back();
   }
 
   async function ask(question) {
@@ -81,7 +81,7 @@ async function mountAssistant() {
     if (!content) return;
     const portfolio = loadPortfolioFromStorage(window.localStorage);
     const result = buildPortfolioInsight(content, portfolio);
-    history.push({ role: 'user', content }, { role: 'assistant', content: result.text, insight: result });
+    conversationHistory.push({ role: 'user', content }, { role: 'assistant', content: result.text, insight: result });
     render();
     await rememberAssistantExchange(content, result.text);
   }
