@@ -3,6 +3,18 @@ import './leynor-assistant.js';
 
 const API_TOKEN_KEY = 'invest-dashboard-api-token';
 
+function createTrendsNavigation() {
+  const nav = document.querySelector('.main-nav');
+  if (!nav || nav.querySelector('[data-trends-link]')) return;
+  const link = document.createElement('a');
+  link.className = 'nav-item';
+  link.href = 'trends.html';
+  link.dataset.trendsLink = 'true';
+  link.innerHTML = '<span>↗</span>Tendances';
+  const assistant = nav.querySelector('a[href="#assistant"]');
+  nav.insertBefore(link, assistant || null);
+}
+
 function createConnectionControl() {
   const actions = document.querySelector('.topbar-actions');
   if (!actions || document.querySelector('#serverConnectionBtn')) return;
@@ -87,4 +99,5 @@ window.addEventListener('portfolio-server-ready', event => {
   updatePortfolioCount(count);
 });
 
+createTrendsNavigation();
 createConnectionControl();
