@@ -1,5 +1,6 @@
 import './leynor-brand.js';
 import './pwa.js';
+import './api-fetch-router.js';
 import './leynor-assistant.js';
 import { apiUrl, getApiBaseUrl, getApiToken, setApiBaseUrl, setApiToken } from './api-connection.js';
 
