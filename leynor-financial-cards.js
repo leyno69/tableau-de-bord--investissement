@@ -1,3 +1,11 @@
+if (typeof document !== 'undefined' && !document.querySelector('link[data-leynor-financial-cards]')) {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = './leynor-financial-cards.css';
+  link.dataset.leynorFinancialCards = 'true';
+  document.head.append(link);
+}
+
 function asNumber(value) {
   const number = Number(value);
   return Number.isFinite(number) ? number : 0;
