@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'leynor-shell-v9';
+const CACHE_VERSION = 'leynor-shell-v10';
 const OFFLINE_URL = '/offline.html';
 const APP_SHELL = [
   '/',
@@ -15,6 +15,7 @@ const APP_SHELL = [
   '/profile-menu.js',
   '/profile-menu.css',
   '/resolver-ui.js',
+  '/trends.html',
   '/market-trends.js',
   '/probability-assessment.js',
   '/opportunity-radar.js',
