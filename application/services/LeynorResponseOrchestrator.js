@@ -34,6 +34,7 @@ export class LeynorResponseOrchestrator {
     if (market.dataQuality && market.dataQuality !== 'complete') warnings.push('Les données disponibles sont incomplètes ou périmées.');
     if (policy.riskDisclosure === 'required') warnings.push('Les risques matériels doivent être explicités.');
     if (policy.uncertaintyDisclosure === 'required') warnings.push('Les incertitudes doivent être distinguées des faits.');
+    if (Array.isArray(market.weather?.warnings)) warnings.push(...market.weather.warnings);
 
     const instructions = [
       `Adopter un ton ${policy.tone}.`,
@@ -57,7 +58,7 @@ export class LeynorResponseOrchestrator {
       context,
       instructions,
       evidence: LeynorResponseOrchestrator.#evidence(evidence),
-      warnings
+      warnings: [...new Set(warnings)]
     });
   }
 
@@ -85,11 +86,23 @@ export class LeynorResponseOrchestrator {
   }
 
   static #sanitizeMarket(market) {
+    const weather = market.weather && typeof market.weather === 'object' && !Array.isArray(market.weather)
+      ? Object.freeze({
+        condition: typeof market.weather.condition === 'string' ? market.weather.condition : '',
+        label: typeof market.weather.label === 'string' ? market.weather.label : '',
+        score: LeynorResponseOrchestrator.#optionalNumber(market.weather.score),
+        confidence: typeof market.weather.confidence === 'string' ? market.weather.confidence : '',
+        summary: typeof market.weather.summary === 'string' ? market.weather.summary : '',
+        indicators: Array.isArray(market.weather.indicators) ? market.weather.indicators : [],
+        warnings: Array.isArray(market.weather.warnings) ? market.weather.warnings : []
+      })
+      : null;
     return Object.freeze({
       uncertainty: ['low', 'normal', 'high'].includes(market.uncertainty) ? market.uncertainty : 'normal',
       dataQuality: ['complete', 'partial', 'stale'].includes(market.dataQuality) ? market.dataQuality : 'complete',
       materialRisk: Boolean(market.materialRisk),
-      summary: typeof market.summary === 'string' ? market.summary.trim() : ''
+      summary: typeof market.summary === 'string' ? market.summary.trim() : '',
+      weather
     });
   }
 
