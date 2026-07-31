@@ -78,7 +78,7 @@ export function createPortfolioHttpServer({
   const marketWeatherAdapter = new MarketWeatherHttpAdapter({ marketWeatherService });
   const leynorAnalysisPipeline = new LeynorAnalysisPipeline({ marketWeatherService });
   const leynorAnalysisAdapter = new LeynorAnalysisHttpAdapter({ pipeline: leynorAnalysisPipeline });
-  const languageModelProvider = createLanguageModelProvider(config.languageModel, fetchImplementation);
+  const languageModelProvider = createLanguageModelProvider(config.languageModel ?? { provider: 'disabled' }, fetchImplementation);
   const leynorAssistantService = languageModelProvider == null
     ? null
     : new LeynorAssistantService({ pipeline: leynorAnalysisPipeline, languageModelProvider });
@@ -158,7 +158,7 @@ export function createPortfolioHttpServer({
 }
 
 function createLanguageModelProvider(config = {}, fetchImplementation) {
-  if (!config || config.provider === 'disabled') return null;
+  if (!config || config.provider == null || config.provider === 'disabled') return null;
   if (config.provider !== 'openai-compatible-http') throw new RangeError('Fournisseur IA LEYNOR non pris en charge.');
   if (!config.apiKey) throw new Error('LEYNOR_LLM_API_KEY est obligatoire lorsque le fournisseur IA est activé.');
   return new HttpLanguageModelProvider({
