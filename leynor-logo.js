@@ -1,5 +1,14 @@
 const LOGO_PATH = './icons/leynor-icon.svg';
 
+function injectLogoStylesheet() {
+  if (document.querySelector('link[data-leynor-logo]')) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = './leynor-logo.css';
+  link.dataset.leynorLogo = 'true';
+  document.head.append(link);
+}
+
 function canonicalLogo({ className = 'leynor-canonical-logo', alt = '' } = {}) {
   const image = document.createElement('img');
   image.src = LOGO_PATH;
@@ -27,6 +36,7 @@ function replaceStaticMarks(root = document) {
   });
 }
 
+injectLogoStylesheet();
 replaceStaticMarks();
 
 const observer = new MutationObserver(mutations => {
@@ -38,4 +48,4 @@ const observer = new MutationObserver(mutations => {
 });
 observer.observe(document.body, { childList: true, subtree: true });
 
-export { LOGO_PATH, replaceStaticMarks };
+export { LOGO_PATH, injectLogoStylesheet, replaceStaticMarks };
