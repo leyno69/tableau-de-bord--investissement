@@ -7,6 +7,7 @@ import { InMemoryInstrumentRepository } from '../../infrastructure/instrument/In
 import { PortfolioHttpAdapter } from '../../interfaces/http/PortfolioHttpAdapter.js';
 import { InstrumentCatalogHttpAdapter } from '../../interfaces/http/InstrumentCatalogHttpAdapter.js';
 import { createNodeHttpHandler } from '../../interfaces/http/createNodeHttpHandler.js';
+import { createSecureHttpHandler } from './createSecureHttpHandler.js';
 
 export function createPortfolioHttpServer({
   config,
@@ -22,29 +23,22 @@ export function createPortfolioHttpServer({
   requireProviders(providers);
   requireLogger(logger);
 
-  const application = createPortfolioApplication({
-    ...providers,
-    repositories,
-    alertRules,
-    clock,
-    ...(idGenerator == null ? {} : { idGenerator })
-  });
+  const application = createPortfolioApplication({ ...providers, repositories, alertRules, clock, ...(idGenerator == null ? {} : { idGenerator }) });
   const portfolioAdapter = new PortfolioHttpAdapter({ facade: application.facade });
   const instrumentCatalog = new InstrumentCatalog({ instrumentRepository });
   const instrumentImporter = new InstrumentCatalogImporter({ instrumentRepository });
   const instrumentAdapter = new InstrumentCatalogHttpAdapter({ catalog: instrumentCatalog, importer: instrumentImporter });
   const httpAdapter = Object.freeze({
-    async handle(request) {
-      return (await instrumentAdapter.handle(request)) ?? portfolioAdapter.handle(request);
-    }
+    async handle(request) { return (await instrumentAdapter.handle(request)) ?? portfolioAdapter.handle(request); }
   });
   const applicationHandler = createNodeHttpHandler({ httpAdapter, maxBodyBytes: config.maxBodyBytes });
+  const secureApplicationHandler = createSecureHttpHandler({ handler: applicationHandler, token: config.authToken ?? '', logger, clock });
 
   let ready = false;
   const server = createServer(async (request, response) => {
     if (request.method === 'GET' && request.url === '/health') return sendJson(response, 200, { status: 'ok' });
     if (request.method === 'GET' && request.url === '/ready') return sendJson(response, ready ? 200 : 503, { status: ready ? 'ready' : 'starting' });
-    return applicationHandler(request, response);
+    return secureApplicationHandler(request, response);
   });
 
   async function start() {
@@ -69,7 +63,7 @@ export function createPortfolioHttpServer({
       await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
       clearTimeout(timeout);
     }
-    await instrumentRepository.flush?.();
+    await Promise.all([instrumentRepository.flush?.(), repositories?.flush?.()].filter(Boolean));
   }
 
   function address() {
@@ -82,25 +76,16 @@ export function createPortfolioHttpServer({
 }
 
 function sendJson(response, statusCode, body) {
-  response.writeHead(statusCode, { 'content-type': 'application/json; charset=utf-8' });
+  response.writeHead(statusCode, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
   response.end(JSON.stringify(body));
 }
-
 function requireConfig(config) {
   if (!config || typeof config !== 'object') throw new TypeError('config est obligatoire.');
-  for (const field of ['host', 'port', 'maxBodyBytes', 'shutdownTimeoutMilliseconds']) {
-    if (!(field in config)) throw new TypeError(`config.${field} est obligatoire.`);
-  }
+  for (const field of ['host', 'port', 'maxBodyBytes', 'shutdownTimeoutMilliseconds']) if (!(field in config)) throw new TypeError(`config.${field} est obligatoire.`);
 }
-
 function requireProviders(providers) {
   if (!providers || typeof providers !== 'object') throw new TypeError('providers est obligatoire.');
   const contracts = [['marketPriceProvider', 'getPrice'], ['exchangeRateProvider', 'getRate'], ['assetClassificationProvider', 'getClassification']];
-  for (const [field, method] of contracts) {
-    if (!providers[field] || typeof providers[field][method] !== 'function') throw new TypeError(`providers.${field} doit implémenter ${method}().`);
-  }
+  for (const [field, method] of contracts) if (!providers[field] || typeof providers[field][method] !== 'function') throw new TypeError(`providers.${field} doit implémenter ${method}().`);
 }
-
-function requireLogger(logger) {
-  if (!logger || typeof logger !== 'object') throw new TypeError('logger doit être un objet.');
-}
+function requireLogger(logger) { if (!logger || typeof logger !== 'object') throw new TypeError('logger doit être un objet.'); }
