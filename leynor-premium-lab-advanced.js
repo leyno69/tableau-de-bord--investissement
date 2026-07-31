@@ -68,7 +68,7 @@ export function createAdvancedLabDefinition({
   commonCorrelation = 0.35,
   regimePlan = [{ regime: 'croissance', months: 60 }, { regime: 'crise', months: 12 }, { regime: 'reprise', months: 36 }, { regime: 'croissance', months: Infinity }],
   allocation
-+} = {}) {
+} = {}) {
   const normalizedAllocation = freezeAllocation(allocation);
   const definition = {
     portfolioCount: integer(portfolioCount, 'portfolioCount', { min: 1, max: ADVANCED_MAX_PORTFOLIOS }),
