@@ -126,7 +126,9 @@ async function sendStaticFile(response, pathname, logger) {
     const body = await readFile(join(PROJECT_ROOT, relativePath));
     response.writeHead(200, {
       'content-type': contentType,
-      'cache-control': pathname === '/' || pathname === '/index.html' ? 'no-cache' : 'public, max-age=300',
+      'cache-control': 'no-store, max-age=0',
+      'pragma': 'no-cache',
+      'expires': '0',
       'x-content-type-options': 'nosniff'
     });
     response.end(body);
