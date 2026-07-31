@@ -52,7 +52,7 @@ async function configureConnection() {
     return;
   }
 
-  const token = window.prompt('Jeton APP_AUTH_TOKEN du serveur (laisser vide si non configuré) :', getApiToken());
+  const token = window.prompt('Jeton APP_AUTH_TOKEN du serveur :', getApiToken());
   if (token != null) setApiToken(token);
   await verifyConnection();
 }
@@ -73,19 +73,19 @@ async function verifyConnection() {
     return;
   }
 
-  setConnectionStatus('Vérification…', `Test de ${baseUrl}`);
+  const token = getApiToken();
+  if (!token) {
+    setConnectionStatus('Token requis', 'Renseigne le APP_AUTH_TOKEN du serveur pour tester la connexion sécurisée.');
+    return;
+  }
+
+  setConnectionStatus('Vérification…', `Test sécurisé de ${baseUrl}`);
   button.disabled = true;
   try {
-    const healthResponse = await fetch(apiUrl('/health'), { cache: 'no-store' });
-    if (!healthResponse.ok) throw new Error(`Le serveur répond HTTP ${healthResponse.status} sur /health.`);
-
-    const token = getApiToken();
-    if (!token) {
-      setConnectionStatus('Serveur actif • token requis', `${baseUrl} répond, mais aucun APP_AUTH_TOKEN n’est enregistré.`);
-      return;
-    }
-
-    const response = await fetch(apiUrl('/portfolios'), { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
+    const response = await fetch(apiUrl('/portfolios'), {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store'
+    });
     if (response.status === 401) {
       setConnectionStatus('Token invalide', `${baseUrl} répond, mais refuse le jeton enregistré.`);
       return;
@@ -96,7 +96,7 @@ async function verifyConnection() {
   } catch (error) {
     const reason = error instanceof Error ? error.message : 'Erreur réseau inconnue.';
     console.error('Server connection error:', error);
-    setConnectionStatus('Serveur indisponible', `${baseUrl} — ${reason}`);
+    setConnectionStatus('Serveur inaccessible', `${baseUrl} — ${reason}. Vérifier le déploiement et CORS_ALLOWED_ORIGINS.`);
   } finally {
     button.disabled = false;
   }
