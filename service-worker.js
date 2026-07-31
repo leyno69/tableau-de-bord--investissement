@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'leynor-shell-v2';
+const CACHE_VERSION = 'leynor-shell-v3';
 const OFFLINE_URL = '/offline.html';
 const APP_SHELL = [
   '/',
@@ -7,6 +7,8 @@ const APP_SHELL = [
   '/style.css',
   '/app.js',
   '/server-sync.js',
+  '/api-connection.js',
+  '/api-fetch-router.js',
   '/resolver-ui.js',
   '/leynor-brand.js',
   '/leynor-brand.css',
