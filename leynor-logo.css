@@ -21,18 +21,34 @@
   background: transparent;
   border: 0;
 }
-.brief-logo { border-radius: 50%; }
+.brief-logo { border-radius: 24%; }
+
+.brand-logo,
+.brief-logo {
+  animation: leynor-idle-twinkle 12s ease-in-out infinite;
+}
 
 .leynor-presence-core {
   padding: 0;
   background: transparent !important;
 }
 .assistant-logo {
-  border-radius: 50%;
-  transform: scale(1.05);
+  border-radius: 24%;
+  transform: scale(1.04);
+  animation: leynor-ai-breathe 3.8s ease-in-out infinite;
 }
 
-.leynor-panel[data-presence="thinking"] .assistant-logo {
+.leynor-presence-halo {
+  animation-duration: 3.8s !important;
+  box-shadow: 0 0 24px rgba(28, 151, 255, .38), 0 0 52px rgba(139, 62, 234, .2);
+}
+
+.leynor-panel[data-presence="listening"] .assistant-logo,
+.leynor-launcher[data-presence="listening"] .assistant-logo {
+  animation: leynor-logo-listen 1.35s ease-in-out infinite;
+}
+.leynor-panel[data-presence="thinking"] .assistant-logo,
+.leynor-launcher[data-presence="thinking"] .assistant-logo {
   animation: leynor-logo-think 2.4s ease-in-out infinite;
 }
 .leynor-panel[data-presence="speaking"] .assistant-logo,
@@ -40,15 +56,32 @@
   animation: leynor-logo-speak .82s ease-in-out infinite alternate;
 }
 
+@keyframes leynor-idle-twinkle {
+  0%, 76%, 100% { filter: brightness(1) drop-shadow(0 0 0 rgba(255, 211, 105, 0)); }
+  80% { filter: brightness(1.16) drop-shadow(0 0 7px rgba(255, 211, 105, .72)); }
+  84% { filter: brightness(1.02) drop-shadow(0 0 2px rgba(255, 211, 105, .22)); }
+  88% { filter: brightness(1.12) drop-shadow(0 0 5px rgba(255, 211, 105, .52)); }
+}
+@keyframes leynor-ai-breathe {
+  0%, 100% { transform: scale(1.02); filter: brightness(.98) drop-shadow(0 0 7px rgba(33, 144, 255, .28)); }
+  50% { transform: scale(1.08); filter: brightness(1.1) drop-shadow(0 0 15px rgba(73, 132, 255, .55)); }
+}
+@keyframes leynor-logo-listen {
+  0%, 100% { transform: scale(1.03); filter: brightness(1) drop-shadow(0 0 8px rgba(25, 215, 255, .35)); }
+  50% { transform: scale(1.11); filter: brightness(1.2) drop-shadow(0 0 20px rgba(25, 215, 255, .72)); }
+}
 @keyframes leynor-logo-think {
-  0%, 100% { filter: brightness(.94) drop-shadow(0 0 5px rgba(33, 144, 255, .25)); }
-  50% { filter: brightness(1.18) drop-shadow(0 0 12px rgba(33, 144, 255, .55)); }
+  0%, 100% { transform: scale(1.03) rotate(-1deg); filter: brightness(.96) drop-shadow(0 0 7px rgba(33, 144, 255, .3)); }
+  50% { transform: scale(1.1) rotate(1deg); filter: brightness(1.22) drop-shadow(0 0 20px rgba(139, 62, 234, .68)); }
 }
 @keyframes leynor-logo-speak {
-  from { transform: scale(1.01); filter: brightness(.98); }
-  to { transform: scale(1.1); filter: brightness(1.18); }
+  from { transform: scale(1.02); filter: brightness(1) drop-shadow(0 0 9px rgba(33, 144, 255, .35)); }
+  to { transform: scale(1.12); filter: brightness(1.22) drop-shadow(0 0 22px rgba(139, 62, 234, .65)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .assistant-logo { animation: none !important; }
+  .brand-logo,
+  .brief-logo,
+  .assistant-logo,
+  .leynor-presence-halo { animation: none !important; }
 }
