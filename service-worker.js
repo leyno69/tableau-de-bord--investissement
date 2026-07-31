@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'leynor-shell-v8';
+const CACHE_VERSION = 'leynor-shell-v9';
 const OFFLINE_URL = '/offline.html';
 const APP_SHELL = [
   '/',
@@ -31,6 +31,7 @@ const APP_SHELL = [
   '/leynor-assistant.js',
   '/leynor-assistant.css',
   '/leynor-conversation.js',
+  '/browser-voice.js',
   '/pwa.js',
   '/manifest.webmanifest',
   '/icons/leynor-icon.svg',
