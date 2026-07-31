@@ -3,6 +3,46 @@ const DISMISSAL_DELAY = 7 * 24 * 60 * 60 * 1000;
 
 let deferredInstallPrompt = null;
 
+function ensureHeadAsset(selector, factory) {
+  if (document.head.querySelector(selector)) return;
+  document.head.append(factory());
+}
+
+function installPwaMetadata() {
+  ensureHeadAsset('link[rel="manifest"]', () => {
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = '/manifest.webmanifest';
+    return link;
+  });
+  ensureHeadAsset('link[data-leynor-pwa]', () => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = '/pwa.css';
+    link.dataset.leynorPwa = 'true';
+    return link;
+  });
+  ensureHeadAsset('link[rel="icon"]', () => {
+    const link = document.createElement('link');
+    link.rel = 'icon';
+    link.href = '/icons/leynor-icon.svg';
+    link.type = 'image/svg+xml';
+    return link;
+  });
+  ensureHeadAsset('meta[name="theme-color"]', () => {
+    const meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    meta.content = '#102c46';
+    return meta;
+  });
+  ensureHeadAsset('meta[name="apple-mobile-web-app-capable"]', () => {
+    const meta = document.createElement('meta');
+    meta.name = 'apple-mobile-web-app-capable';
+    meta.content = 'yes';
+    return meta;
+  });
+}
+
 function isStandalone() {
   return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 }
@@ -86,7 +126,8 @@ window.addEventListener('appinstalled', () => {
   document.querySelector('#leynorInstallBanner')?.remove();
 });
 
+installPwaMetadata();
 createInstallBanner();
 registerServiceWorker();
 
-export { isStandalone, wasRecentlyDismissed };
+export { installPwaMetadata, isStandalone, wasRecentlyDismissed };
