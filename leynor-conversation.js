@@ -1,3 +1,5 @@
+import { buildContextualQuestion, resolveConversationSubject } from './leynor-context.js';
+
 const DEFAULT_USER = Object.freeze({
   expertise: 'beginner',
   objective: 'Comprendre et piloter son patrimoine sur le long terme'
@@ -11,10 +13,9 @@ export function createConversationMessage({ role, content, createdAt = new Date(
 }
 
 export function buildAssistantRequest({ question, portfolio = {}, conversation = [], generatedAt = new Date().toISOString() } = {}) {
-  const normalizedQuestion = String(question ?? '').trim();
-  if (!normalizedQuestion) throw new TypeError('La question est obligatoire.');
-
   const positions = Array.isArray(portfolio.positions) ? portfolio.positions : [];
+  const contextualQuestion = buildContextualQuestion({ question, conversation, positions });
+  const subject = resolveConversationSubject({ question, conversation, positions });
   const invested = positions.reduce((sum, position) => sum + Number(position.quantity || 0) * Number(position.avgPrice || 0), 0);
   const positionsValue = positions.reduce((sum, position) => sum + Number(position.quantity || 0) * Number(position.price || 0), 0);
   const cash = Number(portfolio.cash || 0);
@@ -31,7 +32,7 @@ export function buildAssistantRequest({ question, portfolio = {}, conversation =
     .join('\n');
 
   return Object.freeze({
-    question: recentContext ? `${normalizedQuestion}\n\nContexte récent de la conversation :\n${recentContext}` : normalizedQuestion,
+    question: recentContext ? `${contextualQuestion}\n\nContexte récent de la conversation :\n${recentContext}` : contextualQuestion,
     user: DEFAULT_USER,
     portfolio: Object.freeze({
       value,
@@ -50,6 +51,15 @@ export function buildAssistantRequest({ question, portfolio = {}, conversation =
         price: Number(position.price || 0),
         region: position.region
       }))
+    }),
+    conversationContext: Object.freeze({
+      resolvedSubject: subject ? Object.freeze({
+        source: subject.source,
+        name: subject.position.name,
+        ticker: subject.position.ticker,
+        isin: subject.position.isin
+      }) : null,
+      messageCount: conversation.length
     }),
     market: Object.freeze({ dataQuality: 'partial', asOf: generatedAt }),
     generatedAt
