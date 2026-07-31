@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">LEYNOR</title>
+  <defs>
+    <linearGradient id="bg" x1="64" y1="48" x2="448" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#102c46"/>
+      <stop offset="1" stop-color="#1d4f74"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M164 126v260h190v-58H228V126z" fill="#f6f3ec"/>
+  <circle cx="354" cy="158" r="25" fill="#c6a15b"/>
+</svg>
