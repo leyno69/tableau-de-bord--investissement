@@ -64,7 +64,7 @@ async function verifyConnection() {
 
     const payload = await response.json();
     const count = Array.isArray(payload?.data) ? payload.data.length : 0;
-    status.textContent = `Serveur connecté • ${count} portefeuille${count > 1 ? 's' : ''}`;
+    updatePortfolioCount(count);
   } catch (error) {
     console.error('Server connection error:', error);
     status.textContent = 'Serveur indisponible';
@@ -72,5 +72,16 @@ async function verifyConnection() {
     button.disabled = false;
   }
 }
+
+function updatePortfolioCount(count) {
+  const status = document.querySelector('#serverConnectionStatus');
+  if (!status) return;
+  status.textContent = `Serveur connecté • ${count} portefeuille${count > 1 ? 's' : ''}`;
+}
+
+window.addEventListener('portfolio-server-ready', event => {
+  const count = Number(event.detail?.count || 0);
+  updatePortfolioCount(count);
+});
 
 createConnectionControl();
