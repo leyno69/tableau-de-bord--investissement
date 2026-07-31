@@ -1,0 +1,29 @@
+.leynor-financial-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.leynor-financial-card {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(116, 183, 239, .14);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(25, 74, 116, .24), rgba(255, 255, 255, .025));
+}
+.leynor-financial-card span {
+  overflow: hidden;
+  color: #8fa9bf;
+  font-size: .67rem;
+  letter-spacing: .03em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.leynor-financial-card strong { color: #eef6ff; font-size: .92rem; }
+.leynor-financial-card[data-tone="positive"] strong { color: #75d6a2; }
+.leynor-financial-card[data-tone="negative"] strong { color: #ff9b9b; }
+.leynor-financial-card[data-tone="warning"] { border-color: rgba(214, 171, 83, .28); }
+.leynor-financial-card[data-tone="warning"] strong { color: #edc979; }
+@media (max-width: 360px) { .leynor-financial-cards { grid-template-columns: 1fr; } }
