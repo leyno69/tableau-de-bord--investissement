@@ -1,12 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">LEYNOR</title>
+  <desc id="desc">L bleu nuit traversé par une trajectoire dorée montant vers deux étoiles.</desc>
   <defs>
-    <linearGradient id="bg" x1="64" y1="48" x2="448" y2="464" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#102c46"/>
-      <stop offset="1" stop-color="#1d4f74"/>
+    <linearGradient id="bg" x1="42" y1="36" x2="466" y2="476" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0b2442"/>
+      <stop offset=".55" stop-color="#071426"/>
+      <stop offset="1" stop-color="#030812"/>
     </linearGradient>
+    <linearGradient id="blue" x1="150" y1="118" x2="330" y2="392" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2e8fff"/>
+      <stop offset="1" stop-color="#123c82"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="154" y1="360" x2="395" y2="135" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9b6a20"/>
+      <stop offset=".48" stop-color="#f3cc72"/>
+      <stop offset="1" stop-color="#b7802d"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="9" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <path d="M164 126v260h190v-58H228V126z" fill="#f6f3ec"/>
-  <circle cx="354" cy="158" r="25" fill="#c6a15b"/>
+  <rect width="512" height="512" rx="118" fill="url(#bg)"/>
+  <path d="M147 112c0-18 15-33 33-33h62v242c0 18 14 32 32 32h119v66H238c-50 0-91-41-91-91V112z" fill="url(#blue)"/>
+  <path d="M147 350c72 2 128-21 171-65 28-29 50-65 72-111" fill="none" stroke="url(#gold)" stroke-width="35" stroke-linecap="round"/>
+  <path d="M393 102l9 22 23 9-23 9-9 23-9-23-23-9 23-9z" fill="#f6d788" filter="url(#glow)"/>
+  <path d="M350 163l5 13 14 5-14 5-5 14-5-14-14-5 14-5z" fill="#d8a84d"/>
 </svg>
