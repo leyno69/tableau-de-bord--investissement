@@ -1,4 +1,4 @@
-import { createEvidenceBackedProbability } from './forecast-evidence.js';
+import { createProbabilityAssessment } from './probability-assessment.js';
 
 function clamp(value, min = 0, max = 1) {
   return Math.min(max, Math.max(min, Number(value) || 0));
@@ -19,7 +19,7 @@ export function rankMarketNews(items = []) {
 }
 
 export function createTrendSignal({ asset, direction, probability, horizon, method, evidence, assumptions, limitations, freshness, counterEvidence = [] }) {
-  const forecast = createEvidenceBackedProbability({
+  const forecast = createProbabilityAssessment({
     event: `${asset} évolue à la ${direction}`,
     probability,
     horizon,
@@ -27,7 +27,7 @@ export function createTrendSignal({ asset, direction, probability, horizon, meth
     evidence,
     assumptions,
     limitations,
-    freshness,
+    dataFreshness: freshness,
     counterEvidence
   });
 
