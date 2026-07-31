@@ -1,5 +1,6 @@
 const INSTALL_DISMISSED_KEY = 'leynor-install-dismissed-at';
 const DISMISSAL_DELAY = 7 * 24 * 60 * 60 * 1000;
+const UPDATE_RELOAD_KEY = 'leynor-pwa-update-reloaded';
 
 let deferredInstallPrompt = null;
 
@@ -116,12 +117,19 @@ async function installApp() {
   else dismissBanner();
 }
 
+function reloadOnceAfterControllerChange() {
+  if (sessionStorage.getItem(UPDATE_RELOAD_KEY) === 'true') return;
+  sessionStorage.setItem(UPDATE_RELOAD_KEY, 'true');
+  window.location.reload();
+}
+
 async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   try {
     const workerUrl = assetUrl('service-worker.js');
     const scopeUrl = assetUrl('./');
-    const registration = await navigator.serviceWorker.register(workerUrl, { scope: scopeUrl });
+    const registration = await navigator.serviceWorker.register(workerUrl, { scope: scopeUrl, updateViaCache: 'none' });
+    navigator.serviceWorker.addEventListener('controllerchange', reloadOnceAfterControllerChange, { once: true });
     registration.addEventListener('updatefound', () => {
       const worker = registration.installing;
       worker?.addEventListener('statechange', () => {
@@ -130,6 +138,7 @@ async function registerServiceWorker() {
         }
       });
     });
+    await registration.update();
   } catch (error) {
     console.warn('LEYNOR PWA: service worker indisponible.', error);
   }
