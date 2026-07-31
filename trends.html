@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LEYNOR — Tendances de marché</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .trends-page{max-width:1240px;margin:auto;padding:34px}.trends-head{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:26px}.trends-grid{display:grid;grid-template-columns:1.5fr .9fr;gap:22px}.trend-list,.news-list{display:grid;gap:14px}.trend-card,.news-card{padding:20px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(255,255,255,.035)}.trend-top,.news-top{display:flex;justify-content:space-between;gap:16px}.probability{font-size:2rem;font-weight:800}.up{color:#5bd39a}.down{color:#ff8a8a}.evidence{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}.evidence div{padding:12px;border-radius:12px;background:rgba(255,255,255,.04)}.evidence strong{display:block;margin-bottom:6px}.news-score{font-weight:800;font-size:1.2rem}.disclaimer{padding:14px 16px;border-radius:14px;background:rgba(255,190,92,.1);border:1px solid rgba(255,190,92,.24);margin-bottom:22px}.back-link{color:inherit;text-decoration:none}@media(max-width:850px){.trends-grid{grid-template-columns:1fr}.trends-head{align-items:start;flex-direction:column}.evidence{grid-template-columns:1fr}.trends-page{padding:22px}}
+  </style>
+</head>
+<body>
+  <main class="trends-page">
+    <header class="trends-head">
+      <div><p class="eyebrow">INTELLIGENCE DE MARCHÉ</p><h1>Tendances et probabilités</h1><p class="subtitle">Chaque estimation affiche son horizon, sa méthode, ses preuves et ses limites.</p></div>
+      <a class="btn secondary back-link" href="index.html">← Tableau de bord</a>
+    </header>
+    <div class="disclaimer"><strong>Transparence :</strong> les exemples actuels servent à valider l’interface. Ils ne sont pas encore alimentés par un flux de marché temps réel et ne constituent pas des conseils d’investissement.</div>
+    <section class="trends-grid">
+      <article class="panel">
+        <div class="panel-head"><div><p class="eyebrow">SIGNAUX</p><h2>Probabilités de hausse ou de baisse</h2></div></div>
+        <div id="trendSignals" class="trend-list"></div>
+      </article>
+      <aside class="panel">
+        <div class="panel-head"><div><p class="eyebrow">ACTUALITÉ PRIORISÉE</p><h2>Ce qui compte le plus</h2></div></div>
+        <p class="subtitle">Classement selon impact, pertinence, fiabilité, récence et largeur de marché.</p>
+        <div id="marketNews" class="news-list"></div>
+      </aside>
+    </section>
+  </main>
+  <script type="module">
+    import { demoTrendSignals, demoMarketNews } from './market-trends.js';
+    const esc = value => { const node=document.createElement('div'); node.textContent=value; return node.innerHTML; };
+    document.querySelector('#trendSignals').innerHTML = demoTrendSignals.map(signal => `<article class="trend-card"><div class="trend-top"><div><h3>${esc(signal.asset)}</h3><small>${esc(signal.horizon)} · ${esc(signal.label)}</small></div><div class="probability ${signal.direction === 'hausse' ? 'up' : 'down'}">${Math.round(signal.probability*100)} % ${signal.direction === 'hausse' ? '↑' : '↓'}</div></div><div class="evidence"><div><strong>Éléments favorables</strong>${signal.forecast.evidence.map(x=>`<small>• ${esc(x)}</small><br>`).join('')}</div><div><strong>Éléments contradictoires</strong>${signal.forecast.counterEvidence.length ? signal.forecast.counterEvidence.map(x=>`<small>• ${esc(x)}</small><br>`).join('') : '<small>Aucun renseigné</small>'}</div><div><strong>Méthode</strong><small>${esc(signal.forecast.method)}</small></div><div><strong>Limites</strong>${signal.forecast.limitations.map(x=>`<small>• ${esc(x)}</small><br>`).join('')}</div></div></article>`).join('');
+    document.querySelector('#marketNews').innerHTML = demoMarketNews.map(item => `<article class="news-card"><div class="news-top"><h3>${esc(item.title)}</h3><span class="news-score">${item.importanceScore}/100</span></div><p>${esc(item.summary)}</p><small>Score statistique de priorité, pas probabilité de marché.</small></article>`).join('');
+  </script>
+</body>
+</html>
