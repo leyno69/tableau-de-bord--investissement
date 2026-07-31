@@ -1,3 +1,5 @@
+import './backend-ui.js';
+
 export async function searchInstruments(query, type = 'all') {
   const params = new URLSearchParams({ q: query, type });
   const response = await fetch(`/.netlify/functions/resolve-instrument?${params.toString()}`);
