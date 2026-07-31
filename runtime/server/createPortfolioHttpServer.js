@@ -13,6 +13,8 @@ export function createPortfolioHttpServer({
   config,
   providers,
   repositories,
+  marketQuoteCache = null,
+  exchangeRateCache = null,
   instrumentRepository = new InMemoryInstrumentRepository(),
   alertRules = [],
   clock = () => new Date(),
@@ -23,7 +25,15 @@ export function createPortfolioHttpServer({
   requireProviders(providers);
   requireLogger(logger);
 
-  const application = createPortfolioApplication({ ...providers, repositories, alertRules, clock, ...(idGenerator == null ? {} : { idGenerator }) });
+  const application = createPortfolioApplication({
+    ...providers,
+    repositories,
+    marketQuoteCache,
+    exchangeRateCache,
+    alertRules,
+    clock,
+    ...(idGenerator == null ? {} : { idGenerator })
+  });
   const portfolioAdapter = new PortfolioHttpAdapter({ facade: application.facade });
   const instrumentCatalog = new InstrumentCatalog({ instrumentRepository });
   const instrumentImporter = new InstrumentCatalogImporter({ instrumentRepository });
@@ -63,7 +73,12 @@ export function createPortfolioHttpServer({
       await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
       clearTimeout(timeout);
     }
-    await Promise.all([instrumentRepository.flush?.(), repositories?.flush?.()].filter(Boolean));
+    await Promise.all([
+      instrumentRepository.flush?.(),
+      repositories?.flush?.(),
+      marketQuoteCache?.flush?.(),
+      exchangeRateCache?.flush?.()
+    ].filter(Boolean));
   }
 
   function address() {
