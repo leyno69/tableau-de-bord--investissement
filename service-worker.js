@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'leynor-shell-v5';
+const CACHE_VERSION = 'leynor-shell-v6';
 const OFFLINE_URL = '/offline.html';
 const APP_SHELL = [
   '/',
@@ -20,6 +20,7 @@ const APP_SHELL = [
   '/simulator.html',
   '/simulator-ui.js',
   '/simulation-presets.js',
+  '/simulation-preset-insights-ui.js',
   '/portfolio-simulator.js',
   '/leynor-brand.js',
   '/leynor-brand.css',
