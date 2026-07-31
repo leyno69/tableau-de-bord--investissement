@@ -24,6 +24,18 @@ export class PortfolioApiClient {
   loadDashboard(id) { return this.#request('POST', `/portfolios/${encodeURIComponent(id)}/dashboard`, { marketDataPolicy: 'partial' }); }
   listAlerts(id) { return this.#request('GET', `/portfolios/${encodeURIComponent(id)}/alerts`); }
   importTransactions(id, transactions) { return this.#request('POST', `/portfolios/${encodeURIComponent(id)}/transactions/import`, { transactions }); }
+  loadPeriodPerformance(id, { date, marketDataPolicy = 'partial' } = {}) { return this.#request('GET', this.#query(`/portfolios/${encodeURIComponent(id)}/performance-periods`, { date, marketDataPolicy })); }
+  loadDividends(id, { from, to, baseCurrency = 'EUR' } = {}) { return this.#request('GET', this.#query(`/portfolios/${encodeURIComponent(id)}/dividends`, { from, to, baseCurrency })); }
+  loadChartSeries(id, { from, to, marketDataPolicy = 'partial' } = {}) { return this.#request('GET', this.#query(`/portfolios/${encodeURIComponent(id)}/chart-series`, { from, to, marketDataPolicy })); }
+  simulateInvestment(input) { return this.#request('POST', '/simulation/investment', input); }
+  evaluateGoal(input) { return this.#request('POST', '/goals/evaluate', input); }
+
+  #query(path, parameters) {
+    const search = new URLSearchParams();
+    for (const [key, value] of Object.entries(parameters)) if (value != null && value !== '') search.set(key, String(value));
+    const query = search.toString();
+    return query ? `${path}?${query}` : path;
+  }
 
   async #request(method, path, body) {
     const token = String(this.tokenProvider() || '').trim();
