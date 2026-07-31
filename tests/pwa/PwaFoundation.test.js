@@ -9,7 +9,7 @@ test('LEYNOR manifest exposes an installable standalone application', async () =
 
   assert.equal(manifest.short_name, 'LEYNOR');
   assert.equal(manifest.display, 'standalone');
-  assert.equal(manifest.start_url, '/?source=pwa');
+  assert.equal(manifest.start_url, './?source=pwa');
   assert.equal(manifest.theme_color, '#102c46');
   assert.ok(manifest.icons.some(icon => icon.purpose === 'maskable'));
 });
