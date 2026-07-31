@@ -23,7 +23,11 @@ const STATIC_FILES = new Map([
   ['/portfolio.js', ['portfolio.js', 'text/javascript; charset=utf-8']],
   ['/market.js', ['market.js', 'text/javascript; charset=utf-8']],
   ['/alerts.js', ['alerts.js', 'text/javascript; charset=utf-8']],
-  ['/resolver-ui.js', ['resolver-ui.js', 'text/javascript; charset=utf-8']]
+  ['/resolver-ui.js', ['resolver-ui.js', 'text/javascript; charset=utf-8']],
+  ['/instrument-resolver.js', ['instrument-resolver.js', 'text/javascript; charset=utf-8']],
+  ['/backend-ui.js', ['backend-ui.js', 'text/javascript; charset=utf-8']],
+  ['/server-sync.js', ['server-sync.js', 'text/javascript; charset=utf-8']],
+  ['/ui/PortfolioApiClient.js', ['ui/PortfolioApiClient.js', 'text/javascript; charset=utf-8']]
 ]);
 
 export function createPortfolioHttpServer({
