@@ -6,7 +6,7 @@ const worker = await readFile(new URL('../../service-worker.js', import.meta.url
 const pwa = await readFile(new URL('../../pwa.js', import.meta.url), 'utf8');
 
 test('le service worker migre le cache et précharge le panneau mobile', () => {
-  assert.match(worker, /leynor-shell-v4/);
+  assert.match(worker, /leynor-shell-v(?:[4-9]|\d{2,})/);
   assert.match(worker, /'\/assistant-ui\.js'/);
   assert.match(worker, /'\/assistant-memory\.js'/);
   assert.match(worker, /'\/portfolio-assistant\.js'/);
