@@ -28,7 +28,7 @@ export class PortfolioHttpAdapter {
   }
 
   async #dispatch(route, request) {
-    const portfolioId = route.portfolioId;
+    const portfolioId = route.portfolioId ?? request.query.portfolioId;
     switch (route.name) {
       case 'createPortfolio': {
         const portfolio = await this.adminService.savePortfolio(PortfolioHttpAdapter.#body(request.body));
@@ -57,6 +57,14 @@ export class PortfolioHttpAdapter {
         const preferences = await this.facade.savePreferences({ ...PortfolioHttpAdapter.#body(request.body), portfolioId });
         return { statusCode: 200, body: { data: preferences } };
       }
+      case 'valuation': {
+        PortfolioHttpAdapter.#facadeMethod(this.facade, 'valuePortfolioAt');
+        return { statusCode: 200, body: { data: await this.facade.valuePortfolioAt({ portfolioId, date: request.query.date, marketDataPolicy: request.query.marketDataPolicy ?? 'strict' }) } };
+      }
+      case 'valuationHistory': {
+        PortfolioHttpAdapter.#facadeMethod(this.facade, 'loadValuationHistory');
+        return { statusCode: 200, body: { data: await this.facade.loadValuationHistory({ portfolioId, from: request.query.from, to: request.query.to, marketDataPolicy: request.query.marketDataPolicy ?? 'partial' }) } };
+      }
       case 'loadPortfolio': return { statusCode: 200, body: { data: await this.facade.loadPortfolio(portfolioId) } };
       case 'listAlerts': {
         const state = await this.facade.loadPortfolio(portfolioId);
@@ -81,6 +89,10 @@ export class PortfolioHttpAdapter {
 
   static #match(method, path) {
     const patterns = [
+      ['GET', /^\/portfolio\/valuation\/?$/, 'valuation', false],
+      ['GET', /^\/portfolio\/history\/?$/, 'valuationHistory', false],
+      ['GET', /^\/portfolios\/([^/]+)\/valuation\/?$/, 'valuation', false],
+      ['GET', /^\/portfolios\/([^/]+)\/history\/?$/, 'valuationHistory', false],
       ['POST', /^\/portfolios\/?$/, 'createPortfolio', true],
       ['GET', /^\/portfolios\/?$/, 'listPortfolios', true],
       ['PUT', /^\/portfolios\/([^/]+)\/?$/, 'updatePortfolio', true],
@@ -106,12 +118,17 @@ export class PortfolioHttpAdapter {
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('request doit être un objet.');
     if (typeof value.method !== 'string' || value.method.trim() === '') throw new TypeError('request.method est obligatoire.');
     if (typeof value.path !== 'string' || value.path.trim() === '') throw new TypeError('request.path est obligatoire.');
-    return Object.freeze({ method: value.method.trim().toUpperCase(), path: value.path.trim().split('?')[0], body: value.body ?? null });
+    const url = new URL(value.path.trim(), 'http://localhost');
+    return Object.freeze({ method: value.method.trim().toUpperCase(), path: url.pathname, query: Object.freeze(Object.fromEntries(url.searchParams.entries())), body: value.body ?? null });
   }
 
   static #body(value) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('Le corps de la requête doit être un objet JSON.');
     return value;
+  }
+
+  static #facadeMethod(facade, method) {
+    if (typeof facade[method] !== 'function') throw new Error("Le moteur de valorisation historique n'est pas configuré.");
   }
 
   static #response(statusCode, body) {
@@ -122,6 +139,7 @@ export class PortfolioHttpAdapter {
     const message = error instanceof Error ? error.message : 'Erreur inconnue.';
     if (/existe déjà|contenu différent/i.test(message)) return PortfolioHttpAdapter.#response(409, { error: { code: 'CONFLICT', message } });
     if (/Aucune préférence|introuvable|n'existe pas/i.test(message)) return PortfolioHttpAdapter.#response(404, { error: { code: 'NOT_FOUND', message } });
+    if (/n'est pas configuré/i.test(message)) return PortfolioHttpAdapter.#response(501, { error: { code: 'VALUATION_API_DISABLED', message } });
     if (error instanceof TypeError || error instanceof RangeError) return PortfolioHttpAdapter.#response(400, { error: { code: 'INVALID_REQUEST', message } });
     return PortfolioHttpAdapter.#response(500, { error: { code: 'INTERNAL_ERROR', message: 'Une erreur interne est survenue.' } });
   }
