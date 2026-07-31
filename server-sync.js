@@ -3,7 +3,7 @@ import './pwa.js';
 import './api-fetch-router.js';
 import './leynor-assistant.js';
 import './opportunity-radar-ui.js';
-import { apiUrl, getApiBaseUrl, getApiToken, setApiBaseUrl, setApiToken } from './api-connection.js';
+import { apiUrl, getApiBaseUrl, getApiToken, setApiBaseUrl, setApiToken, usesSecureProxy } from './api-connection.js';
 
 function addNavigationLink({ href, label, icon, marker, before }) {
   const nav = document.querySelector('.main-nav');
@@ -37,26 +37,28 @@ function createSimulationShortcut() {
 
 function createConnectionControl() {
   const actions = document.querySelector('.topbar-actions');
-  if (!actions || document.querySelector('#serverConnectionBtn')) return;
+  if (!actions || document.querySelector('#serverConnectionStatus')) return;
   const status = document.createElement('span');
   status.id = 'serverConnectionStatus';
   status.className = 'badge';
-  status.textContent = 'Serveur à configurer';
-  status.title = 'Touchez Connexion serveur pour renseigner l’adresse du backend.';
-  const button = document.createElement('button');
-  button.id = 'serverConnectionBtn';
-  button.className = 'btn secondary';
-  button.type = 'button';
-  button.textContent = 'Connexion serveur';
-  button.addEventListener('click', configureConnection);
+  status.textContent = usesSecureProxy() ? 'Connexion sécurisée…' : 'Serveur à configurer';
   actions.prepend(status);
-  actions.prepend(button);
+
+  if (!usesSecureProxy()) {
+    const button = document.createElement('button');
+    button.id = 'serverConnectionBtn';
+    button.className = 'btn secondary';
+    button.type = 'button';
+    button.textContent = 'Connexion serveur';
+    button.addEventListener('click', configureConnection);
+    actions.prepend(button);
+  }
   verifyConnection();
 }
 
 async function configureConnection() {
   const currentUrl = getApiBaseUrl();
-  const url = window.prompt('Adresse publique du serveur LEYNOR (ex. https://votre-projet.up.railway.app) :', currentUrl);
+  const url = window.prompt('Adresse publique du serveur LEYNOR :', currentUrl);
   if (url == null) return;
   try {
     setApiBaseUrl(url);
@@ -65,8 +67,10 @@ async function configureConnection() {
     return;
   }
 
-  const token = window.prompt('Jeton APP_AUTH_TOKEN du serveur :', getApiToken());
-  if (token != null) setApiToken(token);
+  if (!usesSecureProxy()) {
+    const token = window.prompt('Jeton APP_AUTH_TOKEN du serveur :', getApiToken());
+    if (token != null) setApiToken(token);
+  }
   await verifyConnection();
 }
 
@@ -79,7 +83,6 @@ function setConnectionStatus(message, detail = message) {
 
 async function verifyConnection() {
   const button = document.querySelector('#serverConnectionBtn');
-  if (!button) return;
   const baseUrl = getApiBaseUrl();
   if (!baseUrl) {
     setConnectionStatus('Serveur non configuré', 'Aucune adresse de backend n’est enregistrée.');
@@ -87,20 +90,22 @@ async function verifyConnection() {
   }
 
   const token = getApiToken();
-  if (!token) {
+  if (!usesSecureProxy() && !token) {
     setConnectionStatus('Token requis', 'Renseigne le APP_AUTH_TOKEN du serveur pour tester la connexion sécurisée.');
     return;
   }
 
-  setConnectionStatus('Vérification…', `Test sécurisé de ${baseUrl}`);
-  button.disabled = true;
+  setConnectionStatus('Vérification…', usesSecureProxy() ? 'Connexion via le proxy sécurisé Vercel.' : `Test sécurisé de ${baseUrl}`);
+  if (button) button.disabled = true;
   try {
-    const response = await fetch(apiUrl('/portfolios'), {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store'
-    });
+    const headers = token && !usesSecureProxy() ? { Authorization: `Bearer ${token}` } : {};
+    const response = await fetch(apiUrl('/portfolios'), { headers, cache: 'no-store' });
     if (response.status === 401) {
       setConnectionStatus('Token invalide', `${baseUrl} répond, mais refuse le jeton enregistré.`);
+      return;
+    }
+    if (response.status === 503) {
+      setConnectionStatus('Proxy à configurer', 'Ajoute LEYNOR_BACKEND_URL et LEYNOR_BACKEND_TOKEN dans Vercel.');
       return;
     }
     if (!response.ok) throw new Error(`L’API répond HTTP ${response.status} sur /portfolios.`);
@@ -109,14 +114,15 @@ async function verifyConnection() {
   } catch (error) {
     const reason = error instanceof Error ? error.message : 'Erreur réseau inconnue.';
     console.error('Server connection error:', error);
-    setConnectionStatus('Serveur inaccessible', `${baseUrl} — ${reason}. Vérifier le déploiement et CORS_ALLOWED_ORIGINS.`);
+    setConnectionStatus('Serveur inaccessible', `${baseUrl} — ${reason}`);
   } finally {
-    button.disabled = false;
+    if (button) button.disabled = false;
   }
 }
 
 function updatePortfolioCount(count, baseUrl = getApiBaseUrl()) {
-  setConnectionStatus(`Serveur connecté • ${count} portefeuille${count > 1 ? 's' : ''}`, baseUrl);
+  const label = usesSecureProxy() ? `Bêta connectée • ${count} portefeuille${count > 1 ? 's' : ''}` : `Serveur connecté • ${count} portefeuille${count > 1 ? 's' : ''}`;
+  setConnectionStatus(label, baseUrl);
 }
 
 window.addEventListener('portfolio-server-ready', event => updatePortfolioCount(Number(event.detail?.count || 0)));
