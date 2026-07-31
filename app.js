@@ -1,3 +1,4 @@
+import './assistant-ui.js';
 import { brokers } from './brokers.js';
 import { defaultPortfolio, summarizePortfolio, allocationByRegion } from './portfolio.js';
 import { defaultWatchlist, refreshMarketItems } from './market.js';
