@@ -10,7 +10,11 @@ const DEFAULTS = Object.freeze({
   instrumentCatalogPath: './data/instruments.json',
   portfolioDataPath: './data/portfolios.json',
   marketQuoteCachePath: './data/market-quotes.json',
-  exchangeRateCachePath: './data/exchange-rates.json'
+  exchangeRateCachePath: './data/exchange-rates.json',
+  languageModelProvider: 'disabled',
+  languageModelBaseUrl: 'https://api.openai.com/v1',
+  languageModelModel: 'gpt-4.1-mini',
+  languageModelTimeoutMilliseconds: 20_000
 });
 
 export function loadServerConfig(environment = process.env) {
@@ -20,6 +24,10 @@ export function loadServerConfig(environment = process.env) {
   if (!['bootstrap', 'twelve-data'].includes(marketProvider)) throw new RangeError('MARKET_PROVIDER doit valoir "bootstrap" ou "twelve-data".');
   const instrumentRepository = optionalText(environment.INSTRUMENT_REPOSITORY ?? DEFAULTS.instrumentRepository).toLowerCase();
   if (!['memory', 'json'].includes(instrumentRepository)) throw new RangeError('INSTRUMENT_REPOSITORY doit valoir "memory" ou "json".');
+  const languageModelProvider = optionalText(environment.LEYNOR_LLM_PROVIDER ?? DEFAULTS.languageModelProvider).toLowerCase();
+  if (!['disabled', 'openai-compatible-http'].includes(languageModelProvider)) {
+    throw new RangeError('LEYNOR_LLM_PROVIDER doit valoir "disabled" ou "openai-compatible-http".');
+  }
 
   return Object.freeze({
     host: text(environment.HOST ?? DEFAULTS.host, 'HOST'),
@@ -42,6 +50,13 @@ export function loadServerConfig(environment = process.env) {
       baseUrl: optionalText(environment.TWELVE_DATA_BASE_URL) || 'https://api.twelvedata.com',
       timeoutMilliseconds: integer(environment.MARKET_TIMEOUT_MS ?? DEFAULTS.marketTimeoutMilliseconds, 'MARKET_TIMEOUT_MS', { minimum: 1 }),
       cacheTtlMilliseconds: integer(environment.MARKET_CACHE_TTL_MS ?? DEFAULTS.marketCacheTtlMilliseconds, 'MARKET_CACHE_TTL_MS', { minimum: 0 })
+    }),
+    languageModel: Object.freeze({
+      provider: languageModelProvider,
+      baseUrl: optionalText(environment.LEYNOR_LLM_BASE_URL) || DEFAULTS.languageModelBaseUrl,
+      apiKey: optionalText(environment.LEYNOR_LLM_API_KEY),
+      model: optionalText(environment.LEYNOR_LLM_MODEL) || DEFAULTS.languageModelModel,
+      timeoutMilliseconds: integer(environment.LEYNOR_LLM_TIMEOUT_MS ?? DEFAULTS.languageModelTimeoutMilliseconds, 'LEYNOR_LLM_TIMEOUT_MS', { minimum: 1 })
     })
   });
 }
