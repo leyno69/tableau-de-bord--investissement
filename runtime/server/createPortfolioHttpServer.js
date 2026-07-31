@@ -21,20 +21,29 @@ import { createNodeHttpHandler } from '../../interfaces/http/createNodeHttpHandl
 import { createSecureHttpHandler } from './createSecureHttpHandler.js';
 
 const PROJECT_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const JAVASCRIPT = 'text/javascript; charset=utf-8';
 const STATIC_FILES = new Map([
   ['/', ['index.html', 'text/html; charset=utf-8']],
   ['/index.html', ['index.html', 'text/html; charset=utf-8']],
   ['/style.css', ['style.css', 'text/css; charset=utf-8']],
-  ['/app.js', ['app.js', 'text/javascript; charset=utf-8']],
-  ['/brokers.js', ['brokers.js', 'text/javascript; charset=utf-8']],
-  ['/portfolio.js', ['portfolio.js', 'text/javascript; charset=utf-8']],
-  ['/market.js', ['market.js', 'text/javascript; charset=utf-8']],
-  ['/alerts.js', ['alerts.js', 'text/javascript; charset=utf-8']],
-  ['/resolver-ui.js', ['resolver-ui.js', 'text/javascript; charset=utf-8']],
-  ['/instrument-resolver.js', ['instrument-resolver.js', 'text/javascript; charset=utf-8']],
-  ['/backend-ui.js', ['backend-ui.js', 'text/javascript; charset=utf-8']],
-  ['/server-sync.js', ['server-sync.js', 'text/javascript; charset=utf-8']],
-  ['/ui/PortfolioApiClient.js', ['ui/PortfolioApiClient.js', 'text/javascript; charset=utf-8']]
+  ['/app.js', ['app.js', JAVASCRIPT]],
+  ['/assistant-ui.js', ['assistant-ui.js', JAVASCRIPT]],
+  ['/assistant-memory.js', ['assistant-memory.js', JAVASCRIPT]],
+  ['/portfolio-assistant.js', ['portfolio-assistant.js', JAVASCRIPT]],
+  ['/brokers.js', ['brokers.js', JAVASCRIPT]],
+  ['/portfolio.js', ['portfolio.js', JAVASCRIPT]],
+  ['/market.js', ['market.js', JAVASCRIPT]],
+  ['/alerts.js', ['alerts.js', JAVASCRIPT]],
+  ['/resolver-ui.js', ['resolver-ui.js', JAVASCRIPT]],
+  ['/instrument-resolver.js', ['instrument-resolver.js', JAVASCRIPT]],
+  ['/backend-ui.js', ['backend-ui.js', JAVASCRIPT]],
+  ['/server-sync.js', ['server-sync.js', JAVASCRIPT]],
+  ['/ui/PortfolioApiClient.js', ['ui/PortfolioApiClient.js', JAVASCRIPT]],
+  ['/application/services/MemoryService.js', ['application/services/MemoryService.js', JAVASCRIPT]],
+  ['/infrastructure/memory/LocalStorageUserMemoryRepository.js', ['infrastructure/memory/LocalStorageUserMemoryRepository.js', JAVASCRIPT]],
+  ['/infrastructure/memory/LocalStorageConversationMemoryRepository.js', ['infrastructure/memory/LocalStorageConversationMemoryRepository.js', JAVASCRIPT]],
+  ['/domain/memory/UserMemory.js', ['domain/memory/UserMemory.js', JAVASCRIPT]],
+  ['/domain/memory/ConversationMemory.js', ['domain/memory/ConversationMemory.js', JAVASCRIPT]]
 ]);
 
 export function createPortfolioHttpServer({
