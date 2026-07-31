@@ -26,7 +26,10 @@ test('détecte concentration, liquidités et qualité de données', () => {
 test('ne fabrique pas de signal lorsque les données sont équilibrées et fraîches', () => {
   const result = new GenerateAutomatedInsights().execute({ dashboard: {
     valuation: { totalValue: { amount: 1000 }, cashValue: { amount: 50 }, positions: [
-      { assetId: 'A', convertedValue: { amount: 200 } }, { assetId: 'B', convertedValue: { amount: 200 } }, { assetId: 'C', convertedValue: { amount: 200 } }, { assetId: 'D', convertedValue: { amount: 350 } }
+      { assetId: 'A', convertedValue: { amount: 237.5 } },
+      { assetId: 'B', convertedValue: { amount: 237.5 } },
+      { assetId: 'C', convertedValue: { amount: 237.5 } },
+      { assetId: 'D', convertedValue: { amount: 237.5 } }
     ], issues: [] },
     analytics: { maxDrawdown: -0.03 }, allocation: { categories: [{}, {}] }, marketData: { staleCount: 0, unavailableCount: 0 }
   } });
