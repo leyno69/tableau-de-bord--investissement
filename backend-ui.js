@@ -1,6 +1,8 @@
 import { PortfolioApiClient } from './ui/PortfolioApiClient.js';
 
-const client = new PortfolioApiClient({ baseUrl: localStorage.getItem('invest-dashboard-api-url') || '' });
+const API_URL_KEY = 'invest-dashboard-api-url';
+const PORTFOLIO_ID_KEY = 'invest-dashboard-server-portfolio-id';
+const client = new PortfolioApiClient({ baseUrl: localStorage.getItem(API_URL_KEY) || '' });
 const controls = document.createElement('section');
 controls.className = 'panel backend-panel';
 controls.innerHTML = `
@@ -14,9 +16,9 @@ controls.innerHTML = `
     <label class="field"><span>Importer des transactions JSON</span><input id="transactionImportFile" type="file" accept="application/json,.json" /></label>
   </div>
   <div class="dialog-actions">
-    <button id="saveApiUrl" class="btn secondary">Enregistrer l’URL</button>
-    <button id="syncBackend" class="btn">Synchroniser</button>
-    <button id="importTransactions" class="btn secondary">Importer</button>
+    <button id="saveApiUrl" type="button" class="btn secondary">Enregistrer l’URL</button>
+    <button id="syncBackend" type="button" class="btn">Synchroniser</button>
+    <button id="importTransactions" type="button" class="btn secondary">Importer</button>
   </div>
   <div id="marketDataState" class="alerts-list"></div>`;
 
@@ -24,23 +26,42 @@ document.querySelector('.shell')?.prepend(controls);
 const status = document.querySelector('#backendStatus');
 const portfolioSelect = document.querySelector('#backendPortfolio');
 const apiInput = document.querySelector('#backendApiUrl');
-apiInput.value = localStorage.getItem('invest-dashboard-api-url') || '';
+apiInput.value = localStorage.getItem(API_URL_KEY) || '';
 
 function setStatus(label, ok = true) {
   status.textContent = label;
   status.className = `badge ${ok ? 'buy' : 'sell'}`;
 }
 
+async function ensurePortfolio(portfolios) {
+  if (portfolios.length) return portfolios;
+  setStatus('Création du portefeuille…');
+  const created = await client.createPortfolio({
+    id: 'principal',
+    name: 'Portefeuille principal',
+    baseCurrency: 'EUR',
+    status: 'ACTIVE'
+  });
+  return [created];
+}
+
 async function loadPortfolios() {
   try {
-    const portfolios = await client.listPortfolios();
+    let portfolios = await client.listPortfolios();
+    portfolios = await ensurePortfolio(portfolios);
     portfolioSelect.innerHTML = '';
     for (const portfolio of portfolios) portfolioSelect.add(new Option(portfolio.name, portfolio.id));
-    if (!portfolios.length) portfolioSelect.add(new Option('Aucun portefeuille', ''));
-    setStatus('API disponible');
+
+    const remembered = localStorage.getItem(PORTFOLIO_ID_KEY);
+    if (remembered && portfolios.some(portfolio => portfolio.id === remembered)) portfolioSelect.value = remembered;
+    if (!portfolioSelect.value && portfolios[0]) portfolioSelect.value = portfolios[0].id;
+    localStorage.setItem(PORTFOLIO_ID_KEY, portfolioSelect.value);
+
+    setStatus(`API disponible • ${portfolios.length} portefeuille${portfolios.length > 1 ? 's' : ''}`);
+    await synchronize();
   } catch (error) {
     portfolioSelect.innerHTML = '<option value="">Mode local</option>';
-    setStatus('Mode local', false);
+    setStatus(error.status === 401 ? 'Token requis' : 'Mode local', false);
     console.info('Backend indisponible, conservation du mode local.', error);
   }
 }
@@ -48,6 +69,7 @@ async function loadPortfolios() {
 async function synchronize() {
   const portfolioId = portfolioSelect.value;
   if (!portfolioId) return setStatus('Aucun portefeuille', false);
+  localStorage.setItem(PORTFOLIO_ID_KEY, portfolioId);
   setStatus('Synchronisation…');
   try {
     const [state, dashboard, alerts] = await Promise.all([
@@ -55,7 +77,7 @@ async function synchronize() {
     ]);
     const market = dashboard.marketData ?? dashboard.valuation?.marketData ?? {};
     document.querySelector('#marketDataState').innerHTML = `
-      <div class="alert"><strong>Portefeuille ${portfolioId}</strong><small>${state.transactions?.length ?? 0} transaction(s) • ${alerts.length} alerte(s)</small></div>
+      <div class="alert"><strong>${portfolioSelect.selectedOptions[0]?.textContent || portfolioId}</strong><small>${state.transactions?.length ?? 0} transaction(s) • ${alerts.length} alerte(s)</small></div>
       <div class="alert"><strong>Données de marché</strong><small>${market.complete === false ? 'Partielles' : 'Complètes'}${market.staleCount ? ` • ${market.staleCount} périmée(s)` : ''}</small></div>`;
     setStatus('Synchronisé');
   } catch (error) {
@@ -79,10 +101,11 @@ async function importTransactions() {
 }
 
 document.querySelector('#saveApiUrl').addEventListener('click', () => {
-  localStorage.setItem('invest-dashboard-api-url', apiInput.value.trim().replace(/\/$/, ''));
+  localStorage.setItem(API_URL_KEY, apiInput.value.trim().replace(/\/$/, ''));
   window.location.reload();
 });
 document.querySelector('#syncBackend').addEventListener('click', synchronize);
 document.querySelector('#importTransactions').addEventListener('click', importTransactions);
+portfolioSelect.addEventListener('change', synchronize);
 
 loadPortfolios();
