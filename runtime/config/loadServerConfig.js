@@ -14,7 +14,8 @@ const DEFAULTS = Object.freeze({
   languageModelProvider: 'disabled',
   languageModelBaseUrl: 'https://api.openai.com/v1',
   languageModelModel: 'gpt-4.1-mini',
-  languageModelTimeoutMilliseconds: 20_000
+  languageModelTimeoutMilliseconds: 20_000,
+  corsAllowedOrigins: 'https://leyno69.github.io'
 });
 
 export function loadServerConfig(environment = process.env) {
@@ -35,6 +36,9 @@ export function loadServerConfig(environment = process.env) {
     maxBodyBytes: integer(environment.MAX_BODY_BYTES ?? DEFAULTS.maxBodyBytes, 'MAX_BODY_BYTES', { minimum: 1 }),
     shutdownTimeoutMilliseconds: integer(environment.SHUTDOWN_TIMEOUT_MS ?? DEFAULTS.shutdownTimeoutMilliseconds, 'SHUTDOWN_TIMEOUT_MS', { minimum: 1 }),
     authToken: optionalText(environment.APP_AUTH_TOKEN),
+    cors: Object.freeze({
+      allowedOrigins: Object.freeze(csvOrigins(environment.CORS_ALLOWED_ORIGINS ?? DEFAULTS.corsAllowedOrigins))
+    }),
     storage: Object.freeze({
       portfolioDataPath: text(environment.PORTFOLIO_DATA_PATH ?? DEFAULTS.portfolioDataPath, 'PORTFOLIO_DATA_PATH'),
       marketQuoteCachePath: text(environment.MARKET_QUOTE_CACHE_PATH ?? DEFAULTS.marketQuoteCachePath, 'MARKET_QUOTE_CACHE_PATH'),
@@ -69,6 +73,11 @@ function optionalText(value) {
   if (value == null) return '';
   if (typeof value !== 'string') throw new TypeError('La configuration textuelle doit être une chaîne.');
   return value.trim();
+}
+function csvOrigins(value) {
+  const raw = optionalText(value);
+  if (!raw) return [];
+  return raw.split(',').map(item => item.trim()).filter(Boolean).map(item => new URL(item).origin);
 }
 function integer(value, field, { minimum, maximum = Number.MAX_SAFE_INTEGER }) {
   const number = Number(value);
