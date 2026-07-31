@@ -3,16 +3,21 @@ import './leynor-assistant.js';
 
 const API_TOKEN_KEY = 'invest-dashboard-api-token';
 
-function createTrendsNavigation() {
+function addNavigationLink({ href, label, icon, marker, before }) {
   const nav = document.querySelector('.main-nav');
-  if (!nav || nav.querySelector('[data-trends-link]')) return;
+  if (!nav || nav.querySelector(`[${marker}]`)) return;
   const link = document.createElement('a');
   link.className = 'nav-item';
-  link.href = 'trends.html';
-  link.dataset.trendsLink = 'true';
-  link.innerHTML = '<span>↗</span>Tendances';
-  const assistant = nav.querySelector('a[href="#assistant"]');
-  nav.insertBefore(link, assistant || null);
+  link.href = href;
+  link.setAttribute(marker, 'true');
+  link.innerHTML = `<span>${icon}</span>${label}`;
+  const anchor = nav.querySelector(before);
+  nav.insertBefore(link, anchor || null);
+}
+
+function createProductNavigation() {
+  addNavigationLink({ href: 'trends.html', label: 'Tendances', icon: '↗', marker: 'data-trends-link', before: 'a[href="#assistant"]' });
+  addNavigationLink({ href: 'simulator.html', label: 'Simulation', icon: '◈', marker: 'data-simulation-link', before: 'a[href="#assistant"]' });
 }
 
 function createConnectionControl() {
@@ -99,5 +104,5 @@ window.addEventListener('portfolio-server-ready', event => {
   updatePortfolioCount(count);
 });
 
-createTrendsNavigation();
+createProductNavigation();
 createConnectionControl();
