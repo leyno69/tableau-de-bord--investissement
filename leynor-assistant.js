@@ -1,4 +1,5 @@
 import { buildAssistantRequest, createConversationMessage } from './leynor-conversation.js';
+import { buildFinancialCards, normalizeFinancialCards } from './leynor-financial-cards.js';
 
 const API_TOKEN_KEY = 'invest-dashboard-api-token';
 const PORTFOLIO_KEY = 'invest-dashboard-portfolio';
@@ -11,19 +12,13 @@ const PRESENCE_STATES = Object.freeze({
   error: 'Connexion à vérifier'
 });
 
-const state = {
-  messages: loadMessages(),
-  pending: false,
-  presence: 'idle'
-};
+const state = { messages: loadMessages(), pending: false, presence: 'idle' };
 
 function loadMessages() {
   try {
     const stored = JSON.parse(localStorage.getItem(CONVERSATION_KEY) || '[]');
     if (Array.isArray(stored) && stored.length) return stored;
-  } catch {
-    // A damaged local history must never block the assistant.
-  }
+  } catch {}
   return [createConversationMessage({
     role: 'assistant',
     content: 'Bonjour, je suis LEYNOR AI. Je peux t’aider à comprendre ton portefeuille, tes performances et les mécanismes financiers. Que souhaites-tu analyser aujourd’hui ?'
@@ -35,15 +30,17 @@ function persistMessages() {
 }
 
 function readPortfolio() {
-  try {
-    return JSON.parse(localStorage.getItem(PORTFOLIO_KEY) || '{}');
-  } catch {
-    return {};
-  }
+  try { return JSON.parse(localStorage.getItem(PORTFOLIO_KEY) || '{}'); } catch { return {}; }
 }
 
 function formatTime(value) {
   return new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+}
+
+function escapeHtml(value) {
+  const element = document.createElement('div');
+  element.textContent = value;
+  return element.innerHTML;
 }
 
 function injectStylesheet() {
@@ -69,6 +66,15 @@ function presenceMarkup({ compact = false } = {}) {
   </span>`;
 }
 
+function cardMarkup(cards) {
+  if (!cards?.length) return '';
+  return `<div class="leynor-financial-cards" aria-label="Indicateurs financiers">${cards.map(card => `
+    <div class="leynor-financial-card" data-tone="${card.tone}">
+      <span>${escapeHtml(card.label)}</span>
+      <strong>${escapeHtml(card.value)}</strong>
+    </div>`).join('')}</div>`;
+}
+
 function createInterface() {
   if (document.querySelector('#leynorPanel')) return;
   injectStylesheet();
@@ -88,20 +94,14 @@ function createInterface() {
   panel.setAttribute('aria-label', 'Conversation avec LEYNOR AI');
   panel.innerHTML = `
     <header class="leynor-head">
-      <div class="leynor-identity">
-        ${presenceMarkup()}
-        <div>
-          <p class="leynor-kicker">LEYNOR AI</p>
-          <h2>Votre copilote d’investissement</h2>
-          <p id="leynorPresenceLabel" class="leynor-presence-label" aria-live="polite">${PRESENCE_STATES.idle}</p>
-        </div>
-      </div>
+      <div class="leynor-identity">${presenceMarkup()}<div>
+        <p class="leynor-kicker">LEYNOR AI</p>
+        <h2>Votre copilote d’investissement</h2>
+        <p id="leynorPresenceLabel" class="leynor-presence-label" aria-live="polite">${PRESENCE_STATES.idle}</p>
+      </div></div>
       <button class="leynor-close" type="button" aria-label="Fermer">×</button>
     </header>
-    <div class="leynor-welcome">
-      <strong>Que souhaites-tu analyser aujourd’hui ?</strong>
-      <span>Portefeuille, stratégie, risque ou compréhension d’un mécanisme financier.</span>
-    </div>
+    <div class="leynor-welcome"><strong>Que souhaites-tu analyser aujourd’hui ?</strong><span>Portefeuille, stratégie, risque ou compréhension d’un mécanisme financier.</span></div>
     <div id="leynorMessages" class="leynor-messages" aria-live="polite"></div>
     <form id="leynorForm" class="leynor-form">
       <button class="leynor-mic" type="button" aria-pressed="false" title="Activer l’écoute LEYNOR AI"><span aria-hidden="true">◉</span><span class="sr-only">Activer l’écoute</span></button>
@@ -132,50 +132,30 @@ function bindEvents() {
   const input = document.querySelector('#leynorInput');
   const mic = panel.querySelector('.leynor-mic');
 
-  launcher.addEventListener('click', () => {
-    panel.hidden = false;
-    launcher.hidden = true;
-    input.focus();
-  });
-
-  panel.querySelector('.leynor-close').addEventListener('click', () => {
-    panel.hidden = true;
-    launcher.hidden = false;
-    setPresence('idle');
-  });
-
+  launcher.addEventListener('click', () => { panel.hidden = false; launcher.hidden = true; input.focus(); });
+  panel.querySelector('.leynor-close').addEventListener('click', () => { panel.hidden = true; launcher.hidden = false; setPresence('idle'); });
   mic.addEventListener('click', () => {
     const listening = mic.getAttribute('aria-pressed') !== 'true';
     mic.setAttribute('aria-pressed', String(listening));
     setPresence(listening ? 'listening' : 'idle');
-    if (listening) {
-      input.placeholder = 'LEYNOR AI vous écoute…';
-      window.setTimeout(() => {
-        if (mic.getAttribute('aria-pressed') === 'true') {
-          mic.setAttribute('aria-pressed', 'false');
-          input.placeholder = 'Écrivez votre question…';
-          setPresence('idle');
-          appendTransientError('Le module vocal est prêt visuellement. La transcription sera activée avec le fournisseur vocal dédié.');
-        }
-      }, 4500);
-    } else {
-      input.placeholder = 'Écrivez votre question…';
-    }
+    input.placeholder = listening ? 'LEYNOR AI vous écoute…' : 'Écrivez votre question…';
+    if (listening) window.setTimeout(() => {
+      if (mic.getAttribute('aria-pressed') === 'true') {
+        mic.setAttribute('aria-pressed', 'false');
+        input.placeholder = 'Écrivez votre question…';
+        setPresence('idle');
+        appendTransientError('Le module vocal est prêt visuellement. La transcription sera activée avec le fournisseur vocal dédié.');
+      }
+    }, 4500);
   });
-
   input.addEventListener('input', () => {
     document.querySelector('#leynorSend').disabled = state.pending || !input.value.trim();
     input.style.height = 'auto';
     input.style.height = `${Math.min(input.scrollHeight, 120)}px`;
   });
-
   input.addEventListener('keydown', event => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      panel.querySelector('#leynorForm').requestSubmit();
-    }
+    if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); panel.querySelector('#leynorForm').requestSubmit(); }
   });
-
   panel.querySelector('#leynorForm').addEventListener('submit', sendMessage);
 }
 
@@ -184,25 +164,15 @@ function renderMessages() {
   if (!container) return;
   container.innerHTML = state.messages.map(message => `
     <article class="leynor-message ${message.role}">
-      ${escapeHtml(message.content)}
+      <div>${escapeHtml(message.content)}</div>
+      ${message.role === 'assistant' ? cardMarkup(normalizeFinancialCards(message.cards)) : ''}
       <small>${formatTime(message.createdAt)}</small>
     </article>`).join('');
-
-  if (state.pending) {
-    container.insertAdjacentHTML('beforeend', `
-      <article class="leynor-message assistant leynor-thinking-message" aria-label="LEYNOR AI réfléchit">
-        ${presenceMarkup({ compact: true })}
-        <span>Analyse en cours</span>
-        <span class="leynor-typing"><span></span><span></span><span></span></span>
-      </article>`);
-  }
+  if (state.pending) container.insertAdjacentHTML('beforeend', `
+    <article class="leynor-message assistant leynor-thinking-message" aria-label="LEYNOR AI réfléchit">
+      ${presenceMarkup({ compact: true })}<span>Analyse en cours</span><span class="leynor-typing"><span></span><span></span><span></span></span>
+    </article>`);
   container.scrollTop = container.scrollHeight;
-}
-
-function escapeHtml(value) {
-  const element = document.createElement('div');
-  element.textContent = value;
-  return element.innerHTML;
 }
 
 function appendTransientError(message) {
@@ -214,11 +184,11 @@ function appendTransientError(message) {
 async function sendMessage(event) {
   event.preventDefault();
   if (state.pending) return;
-
   const input = document.querySelector('#leynorInput');
   const question = input.value.trim();
   if (!question) return;
 
+  const portfolio = readPortfolio();
   const previousConversation = state.messages.slice(-8);
   state.messages.push(createConversationMessage({ role: 'user', content: question }));
   input.value = '';
@@ -233,26 +203,16 @@ async function sendMessage(event) {
     const token = localStorage.getItem(API_TOKEN_KEY) || '';
     const response = await fetch('./leynor/assistant/answer', {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
-      body: JSON.stringify(buildAssistantRequest({
-        question,
-        portfolio: readPortfolio(),
-        conversation: previousConversation
-      }))
+      headers: { 'content-type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify(buildAssistantRequest({ question, portfolio, conversation: previousConversation }))
     });
-
     const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      throw new Error(payload?.error?.message || `Erreur LEYNOR (${response.status})`);
-    }
-
+    if (!response.ok) throw new Error(payload?.error?.message || `Erreur LEYNOR (${response.status})`);
     const answer = payload?.data?.answer;
     if (!answer) throw new Error('LEYNOR AI n’a retourné aucune réponse.');
     setPresence('speaking');
-    state.messages.push(createConversationMessage({ role: 'assistant', content: answer }));
+    const cards = normalizeFinancialCards(payload?.data?.cards?.length ? payload.data.cards : buildFinancialCards(portfolio));
+    state.messages.push(Object.freeze({ ...createConversationMessage({ role: 'assistant', content: answer }), cards }));
     persistMessages();
   } catch (error) {
     setPresence('error');
@@ -269,5 +229,4 @@ async function sendMessage(event) {
 }
 
 createInterface();
-
 export { PRESENCE_STATES, setPresence };
