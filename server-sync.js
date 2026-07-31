@@ -1,3 +1,4 @@
+import './pwa.js';
 import './leynor-assistant.js';
 
 const API_TOKEN_KEY = 'invest-dashboard-api-token';
