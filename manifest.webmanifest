@@ -1,0 +1,38 @@
+{
+  "id": "/",
+  "name": "LEYNOR — Copilote financier",
+  "short_name": "LEYNOR",
+  "description": "Comprendre son patrimoine et améliorer ses décisions financières.",
+  "lang": "fr-FR",
+  "dir": "ltr",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f6f3ec",
+  "theme_color": "#102c46",
+  "categories": ["finance", "productivity", "education"],
+  "icons": [
+    {
+      "src": "/icons/leynor-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/leynor-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ouvrir LEYNOR",
+      "short_name": "Assistant",
+      "description": "Ouvrir le copilote financier LEYNOR",
+      "url": "/?open=leynor",
+      "icons": [{ "src": "/icons/leynor-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ]
+}
