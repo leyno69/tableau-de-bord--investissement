@@ -8,6 +8,7 @@ import { BuildPortfolioDashboard } from '../use-cases/BuildPortfolioDashboard.js
 import { PersistDashboardState } from '../use-cases/PersistDashboardState.js';
 import { LoadPortfolioMarketQuotes } from '../use-cases/LoadPortfolioMarketQuotes.js';
 import { PortfolioValuationService } from '../services/PortfolioValuationService.js';
+import { PortfolioPeriodPerformanceService } from '../services/PortfolioPeriodPerformanceService.js';
 import { PortfolioApplicationFacade } from '../facades/PortfolioApplicationFacade.js';
 import { CachedMarketDataProvider } from '../../infrastructure/market/CachedMarketDataProvider.js';
 import { CachedExchangeRateProvider } from '../../infrastructure/exchange/CachedExchangeRateProvider.js';
@@ -75,6 +76,9 @@ export function createPortfolioApplication({
         exchangeRateProvider: resolvedExchangeRateProvider
       })
     : null;
+  const periodPerformanceService = valuationService == null
+    ? null
+    : new PortfolioPeriodPerformanceService({ valuationService });
   const calculatePerformance = new CalculatePortfolioPerformance({ exchangeRateProvider: resolvedExchangeRateProvider });
   const calculateAllocation = new CalculatePortfolioAllocation({ assetClassificationProvider });
   const analyzeSeries = new AnalyzePortfolioSeries();
@@ -84,7 +88,7 @@ export function createPortfolioApplication({
   const persistDashboardState = new PersistDashboardState({ snapshotRepository: resolvedRepositories.snapshots, alertEventRepository: resolvedRepositories.alerts });
 
   const facade = new PortfolioApplicationFacade({
-    addTransaction, buildDashboard, persistDashboardState, loadMarketQuotes, valuationService,
+    addTransaction, buildDashboard, persistDashboardState, loadMarketQuotes, valuationService, periodPerformanceService,
     transactionRepository: resolvedRepositories.transactions,
     snapshotRepository: resolvedRepositories.snapshots,
     alertRepository: resolvedRepositories.alerts,
@@ -95,7 +99,7 @@ export function createPortfolioApplication({
     facade,
     repositories: resolvedRepositories,
     providers: Object.freeze({ marketPrice: marketPriceProvider, exchangeRate: resolvedExchangeRateProvider }),
-    useCases: Object.freeze({ addTransaction, valuePortfolio, loadMarketQuotes, valuationService, calculatePerformance, calculateAllocation, analyzeSeries, evaluateAlerts, buildDashboard, persistDashboardState })
+    useCases: Object.freeze({ addTransaction, valuePortfolio, loadMarketQuotes, valuationService, periodPerformanceService, calculatePerformance, calculateAllocation, analyzeSeries, evaluateAlerts, buildDashboard, persistDashboardState })
   });
 }
 
