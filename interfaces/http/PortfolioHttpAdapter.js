@@ -30,65 +30,41 @@ export class PortfolioHttpAdapter {
   async #dispatch(route, request) {
     const portfolioId = route.portfolioId ?? request.query.portfolioId;
     switch (route.name) {
-      case 'createPortfolio': {
-        const portfolio = await this.adminService.savePortfolio(PortfolioHttpAdapter.#body(request.body));
-        return { statusCode: 201, body: { data: portfolio } };
-      }
-      case 'updatePortfolio': {
-        const portfolio = await this.adminService.savePortfolio({ ...PortfolioHttpAdapter.#body(request.body), id: portfolioId });
-        return { statusCode: 200, body: { data: portfolio } };
-      }
+      case 'createPortfolio': return { statusCode: 201, body: { data: await this.adminService.savePortfolio(PortfolioHttpAdapter.#body(request.body)) } };
+      case 'updatePortfolio': return { statusCode: 200, body: { data: await this.adminService.savePortfolio({ ...PortfolioHttpAdapter.#body(request.body), id: portfolioId }) } };
       case 'listPortfolios': return { statusCode: 200, body: { data: await this.adminService.listPortfolios() } };
-      case 'createAccount': {
-        const account = await this.adminService.saveAccount({ ...PortfolioHttpAdapter.#body(request.body), portfolioId });
-        return { statusCode: 201, body: { data: account } };
-      }
+      case 'createAccount': return { statusCode: 201, body: { data: await this.adminService.saveAccount({ ...PortfolioHttpAdapter.#body(request.body), portfolioId }) } };
       case 'listAccounts': return { statusCode: 200, body: { data: await this.adminService.listAccounts(portfolioId) } };
       case 'importTransactions': {
-        const body = PortfolioHttpAdapter.#body(request.body);
-        const result = await this.adminService.importTransactions(portfolioId, body.transactions);
+        const result = await this.adminService.importTransactions(portfolioId, PortfolioHttpAdapter.#body(request.body).transactions);
         return { statusCode: result.complete ? 201 : 207, body: { data: result } };
       }
-      case 'recordTransaction': {
-        const transaction = await this.facade.recordTransaction({ ...PortfolioHttpAdapter.#body(request.body), portfolioId });
-        return { statusCode: 201, body: { data: transaction } };
-      }
-      case 'savePreferences': {
-        const preferences = await this.facade.savePreferences({ ...PortfolioHttpAdapter.#body(request.body), portfolioId });
-        return { statusCode: 200, body: { data: preferences } };
-      }
-      case 'valuation': {
-        PortfolioHttpAdapter.#facadeMethod(this.facade, 'valuePortfolioAt');
-        return { statusCode: 200, body: { data: await this.facade.valuePortfolioAt({ portfolioId, date: request.query.date, marketDataPolicy: request.query.marketDataPolicy ?? 'strict' }) } };
-      }
-      case 'valuationHistory': {
-        PortfolioHttpAdapter.#facadeMethod(this.facade, 'loadValuationHistory');
-        return { statusCode: 200, body: { data: await this.facade.loadValuationHistory({ portfolioId, from: request.query.from, to: request.query.to, marketDataPolicy: request.query.marketDataPolicy ?? 'partial' }) } };
-      }
-      case 'periodPerformance': {
-        PortfolioHttpAdapter.#facadeMethod(this.facade, 'calculatePeriodPerformance');
-        return { statusCode: 200, body: { data: await this.facade.calculatePeriodPerformance({ portfolioId, date: request.query.date, marketDataPolicy: request.query.marketDataPolicy ?? 'partial' }) } };
-      }
+      case 'recordTransaction': return { statusCode: 201, body: { data: await this.facade.recordTransaction({ ...PortfolioHttpAdapter.#body(request.body), portfolioId }) } };
+      case 'savePreferences': return { statusCode: 200, body: { data: await this.facade.savePreferences({ ...PortfolioHttpAdapter.#body(request.body), portfolioId }) } };
+      case 'valuation': return { statusCode: 200, body: { data: await this.#call('valuePortfolioAt', { portfolioId, date: request.query.date, marketDataPolicy: request.query.marketDataPolicy ?? 'strict' }) } };
+      case 'valuationHistory': return { statusCode: 200, body: { data: await this.#call('loadValuationHistory', { portfolioId, from: request.query.from, to: request.query.to, marketDataPolicy: request.query.marketDataPolicy ?? 'partial' }) } };
+      case 'periodPerformance': return { statusCode: 200, body: { data: await this.#call('calculatePeriodPerformance', { portfolioId, date: request.query.date, marketDataPolicy: request.query.marketDataPolicy ?? 'partial' }) } };
+      case 'dividends': return { statusCode: 200, body: { data: await this.#call('analyzeDividends', { portfolioId, from: request.query.from ?? null, to: request.query.to ?? null, baseCurrency: request.query.baseCurrency ?? 'EUR' }) } };
+      case 'chartSeries': return { statusCode: 200, body: { data: await this.#call('buildChartSeries', { portfolioId, from: request.query.from, to: request.query.to, marketDataPolicy: request.query.marketDataPolicy ?? 'partial' }) } };
+      case 'simulateInvestment': return { statusCode: 200, body: { data: await this.#call('simulateInvestment', PortfolioHttpAdapter.#body(request.body)) } };
+      case 'evaluateGoal': return { statusCode: 200, body: { data: await this.#call('evaluateGoal', PortfolioHttpAdapter.#body(request.body)) } };
       case 'loadPortfolio': return { statusCode: 200, body: { data: await this.facade.loadPortfolio(portfolioId) } };
-      case 'listAlerts': {
-        const state = await this.facade.loadPortfolio(portfolioId);
-        return { statusCode: 200, body: { data: state.alerts ?? [] } };
-      }
+      case 'listAlerts': return { statusCode: 200, body: { data: (await this.facade.loadPortfolio(portfolioId)).alerts ?? [] } };
       case 'performance': {
         const dashboard = await this.facade.generateDashboard({ portfolioId, marketDataPolicy: 'partial' });
         return { statusCode: 200, body: { data: dashboard.performance ?? dashboard.analytics ?? null } };
       }
       case 'generateDashboard': {
         const body = request.body == null ? {} : PortfolioHttpAdapter.#body(request.body);
-        const dashboard = await this.facade.generateDashboard({
-          portfolioId,
-          marketDataPolicy: body.marketDataPolicy ?? 'partial',
-          ...(Object.hasOwn(body, 'marketQuotes') ? { marketQuotes: body.marketQuotes } : {})
-        });
-        return { statusCode: 200, body: { data: dashboard } };
+        return { statusCode: 200, body: { data: await this.facade.generateDashboard({ portfolioId, marketDataPolicy: body.marketDataPolicy ?? 'partial', ...(Object.hasOwn(body, 'marketQuotes') ? { marketQuotes: body.marketQuotes } : {}) }) } };
       }
       default: throw new Error(`Route non prise en charge : ${route.name}`);
     }
+  }
+
+  async #call(method, input) {
+    if (typeof this.facade[method] !== 'function') throw new Error("Le moteur demandé n'est pas configuré.");
+    return this.facade[method](input);
   }
 
   static #match(method, path) {
@@ -96,9 +72,13 @@ export class PortfolioHttpAdapter {
       ['GET', /^\/portfolio\/valuation\/?$/, 'valuation', false],
       ['GET', /^\/portfolio\/history\/?$/, 'valuationHistory', false],
       ['GET', /^\/portfolio\/performance-periods\/?$/, 'periodPerformance', false],
+      ['POST', /^\/simulation\/investment\/?$/, 'simulateInvestment', false],
+      ['POST', /^\/goals\/evaluate\/?$/, 'evaluateGoal', false],
       ['GET', /^\/portfolios\/([^/]+)\/valuation\/?$/, 'valuation', false],
       ['GET', /^\/portfolios\/([^/]+)\/history\/?$/, 'valuationHistory', false],
       ['GET', /^\/portfolios\/([^/]+)\/performance-periods\/?$/, 'periodPerformance', false],
+      ['GET', /^\/portfolios\/([^/]+)\/dividends\/?$/, 'dividends', false],
+      ['GET', /^\/portfolios\/([^/]+)\/chart-series\/?$/, 'chartSeries', false],
       ['POST', /^\/portfolios\/?$/, 'createPortfolio', true],
       ['GET', /^\/portfolios\/?$/, 'listPortfolios', true],
       ['PUT', /^\/portfolios\/([^/]+)\/?$/, 'updatePortfolio', true],
@@ -127,20 +107,8 @@ export class PortfolioHttpAdapter {
     const url = new URL(value.path.trim(), 'http://localhost');
     return Object.freeze({ method: value.method.trim().toUpperCase(), path: url.pathname, query: Object.freeze(Object.fromEntries(url.searchParams.entries())), body: value.body ?? null });
   }
-
-  static #body(value) {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('Le corps de la requête doit être un objet JSON.');
-    return value;
-  }
-
-  static #facadeMethod(facade, method) {
-    if (typeof facade[method] !== 'function') throw new Error("Le moteur demandé n'est pas configuré.");
-  }
-
-  static #response(statusCode, body) {
-    return Object.freeze({ statusCode, headers: JSON_HEADERS, body: PortfolioHttpAdapter.#serialize(body) });
-  }
-
+  static #body(value) { if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('Le corps de la requête doit être un objet JSON.'); return value; }
+  static #response(statusCode, body) { return Object.freeze({ statusCode, headers: JSON_HEADERS, body: PortfolioHttpAdapter.#serialize(body) }); }
   static #failure(error) {
     const message = error instanceof Error ? error.message : 'Erreur inconnue.';
     if (/existe déjà|contenu différent/i.test(message)) return PortfolioHttpAdapter.#response(409, { error: { code: 'CONFLICT', message } });
@@ -149,7 +117,6 @@ export class PortfolioHttpAdapter {
     if (error instanceof TypeError || error instanceof RangeError) return PortfolioHttpAdapter.#response(400, { error: { code: 'INVALID_REQUEST', message } });
     return PortfolioHttpAdapter.#response(500, { error: { code: 'INTERNAL_ERROR', message: 'Une erreur interne est survenue.' } });
   }
-
   static #serialize(value) {
     if (value == null || typeof value !== 'object') return value;
     if (typeof value.toJSON === 'function') return PortfolioHttpAdapter.#serialize(value.toJSON());
