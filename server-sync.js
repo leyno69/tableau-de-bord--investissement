@@ -1,4 +1,5 @@
 import './leynor-brand.js';
+import './profile-menu.js';
 import './pwa.js';
 import './api-fetch-router.js';
 import './leynor-assistant.js';
