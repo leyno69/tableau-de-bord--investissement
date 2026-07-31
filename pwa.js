@@ -3,6 +3,10 @@ const DISMISSAL_DELAY = 7 * 24 * 60 * 60 * 1000;
 
 let deferredInstallPrompt = null;
 
+function assetUrl(path) {
+  return new URL(path, document.baseURI).toString();
+}
+
 function ensureHeadAsset(selector, factory) {
   if (document.head.querySelector(selector)) return;
   document.head.append(factory());
@@ -12,32 +16,50 @@ function installPwaMetadata() {
   ensureHeadAsset('link[rel="manifest"]', () => {
     const link = document.createElement('link');
     link.rel = 'manifest';
-    link.href = '/manifest.webmanifest';
+    link.href = assetUrl('manifest.webmanifest');
     return link;
   });
   ensureHeadAsset('link[data-leynor-pwa]', () => {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = '/pwa.css';
+    link.href = assetUrl('pwa.css');
     link.dataset.leynorPwa = 'true';
     return link;
   });
   ensureHeadAsset('link[rel="icon"]', () => {
     const link = document.createElement('link');
     link.rel = 'icon';
-    link.href = '/icons/leynor-icon.svg';
+    link.href = assetUrl('icons/leynor-icon.svg');
     link.type = 'image/svg+xml';
+    return link;
+  });
+  ensureHeadAsset('link[rel="apple-touch-icon"]', () => {
+    const link = document.createElement('link');
+    link.rel = 'apple-touch-icon';
+    link.href = assetUrl('icons/leynor-icon.svg');
     return link;
   });
   ensureHeadAsset('meta[name="theme-color"]', () => {
     const meta = document.createElement('meta');
     meta.name = 'theme-color';
-    meta.content = '#102c46';
+    meta.content = '#071426';
     return meta;
   });
   ensureHeadAsset('meta[name="apple-mobile-web-app-capable"]', () => {
     const meta = document.createElement('meta');
     meta.name = 'apple-mobile-web-app-capable';
+    meta.content = 'yes';
+    return meta;
+  });
+  ensureHeadAsset('meta[name="apple-mobile-web-app-title"]', () => {
+    const meta = document.createElement('meta');
+    meta.name = 'apple-mobile-web-app-title';
+    meta.content = 'LEYNOR';
+    return meta;
+  });
+  ensureHeadAsset('meta[name="mobile-web-app-capable"]', () => {
+    const meta = document.createElement('meta');
+    meta.name = 'mobile-web-app-capable';
     meta.content = 'yes';
     return meta;
   });
@@ -61,10 +83,10 @@ function createInstallBanner() {
   banner.hidden = true;
   banner.setAttribute('aria-label', 'Installer LEYNOR');
   banner.innerHTML = `
-    <div class="pwa-install-mark" aria-hidden="true">L</div>
+    <img class="pwa-install-mark" src="${assetUrl('icons/leynor-icon.svg')}" alt="" aria-hidden="true" />
     <div class="pwa-install-copy">
       <strong>Installer LEYNOR</strong>
-      <span>Accès rapide, plein écran et consultation hors connexion.</span>
+      <span>Ajoutez votre copilote d’investissement à l’écran d’accueil.</span>
     </div>
     <button class="btn pwa-install-action" type="button">Installer</button>
     <button class="icon-btn pwa-install-close" type="button" aria-label="Plus tard">×</button>`;
@@ -90,17 +112,16 @@ async function installApp() {
   deferredInstallPrompt.prompt();
   const result = await deferredInstallPrompt.userChoice;
   deferredInstallPrompt = null;
-  if (result.outcome === 'accepted') {
-    document.querySelector('#leynorInstallBanner')?.remove();
-  } else {
-    dismissBanner();
-  }
+  if (result.outcome === 'accepted') document.querySelector('#leynorInstallBanner')?.remove();
+  else dismissBanner();
 }
 
 async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   try {
-    const registration = await navigator.serviceWorker.register('/service-worker.js', { scope: '/' });
+    const workerUrl = assetUrl('service-worker.js');
+    const scopeUrl = assetUrl('./');
+    const registration = await navigator.serviceWorker.register(workerUrl, { scope: scopeUrl });
     registration.addEventListener('updatefound', () => {
       const worker = registration.installing;
       worker?.addEventListener('statechange', () => {
@@ -130,4 +151,4 @@ installPwaMetadata();
 createInstallBanner();
 registerServiceWorker();
 
-export { installPwaMetadata, isStandalone, wasRecentlyDismissed };
+export { assetUrl, installPwaMetadata, isStandalone, wasRecentlyDismissed };
