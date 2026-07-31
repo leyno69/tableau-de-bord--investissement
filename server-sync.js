@@ -22,6 +22,18 @@ function createProductNavigation() {
   addNavigationLink({ href: 'feedback.html', label: 'Retour bêta', icon: '◇', marker: 'data-feedback-link', before: 'a[href="#assistant"]' });
 }
 
+function createSimulationShortcut() {
+  const actions = document.querySelector('.topbar-actions');
+  if (!actions || actions.querySelector('[data-simulation-shortcut]')) return;
+  const link = document.createElement('a');
+  link.className = 'btn secondary';
+  link.href = 'simulator.html';
+  link.setAttribute('data-simulation-shortcut', 'true');
+  link.setAttribute('aria-label', 'Ouvrir le mode simulation fictif');
+  link.textContent = '◈ Mode simulation';
+  actions.append(link);
+}
+
 function createConnectionControl() {
   const actions = document.querySelector('.topbar-actions');
   if (!actions || document.querySelector('#serverConnectionBtn')) return;
@@ -109,6 +121,7 @@ function updatePortfolioCount(count, baseUrl = getApiBaseUrl()) {
 window.addEventListener('portfolio-server-ready', event => updatePortfolioCount(Number(event.detail?.count || 0)));
 window.addEventListener('leynor-api-connection-changed', verifyConnection);
 createProductNavigation();
+createSimulationShortcut();
 createConnectionControl();
 
 export { configureConnection, verifyConnection };
