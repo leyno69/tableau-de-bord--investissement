@@ -3,133 +3,127 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Tableau de bord personnel pour suivre portefeuille, watchlist et alertes." />
-  <title>Tableau de bord investissement</title>
+  <meta name="description" content="LEYNOR, copilote intelligent pour piloter patrimoine, portefeuille et décisions d’investissement." />
+  <title>LEYNOR — Investment Intelligence</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div>
-      <p class="eyebrow">PORTFOLIO CONTROL</p>
-      <h1>Tableau de bord d’investissement</h1>
-      <p class="subtitle">Vue consolidée • PEA • Actions • ETF • Courtiers</p>
-    </div>
-    <div class="topbar-actions">
-      <label class="field compact">
-        <span>Courtier actif</span>
-        <select id="brokerSelect" aria-label="Courtier actif"></select>
-      </label>
-      <button id="refreshBtn" class="btn">Actualiser</button>
-    </div>
-  </header>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#overview" aria-label="Accueil LEYNOR">
+        <span class="brand-mark">L</span>
+        <span><strong>LEYNOR</strong><small>Investment Intelligence</small></span>
+      </a>
 
-  <main class="shell">
-    <section class="metric-grid" aria-label="Résumé du portefeuille">
-      <article class="metric-card">
-        <span>Valeur du portefeuille</span>
-        <strong id="portfolioValue">—</strong>
-        <small id="portfolioMove">—</small>
-      </article>
-      <article class="metric-card">
-        <span>Capital investi</span>
-        <strong id="investedValue">—</strong>
-        <small>hors liquidités</small>
-      </article>
-      <article class="metric-card">
-        <span>Plus / moins-value</span>
-        <strong id="pnlValue">—</strong>
-        <small id="pnlPercent">—</small>
-      </article>
-      <article class="metric-card">
-        <span>Liquidités</span>
-        <strong id="cashValue">—</strong>
-        <small>disponible pour investir</small>
-      </article>
-    </section>
+      <nav class="main-nav" aria-label="Navigation principale">
+        <a class="nav-item active" href="#overview"><span>⌂</span>Vue d’ensemble</a>
+        <a class="nav-item" href="#portfolio"><span>◫</span>Portefeuille</a>
+        <a class="nav-item" href="#radar"><span>◎</span>Radar IA</a>
+        <a class="nav-item" href="#goals"><span>◇</span>Objectifs</a>
+        <a class="nav-item" href="#assistant"><span>✦</span>Assistant LEYNOR</a>
+      </nav>
 
-    <section class="layout-main">
-      <div class="stack">
-        <article class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">POSITIONS</p>
-              <h2>Portefeuille</h2>
-            </div>
-            <button class="btn secondary" id="addPositionBtn">Ajouter une position</button>
+      <div class="sidebar-spacer"></div>
+      <section class="profile-card">
+        <span class="avatar">OL</span>
+        <div><strong>Oscar</strong><small>Profil investisseur</small></div>
+        <button class="icon-btn" aria-label="Paramètres">•••</button>
+      </section>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar" id="overview">
+        <div>
+          <p class="eyebrow">VENDREDI · SYNTHÈSE PERSONNALISÉE</p>
+          <h1>Bonjour Oscar, voici l’essentiel.</h1>
+          <p class="subtitle">LEYNOR consolide votre portefeuille, vos objectifs et les signaux qui méritent votre attention.</p>
+        </div>
+        <div class="topbar-actions">
+          <label class="field compact">
+            <span>Courtier actif</span>
+            <select id="brokerSelect" aria-label="Courtier actif"></select>
+          </label>
+          <button id="refreshBtn" class="btn secondary">Actualiser</button>
+          <button class="btn assistant-trigger">✦ Parler à LEYNOR</button>
+        </div>
+      </header>
+
+      <section class="hero-grid">
+        <article class="wealth-card">
+          <div class="card-label"><span>Patrimoine suivi</span><span class="live-pill">● Synchronisé</span></div>
+          <strong id="portfolioValue">—</strong>
+          <div class="wealth-footer">
+            <span id="portfolioMove">—</span>
+            <small>Mis à jour à l’instant</small>
           </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Actif</th>
-                  <th>Courtier</th>
-                  <th>Qté</th>
-                  <th>PRU</th>
-                  <th>Cours</th>
-                  <th>Valeur</th>
-                  <th>Perf.</th>
-                </tr>
-              </thead>
-              <tbody id="portfolioTable"></tbody>
-            </table>
+          <div class="performance-chart" aria-label="Aperçu de performance décoratif">
+            <span style="height:32%"></span><span style="height:42%"></span><span style="height:38%"></span><span style="height:55%"></span><span style="height:49%"></span><span style="height:66%"></span><span style="height:61%"></span><span style="height:76%"></span><span style="height:72%"></span><span style="height:88%"></span>
           </div>
         </article>
 
-        <article class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">RADAR QUOTIDIEN</p>
-              <h2>Watchlist</h2>
-            </div>
-            <button class="btn secondary" id="addWatchBtn">Ajouter un actif</button>
+        <article class="ai-brief" id="assistant">
+          <div class="ai-orb">✦</div>
+          <div>
+            <p class="eyebrow">BRIEF LEYNOR</p>
+            <h2>Votre portefeuille reste cohérent avec votre horizon long terme.</h2>
+            <p>La priorité du jour est de surveiller la concentration géographique et de conserver vos liquidités disponibles pour les prochains renforcements.</p>
+            <button class="text-button">Voir l’analyse complète →</button>
           </div>
-          <div id="watchlist" class="watch-grid"></div>
         </article>
-      </div>
+      </section>
 
-      <aside class="stack">
-        <article class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">ALLOCATION</p>
-              <h2>Répartition</h2>
-            </div>
-          </div>
-          <div id="allocationBars" class="allocation-list"></div>
-        </article>
+      <section class="metric-grid" aria-label="Résumé du portefeuille">
+        <article class="metric-card"><span>Capital investi</span><strong id="investedValue">—</strong><small>hors liquidités</small></article>
+        <article class="metric-card"><span>Plus / moins-value</span><strong id="pnlValue">—</strong><small id="pnlPercent">—</small></article>
+        <article class="metric-card"><span>Liquidités</span><strong id="cashValue">—</strong><small>disponibles pour investir</small></article>
+        <article class="metric-card goal-card" id="goals"><span>Objectif long terme</span><strong>200 000 €</strong><small>Projection en construction</small><div class="goal-progress"><i></i></div></article>
+      </section>
 
-        <article class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">SIGNAL</p>
-              <h2>Alertes</h2>
+      <section class="layout-main">
+        <div class="stack">
+          <article class="panel" id="portfolio">
+            <div class="panel-head">
+              <div><p class="eyebrow">VOTRE CAPITAL</p><h2>Portefeuille</h2></div>
+              <button class="btn secondary" id="addPositionBtn">＋ Ajouter une position</button>
             </div>
-          </div>
-          <div id="alertsList" class="alerts-list"></div>
-        </article>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Actif</th><th>Courtier</th><th>Qté</th><th>PRU</th><th>Cours</th><th>Valeur</th><th>Perf.</th></tr></thead>
+                <tbody id="portfolioTable"></tbody>
+              </table>
+            </div>
+          </article>
 
-        <article class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="eyebrow">COURTIERS</p>
-              <h2>Disponibilité</h2>
+          <article class="panel" id="radar">
+            <div class="panel-head">
+              <div><p class="eyebrow">RADAR QUOTIDIEN</p><h2>Marchés à surveiller</h2></div>
+              <button class="btn secondary" id="addWatchBtn">＋ Ajouter un actif</button>
             </div>
-          </div>
-          <div id="brokersPanel" class="broker-list"></div>
-        </article>
-      </aside>
-    </section>
-  </main>
+            <div id="watchlist" class="watch-grid"></div>
+          </article>
+        </div>
+
+        <aside class="stack insights-column">
+          <article class="panel">
+            <div class="panel-head"><div><p class="eyebrow">ALLOCATION</p><h2>Répartition</h2></div><span class="status-dot"></span></div>
+            <div id="allocationBars" class="allocation-list"></div>
+          </article>
+          <article class="panel alert-panel">
+            <div class="panel-head"><div><p class="eyebrow">INTELLIGENCE</p><h2>Alertes prioritaires</h2></div><span class="count-badge">IA</span></div>
+            <div id="alertsList" class="alerts-list"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><div><p class="eyebrow">CONNEXIONS</p><h2>Courtiers</h2></div></div>
+            <div id="brokersPanel" class="broker-list"></div>
+          </article>
+        </aside>
+      </section>
+    </main>
+  </div>
 
   <dialog id="positionDialog">
     <form method="dialog" id="positionForm" class="dialog-form">
-      <div class="panel-head">
-        <div>
-          <p class="eyebrow">NOUVELLE POSITION</p>
-          <h2>Ajouter un actif</h2>
-        </div>
-        <button value="cancel" class="icon-btn" aria-label="Fermer" formnovalidate>×</button>
-      </div>
+      <div class="panel-head"><div><p class="eyebrow">NOUVELLE POSITION</p><h2>Ajouter un actif</h2></div><button value="cancel" class="icon-btn" aria-label="Fermer" formnovalidate>×</button></div>
       <div class="form-grid">
         <label class="field"><span>Nom</span><input name="name" required placeholder="Ex. Amundi MSCI World" /></label>
         <label class="field"><span>Ticker affiché</span><input name="ticker" required placeholder="Ex. CW8" /></label>
@@ -141,22 +135,13 @@
         <label class="field"><span>Cours de secours (€)</span><input name="price" type="number" step="0.01" min="0" required /></label>
         <label class="field"><span>Zone</span><select name="region"><option>Monde</option><option>États-Unis</option><option>Europe</option><option>Asie émergente</option><option>Autre</option></select></label>
       </div>
-      <div class="dialog-actions">
-        <button value="cancel" class="btn secondary" formnovalidate>Annuler</button>
-        <button value="default" class="btn" id="savePositionBtn">Enregistrer</button>
-      </div>
+      <div class="dialog-actions"><button value="cancel" class="btn secondary" formnovalidate>Annuler</button><button value="default" class="btn" id="savePositionBtn">Enregistrer</button></div>
     </form>
   </dialog>
 
   <dialog id="watchDialog">
     <form method="dialog" id="watchForm" class="dialog-form">
-      <div class="panel-head">
-        <div>
-          <p class="eyebrow">WATCHLIST</p>
-          <h2>Ajouter un actif</h2>
-        </div>
-        <button value="cancel" class="icon-btn" aria-label="Fermer" formnovalidate>×</button>
-      </div>
+      <div class="panel-head"><div><p class="eyebrow">WATCHLIST</p><h2>Ajouter un actif</h2></div><button value="cancel" class="icon-btn" aria-label="Fermer" formnovalidate>×</button></div>
       <div class="form-grid">
         <label class="field"><span>Nom</span><input name="name" required placeholder="Ex. NVIDIA" /></label>
         <label class="field"><span>Ticker affiché</span><input name="ticker" required placeholder="Ex. NVDA" /></label>
@@ -166,10 +151,7 @@
         <label class="field"><span>Signal</span><select name="signal"><option>Surveiller</option><option>Achat</option><option>Alléger</option></select></label>
         <label class="field"><span>Note</span><input name="note" placeholder="Ex. proche du support" /></label>
       </div>
-      <div class="dialog-actions">
-        <button value="cancel" class="btn secondary" formnovalidate>Annuler</button>
-        <button value="default" class="btn" id="saveWatchBtn">Enregistrer</button>
-      </div>
+      <div class="dialog-actions"><button value="cancel" class="btn secondary" formnovalidate>Annuler</button><button value="default" class="btn" id="saveWatchBtn">Enregistrer</button></div>
     </form>
   </dialog>
 
