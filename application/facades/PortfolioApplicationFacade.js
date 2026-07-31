@@ -3,22 +3,24 @@ import { CashLedger } from '../../domain/cash/CashLedger.js';
 import { PortfolioPreferences } from '../../domain/portfolio/PortfolioPreferences.js';
 
 export class PortfolioApplicationFacade {
-  constructor({ addTransaction, buildDashboard, persistDashboardState, loadMarketQuotes = null, valuationService = null, periodPerformanceService = null, transactionRepository, snapshotRepository, alertRepository, preferencesRepository, portfolioLedger = PortfolioLedger, cashLedger = CashLedger }) {
+  constructor({ addTransaction, buildDashboard, persistDashboardState, loadMarketQuotes = null, valuationService = null, periodPerformanceService = null, dividendAnalyticsService = null, investmentProjectionService = null, goalTrackingService = null, chartSeriesService = null, transactionRepository, snapshotRepository, alertRepository, preferencesRepository, portfolioLedger = PortfolioLedger, cashLedger = CashLedger }) {
     PortfolioApplicationFacade.#useCase(addTransaction, 'addTransaction');
     PortfolioApplicationFacade.#useCase(buildDashboard, 'buildDashboard');
     PortfolioApplicationFacade.#useCase(persistDashboardState, 'persistDashboardState');
     if (loadMarketQuotes != null) PortfolioApplicationFacade.#useCase(loadMarketQuotes, 'loadMarketQuotes');
-    if (valuationService != null) {
-      for (const method of ['valueAt', 'history']) if (typeof valuationService[method] !== 'function') throw new TypeError(`valuationService doit implémenter ${method}().`);
-    }
-    if (periodPerformanceService != null && typeof periodPerformanceService.calculate !== 'function') throw new TypeError('periodPerformanceService doit implémenter calculate().');
+    PortfolioApplicationFacade.#optionalService(valuationService, ['valueAt', 'history'], 'valuationService');
+    PortfolioApplicationFacade.#optionalService(periodPerformanceService, ['calculate'], 'periodPerformanceService');
+    PortfolioApplicationFacade.#optionalService(dividendAnalyticsService, ['analyze'], 'dividendAnalyticsService');
+    PortfolioApplicationFacade.#optionalService(investmentProjectionService, ['simulate'], 'investmentProjectionService');
+    PortfolioApplicationFacade.#optionalService(goalTrackingService, ['evaluate'], 'goalTrackingService');
+    PortfolioApplicationFacade.#optionalService(chartSeriesService, ['build'], 'chartSeriesService');
     PortfolioApplicationFacade.#repository(transactionRepository, ['listByPortfolio'], 'transactionRepository');
     PortfolioApplicationFacade.#repository(snapshotRepository, ['listByPortfolio'], 'snapshotRepository');
     PortfolioApplicationFacade.#repository(alertRepository, ['listByPortfolio', 'listFingerprints'], 'alertRepository');
     PortfolioApplicationFacade.#repository(preferencesRepository, ['save', 'findByPortfolio'], 'preferencesRepository');
     if (!portfolioLedger || typeof portfolioLedger.rebuildPositions !== 'function') throw new TypeError('portfolioLedger doit implémenter rebuildPositions().');
     if (!cashLedger || typeof cashLedger.rebuildMoneyBalances !== 'function') throw new TypeError('cashLedger doit implémenter rebuildMoneyBalances().');
-    Object.assign(this, { addTransaction, buildDashboard, persistDashboardState, loadMarketQuotes, valuationService, periodPerformanceService, transactionRepository, snapshotRepository, alertRepository, preferencesRepository, portfolioLedger, cashLedger });
+    Object.assign(this, { addTransaction, buildDashboard, persistDashboardState, loadMarketQuotes, valuationService, periodPerformanceService, dividendAnalyticsService, investmentProjectionService, goalTrackingService, chartSeriesService, transactionRepository, snapshotRepository, alertRepository, preferencesRepository, portfolioLedger, cashLedger });
   }
 
   async recordTransaction(properties) { return this.addTransaction.execute(properties); }
@@ -26,17 +28,16 @@ export class PortfolioApplicationFacade {
     const preferences = properties instanceof PortfolioPreferences ? properties : new PortfolioPreferences(properties);
     return this.preferencesRepository.save(preferences);
   }
-  async valuePortfolioAt(input) {
-    if (this.valuationService == null) throw new Error("Le moteur de valorisation historique n'est pas configuré.");
-    return this.valuationService.valueAt(input);
-  }
-  async loadValuationHistory(input) {
-    if (this.valuationService == null) throw new Error("Le moteur de valorisation historique n'est pas configuré.");
-    return this.valuationService.history(input);
-  }
-  async calculatePeriodPerformance(input) {
-    if (this.periodPerformanceService == null) throw new Error("Le moteur de performance calendaire n'est pas configuré.");
-    return this.periodPerformanceService.calculate(input);
+  async valuePortfolioAt(input) { return this.#required(this.valuationService, 'valueAt', 'valorisation historique', input); }
+  async loadValuationHistory(input) { return this.#required(this.valuationService, 'history', 'valorisation historique', input); }
+  async calculatePeriodPerformance(input) { return this.#required(this.periodPerformanceService, 'calculate', 'performance calendaire', input); }
+  async analyzeDividends(input) { return this.#required(this.dividendAnalyticsService, 'analyze', 'analyse des dividendes', input); }
+  async simulateInvestment(input) { return this.#required(this.investmentProjectionService, 'simulate', 'simulation', input); }
+  async evaluateGoal(input) { return this.#required(this.goalTrackingService, 'evaluate', 'suivi d’objectif', input); }
+  async buildChartSeries(input) {
+    if (this.valuationService == null || this.chartSeriesService == null) throw new Error("Le moteur de séries graphiques n'est pas configuré.");
+    const valuations = await this.valuationService.history(input);
+    return this.chartSeriesService.build({ valuations });
   }
 
   async loadPortfolio(portfolioId) {
@@ -58,7 +59,6 @@ export class PortfolioApplicationFacade {
     if (!['strict', 'partial'].includes(marketDataPolicy)) throw new RangeError('marketDataPolicy doit valoir "strict" ou "partial".');
     const state = await this.loadPortfolio(portfolioId);
     if (!(state.preferences instanceof PortfolioPreferences)) throw new Error(`Aucune préférence n'est configurée pour le portefeuille "${state.portfolioId}".`);
-
     const loaded = marketQuotes == null
       ? await this.#loadQuotes(state.positions, marketDataPolicy)
       : Object.freeze({ quotes: Object.freeze([...marketQuotes]), issues: Object.freeze([]) });
@@ -78,12 +78,17 @@ export class PortfolioApplicationFacade {
     return dashboard;
   }
 
+  async #required(service, method, label, input) {
+    if (service == null) throw new Error(`Le moteur de ${label} n'est pas configuré.`);
+    return service[method](input);
+  }
   async #loadQuotes(positions, policy) {
     if (this.loadMarketQuotes == null) return Object.freeze({ quotes: Object.freeze([]), issues: Object.freeze([]) });
     if (typeof this.loadMarketQuotes.executeDetailed === 'function') return this.loadMarketQuotes.executeDetailed({ positions, policy });
     return Object.freeze({ quotes: await this.loadMarketQuotes.execute({ positions, policy }), issues: Object.freeze([]) });
   }
 
+  static #optionalService(value, methods, field) { if (value == null) return; for (const method of methods) if (typeof value[method] !== 'function') throw new TypeError(`${field} doit implémenter ${method}().`); }
   static #useCase(value, field) { if (!value || typeof value.execute !== 'function') throw new TypeError(`${field} doit implémenter execute().`); }
   static #repository(value, methods, field) { if (!value) throw new TypeError(`${field} est obligatoire.`); for (const method of methods) if (typeof value[method] !== 'function') throw new TypeError(`${field} doit implémenter ${method}().`); }
   static #text(value, field) { if (typeof value !== 'string' || value.trim() === '') throw new TypeError(`${field} doit être une chaîne non vide.`); return value.trim(); }
