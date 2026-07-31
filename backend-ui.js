@@ -46,29 +46,42 @@ async function ensurePortfolio(portfolios) {
 }
 
 async function loadPortfolios() {
+  let portfolios;
   try {
-    let portfolios = await client.listPortfolios();
+    portfolios = await client.listPortfolios();
     portfolios = await ensurePortfolio(portfolios);
-    portfolioSelect.innerHTML = '';
-    for (const portfolio of portfolios) portfolioSelect.add(new Option(portfolio.name, portfolio.id));
-
-    const remembered = localStorage.getItem(PORTFOLIO_ID_KEY);
-    if (remembered && portfolios.some(portfolio => portfolio.id === remembered)) portfolioSelect.value = remembered;
-    if (!portfolioSelect.value && portfolios[0]) portfolioSelect.value = portfolios[0].id;
-    localStorage.setItem(PORTFOLIO_ID_KEY, portfolioSelect.value);
-
-    setStatus(`API disponible • ${portfolios.length} portefeuille${portfolios.length > 1 ? 's' : ''}`);
-    await synchronize();
   } catch (error) {
     portfolioSelect.innerHTML = '<option value="">Mode local</option>';
-    setStatus(error.status === 401 ? 'Token requis' : 'Mode local', false);
+    setStatus(error.status === 401 ? 'Token requis' : 'API indisponible', false);
     console.info('Backend indisponible, conservation du mode local.', error);
+    return;
   }
+
+  portfolioSelect.innerHTML = '';
+  for (const portfolio of portfolios) portfolioSelect.add(new Option(portfolio.name, portfolio.id));
+
+  const remembered = localStorage.getItem(PORTFOLIO_ID_KEY);
+  if (remembered && portfolios.some(portfolio => portfolio.id === remembered)) portfolioSelect.value = remembered;
+  if (!portfolioSelect.value && portfolios[0]) portfolioSelect.value = portfolios[0].id;
+  localStorage.setItem(PORTFOLIO_ID_KEY, portfolioSelect.value);
+
+  setStatus(`API disponible • ${portfolios.length} portefeuille${portfolios.length > 1 ? 's' : ''}`);
+
+  try {
+    await synchronize();
+  } catch (error) {
+    console.info('Portefeuille créé mais encore vide.', error);
+  }
+
+  window.dispatchEvent(new CustomEvent('portfolio-server-ready', { detail: { count: portfolios.length } }));
 }
 
 async function synchronize() {
   const portfolioId = portfolioSelect.value;
-  if (!portfolioId) return setStatus('Aucun portefeuille', false);
+  if (!portfolioId) {
+    setStatus('Aucun portefeuille', false);
+    return;
+  }
   localStorage.setItem(PORTFOLIO_ID_KEY, portfolioId);
   setStatus('Synchronisation…');
   try {
@@ -81,7 +94,10 @@ async function synchronize() {
       <div class="alert"><strong>Données de marché</strong><small>${market.complete === false ? 'Partielles' : 'Complètes'}${market.staleCount ? ` • ${market.staleCount} périmée(s)` : ''}</small></div>`;
     setStatus('Synchronisé');
   } catch (error) {
-    setStatus(error.code ?? 'Erreur API', false);
+    document.querySelector('#marketDataState').innerHTML = `
+      <div class="alert"><strong>${portfolioSelect.selectedOptions[0]?.textContent || portfolioId}</strong><small>Portefeuille créé. Aucune transaction importée pour le moment.</small></div>`;
+    setStatus('Portefeuille prêt');
+    throw error;
   }
 }
 
@@ -104,8 +120,8 @@ document.querySelector('#saveApiUrl').addEventListener('click', () => {
   localStorage.setItem(API_URL_KEY, apiInput.value.trim().replace(/\/$/, ''));
   window.location.reload();
 });
-document.querySelector('#syncBackend').addEventListener('click', synchronize);
+document.querySelector('#syncBackend').addEventListener('click', () => synchronize().catch(() => {}));
 document.querySelector('#importTransactions').addEventListener('click', importTransactions);
-portfolioSelect.addEventListener('change', synchronize);
+portfolioSelect.addEventListener('change', () => synchronize().catch(() => {}));
 
 loadPortfolios();
