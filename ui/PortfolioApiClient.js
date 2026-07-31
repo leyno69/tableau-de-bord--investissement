@@ -5,7 +5,7 @@ export class PortfolioApiClient {
     if (typeof fetchImpl !== 'function') throw new TypeError('fetchImpl doit être une fonction.');
     if (typeof tokenProvider !== 'function') throw new TypeError('tokenProvider doit être une fonction.');
     this.baseUrl = String(baseUrl).replace(/\/$/, '');
-    this.fetchImpl = fetchImpl;
+    this.fetchImpl = fetchImpl.bind(globalThis);
     this.tokenProvider = tokenProvider;
   }
 
