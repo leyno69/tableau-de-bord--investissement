@@ -68,5 +68,5 @@ test('retourne 501 lorsque le moteur historique n’est pas configuré', async (
     method: 'GET', path: '/portfolio/valuation?portfolioId=p-1&date=2026-01-01'
   });
   assert.equal(response.statusCode, 501);
-  assert.equal(response.body.error.code, 'VALUATION_API_DISABLED');
+  assert.equal(response.body.error.code, 'FEATURE_DISABLED');
 });
