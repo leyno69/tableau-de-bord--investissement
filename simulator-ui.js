@@ -2,6 +2,7 @@ import { buy, createSimulation, sell, simulateDca, summarizeSimulation } from '.
 import { createSimulationFromPreset, simulationPresets } from './simulation-presets.js';
 
 const STORAGE_KEY = 'leynor-paper-simulation';
+const ACTIVE_PRESET_KEY = 'leynor-paper-active-preset';
 const money = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
 
 function loadSimulation() {
@@ -13,6 +14,7 @@ function loadSimulation() {
 }
 
 let simulation = loadSimulation();
+let activePresetId = localStorage.getItem(ACTIVE_PRESET_KEY) || '';
 
 function persist() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(simulation));
@@ -34,6 +36,7 @@ function render() {
   document.querySelector('#simPositions').innerHTML = simulation.positions.length
     ? simulation.positions.map(position => `<tr><td><strong>${escapeHtml(position.name)}</strong><small>${escapeHtml(position.ticker)} • fictif</small></td><td>${position.quantity.toLocaleString('fr-FR', { maximumFractionDigits: 6 })}</td><td>${money.format(position.avgPrice)}</td><td>${money.format(position.price)}</td><td>${money.format(position.quantity * position.price)}</td></tr>`).join('')
     : '<tr><td colspan="5" class="empty">Aucune position fictive.</td></tr>';
+  renderPresetSelection();
 }
 
 function value(selector) {
@@ -49,6 +52,55 @@ function setDcaFields(dca) {
   document.querySelector('#runDca').click();
 }
 
+function showPresetFeedback(message, kind = 'success') {
+  const feedback = document.querySelector('#presetFeedback');
+  if (!feedback) return;
+  feedback.hidden = false;
+  feedback.dataset.kind = kind;
+  feedback.textContent = message;
+}
+
+function renderPresetSelection() {
+  document.querySelectorAll('[data-preset]').forEach(button => {
+    const selected = button.dataset.preset === activePresetId;
+    button.setAttribute('aria-pressed', String(selected));
+    button.textContent = selected ? '✓ Scénario chargé' : 'Charger ce scénario';
+    button.closest('.watch-card')?.classList.toggle('is-selected', selected);
+  });
+}
+
+async function loadPreset(presetId, button) {
+  const originalLabel = button?.textContent || 'Charger ce scénario';
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Chargement…';
+  }
+
+  try {
+    const result = createSimulationFromPreset(presetId);
+    simulation = result.simulation;
+    activePresetId = result.preset.id;
+    localStorage.setItem(ACTIVE_PRESET_KEY, activePresetId);
+    persist();
+    setDcaFields(result.preset.dca);
+    render();
+
+    const message = `Scénario « ${result.preset.label} » chargé avec succès. Toutes les sommes sont fictives.`;
+    document.querySelector('#simStatus').textContent = message;
+    showPresetFeedback(message);
+
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    document.querySelector('.metric-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Impossible de charger ce scénario.';
+    document.querySelector('#simStatus').textContent = message;
+    showPresetFeedback(message, 'error');
+    if (button) button.textContent = originalLabel;
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
 function mountDemoPresets() {
   const operationPanel = document.querySelector('#executeSimulation')?.closest('.panel');
   const formGrid = operationPanel?.querySelector('.form-grid');
@@ -62,23 +114,29 @@ function mountDemoPresets() {
       <div><p class="eyebrow">DÉMONSTRATION BÊTA</p><h2>Scénarios prêts à tester</h2></div>
       <span class="badge">100 % FICTIF</span>
     </div>
+    <p id="presetFeedback" class="simulation-preset-feedback" role="status" aria-live="polite" hidden></p>
     <div class="watch-grid">
-      ${simulationPresets.map(preset => `<article class="watch-card"><div class="watch-card-top"><div><h3>${escapeHtml(preset.label)}</h3><span class="ticker">${money.format(preset.initialCash)} fictifs</span></div></div><p class="watch-note">${escapeHtml(preset.description)}</p><button class="btn secondary" type="button" data-preset="${preset.id}">Charger ce scénario</button></article>`).join('')}
+      ${simulationPresets.map(preset => `<article class="watch-card"><div class="watch-card-top"><div><h3>${escapeHtml(preset.label)}</h3><span class="ticker">${money.format(preset.initialCash)} fictifs</span></div></div><p class="watch-note">${escapeHtml(preset.description)}</p><button class="btn secondary" type="button" data-preset="${preset.id}" aria-pressed="false">Charger ce scénario</button></article>`).join('')}
     </div>`;
   operationPanel.insertBefore(section, formGrid);
 
-  section.querySelectorAll('[data-preset]').forEach(button => button.addEventListener('click', () => {
-    try {
-      const result = createSimulationFromPreset(button.dataset.preset);
-      simulation = result.simulation;
-      persist();
-      render();
-      setDcaFields(result.preset.dca);
-      document.querySelector('#simStatus').textContent = `Scénario « ${result.preset.label} » chargé. Toutes les sommes sont fictives.`;
-    } catch (error) {
-      document.querySelector('#simStatus').textContent = error.message;
-    }
-  }));
+  section.addEventListener('click', event => {
+    const button = event.target.closest('button[data-preset]');
+    if (!button || button.disabled) return;
+    loadPreset(button.dataset.preset, button);
+  });
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .simulation-preset-feedback{margin:12px 0 16px;padding:12px 14px;border-radius:12px;background:rgba(83,211,150,.12);border:1px solid rgba(83,211,150,.28);color:#bff3d8}
+    .simulation-preset-feedback[data-kind="error"]{background:rgba(255,138,138,.1);border-color:rgba(255,138,138,.3);color:#ffd0d0}
+    #simulationPresets .watch-card{transition:border-color .2s,transform .2s,background .2s}
+    #simulationPresets .watch-card.is-selected{border-color:rgba(241,204,122,.62);background:rgba(241,204,122,.07);transform:translateY(-1px)}
+    #simulationPresets button[aria-pressed="true"]{background:#f1cc7a;color:#071426;border-color:#f1cc7a}
+    #simulationPresets button:disabled{opacity:.72;cursor:wait}
+  `;
+  document.head.append(style);
+  renderPresetSelection();
 }
 
 document.querySelector('#executeSimulation').addEventListener('click', () => {
@@ -89,6 +147,8 @@ document.querySelector('#executeSimulation').addEventListener('click', () => {
     const price = Number(value('#simPrice'));
     if (operation === 'buy') buy(simulation, { ticker, name: value('#simName'), amount: Number(value('#simAmount')), price });
     else sell(simulation, { ticker, quantity: Number(value('#simQuantity')), price });
+    activePresetId = '';
+    localStorage.removeItem(ACTIVE_PRESET_KEY);
     persist();
     render();
     status.textContent = `Opération ${operation === 'buy' ? 'd’achat' : 'de vente'} fictive enregistrée. Aucune donnée réelle n’a été modifiée.`;
@@ -99,8 +159,11 @@ document.querySelector('#executeSimulation').addEventListener('click', () => {
 
 document.querySelector('#resetSimulation').addEventListener('click', () => {
   simulation = createSimulation({ initialCash: 10000 });
+  activePresetId = '';
+  localStorage.removeItem(ACTIVE_PRESET_KEY);
   persist();
   render();
+  showPresetFeedback('Le scénario fictif a été réinitialisé.');
   document.querySelector('#simStatus').textContent = 'Le scénario fictif a été réinitialisé.';
 });
 
@@ -122,3 +185,5 @@ document.querySelector('#runDca').addEventListener('click', () => {
 mountDemoPresets();
 render();
 document.querySelector('#runDca').click();
+
+export { loadPreset, mountDemoPresets };
