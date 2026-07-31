@@ -1,3 +1,4 @@
+import './leynor-brand.js';
 import './pwa.js';
 import './leynor-assistant.js';
 
