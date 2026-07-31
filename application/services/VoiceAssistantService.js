@@ -8,20 +8,28 @@ function requireMethod(dependency, method, name) {
   if (!dependency || typeof dependency[method] !== 'function') throw new TypeError(`${name} doit exposer ${method}().`);
 }
 
+function requireOptionalMemoryService(memoryService) {
+  if (!memoryService) return;
+  requireMethod(memoryService, 'buildContext', 'memoryService');
+  requireMethod(memoryService, 'appendConversationMessage', 'memoryService');
+}
+
 export class VoiceAssistantService {
-  constructor({ speechToTextProvider, textToSpeechProvider, wakeWordProvider, assistant } = {}) {
+  constructor({ speechToTextProvider, textToSpeechProvider, wakeWordProvider, assistant, memoryService = null } = {}) {
     requireMethod(speechToTextProvider, 'transcribe', 'speechToTextProvider');
     requireMethod(textToSpeechProvider, 'synthesize', 'textToSpeechProvider');
     requireMethod(wakeWordProvider, 'detect', 'wakeWordProvider');
     requireMethod(assistant, 'answer', 'assistant');
+    requireOptionalMemoryService(memoryService);
     this.speechToTextProvider = speechToTextProvider;
     this.textToSpeechProvider = textToSpeechProvider;
     this.wakeWordProvider = wakeWordProvider;
     this.assistant = assistant;
+    this.memoryService = memoryService;
     Object.freeze(this);
   }
 
-  async handle({ sessionId, audio, context = {}, wakeWord = 'Dis LEYNOR', voiceProfile = null } = {}) {
+  async handle({ sessionId, audio, context = {}, wakeWord = 'Dis LEYNOR', voiceProfile = null, userId = null, conversationId = null, messageLimit = 12 } = {}) {
     const selectedVoice = voiceProfile instanceof VoiceProfile ? voiceProfile : voiceProfile ? new VoiceProfile(voiceProfile) : null;
     const detected = await this.wakeWordProvider.detect({ audio, wakeWord });
     let session = new VoiceSession({ id: sessionId, wakeWord });
@@ -36,8 +44,30 @@ export class VoiceAssistantService {
       return Object.freeze({ activated: true, session: session.appendTurn({ command }).end(), command, response: null });
     }
 
+    const memoryEnabled = Boolean(this.memoryService && userId && conversationId);
+    const memoryContext = memoryEnabled
+      ? await this.memoryService.buildContext({ userId, conversationId, messageLimit })
+      : null;
+
+    if (memoryEnabled) {
+      await this.memoryService.appendConversationMessage({
+        conversationId,
+        userId,
+        message: {
+          id: `${sessionId}:user:${session.turns.length + 1}`,
+          role: 'user',
+          content: transcript.text,
+          metadata: { channel: 'voice', confidence: transcript.confidence }
+        }
+      });
+    }
+
     session = session.withStatus('processing');
-    const answer = await this.assistant.answer({ question: transcript.text, ...context });
+    const answer = await this.assistant.answer({
+      question: transcript.text,
+      ...context,
+      ...(memoryContext ? { memory: memoryContext } : {})
+    });
     const confidence = Number(answer?.plan?.confidence ?? answer?.confidence ?? 0);
     const risks = answer?.plan?.warnings ?? answer?.risks ?? [];
     const audioResponse = await this.textToSpeechProvider.synthesize({
@@ -52,6 +82,20 @@ export class VoiceAssistantService {
       risks,
       metadata: { model: answer.model ?? null, voice: selectedVoice?.id ?? null }
     });
+
+    if (memoryEnabled) {
+      await this.memoryService.appendConversationMessage({
+        conversationId,
+        userId,
+        message: {
+          id: `${sessionId}:assistant:${session.turns.length + 1}`,
+          role: 'assistant',
+          content: response.text,
+          metadata: { channel: 'voice', confidence: response.confidence, risks: response.risks }
+        }
+      });
+    }
+
     session = session.appendTurn({ command, response }).withStatus('speaking');
     return Object.freeze({ activated: true, session, command, response });
   }
