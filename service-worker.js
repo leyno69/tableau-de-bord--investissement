@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'leynor-shell-v3';
+const CACHE_VERSION = 'leynor-shell-v4';
 const OFFLINE_URL = '/offline.html';
 const APP_SHELL = [
   '/',
@@ -6,6 +6,9 @@ const APP_SHELL = [
   '/offline.html',
   '/style.css',
   '/app.js',
+  '/assistant-ui.js',
+  '/assistant-memory.js',
+  '/portfolio-assistant.js',
   '/server-sync.js',
   '/api-connection.js',
   '/api-fetch-router.js',
@@ -52,17 +55,27 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  if (request.destination === 'script' || request.destination === 'style') {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
   event.respondWith(staleWhileRevalidate(request));
 });
 
-async function networkFirst(request, fallbackUrl) {
+async function networkFirst(request, fallbackUrl = null) {
   try {
-    const response = await fetch(request);
-    const cache = await caches.open(CACHE_VERSION);
-    cache.put(request, response.clone());
+    const response = await fetch(request, { cache: 'no-store' });
+    if (response.ok) {
+      const cache = await caches.open(CACHE_VERSION);
+      await cache.put(request, response.clone());
+    }
     return response;
   } catch {
-    return (await caches.match(request)) || caches.match(fallbackUrl);
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    if (fallbackUrl) return caches.match(fallbackUrl);
+    return new Response('Ressource indisponible hors connexion.', { status: 503 });
   }
 }
 
