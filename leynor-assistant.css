@@ -1,0 +1,119 @@
+.leynor-launcher {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 40;
+  width: 58px;
+  height: 58px;
+  border: 0;
+  border-radius: 50%;
+  background: #173f63;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: .04em;
+  box-shadow: 0 14px 34px rgba(23, 63, 99, .28);
+  cursor: pointer;
+}
+
+.leynor-panel {
+  position: fixed;
+  z-index: 50;
+  right: 22px;
+  bottom: 92px;
+  width: min(430px, calc(100vw - 28px));
+  height: min(680px, calc(100vh - 130px));
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+  border: 1px solid rgba(23, 63, 99, .14);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(18, 38, 58, .25);
+}
+
+.leynor-panel[hidden] { display: none; }
+
+.leynor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 15px;
+  background: linear-gradient(135deg, #173f63, #285f88);
+  color: #fff;
+}
+
+.leynor-head p, .leynor-head h2 { margin: 0; color: inherit; }
+.leynor-head p { margin-top: 4px; font-size: .82rem; opacity: .82; }
+.leynor-close { border: 0; background: transparent; color: #fff; font-size: 1.55rem; cursor: pointer; }
+
+.leynor-messages {
+  overflow-y: auto;
+  padding: 18px;
+  background: #f6f8fb;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.leynor-message {
+  max-width: 86%;
+  padding: 12px 14px;
+  border-radius: 16px;
+  line-height: 1.48;
+  white-space: pre-wrap;
+}
+
+.leynor-message small { display: block; margin-top: 7px; font-size: .7rem; opacity: .65; }
+.leynor-message.user { align-self: flex-end; background: #173f63; color: #fff; border-bottom-right-radius: 5px; }
+.leynor-message.assistant { align-self: flex-start; background: #fff; color: #243444; border: 1px solid #e1e7ed; border-bottom-left-radius: 5px; }
+.leynor-message.error { border-color: #e6b6b6; background: #fff5f5; color: #8c2424; }
+
+.leynor-typing { display: inline-flex; gap: 5px; align-items: center; }
+.leynor-typing span { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .35; animation: leynor-pulse 1.1s infinite; }
+.leynor-typing span:nth-child(2) { animation-delay: .15s; }
+.leynor-typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes leynor-pulse { 50% { opacity: 1; transform: translateY(-2px); } }
+
+.leynor-form {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  padding: 14px;
+  border-top: 1px solid #e4e9ee;
+  background: #fff;
+}
+
+.leynor-form textarea {
+  resize: none;
+  min-height: 44px;
+  max-height: 120px;
+  padding: 11px 12px;
+  border: 1px solid #ccd6df;
+  border-radius: 13px;
+  font: inherit;
+}
+
+.leynor-form textarea:focus { outline: none; border-color: #285f88; box-shadow: 0 0 0 3px rgba(40, 95, 136, .12); }
+.leynor-send, .leynor-mic { border: 0; border-radius: 12px; min-width: 44px; cursor: pointer; font-weight: 750; }
+.leynor-send { background: #173f63; color: #fff; }
+.leynor-send:disabled { opacity: .45; cursor: not-allowed; }
+.leynor-mic { background: #edf2f6; color: #173f63; }
+.leynor-mic[aria-disabled="true"] { opacity: .55; cursor: help; }
+
+.leynor-plan-badge {
+  position: absolute;
+  top: 12px;
+  right: 54px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.16);
+  font-size: .7rem;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .leynor-launcher { right: 14px; bottom: 14px; }
+  .leynor-panel { inset: 0; width: 100vw; height: 100dvh; border-radius: 0; }
+  .leynor-message { max-width: 91%; }
+}
