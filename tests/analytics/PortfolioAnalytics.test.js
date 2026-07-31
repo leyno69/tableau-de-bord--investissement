@@ -14,6 +14,13 @@ function snapshot(amount, capturedAt, options = {}) {
   });
 }
 
+function flow(amount, occurredAt, currency = 'EUR') {
+  return {
+    amount: new Money(amount, currency),
+    occurredAt
+  };
+}
+
 test('crée un snapshot immuable et normalisé', () => {
   const item = snapshot(100, '2026-01-01');
 
@@ -43,7 +50,10 @@ test('calcule variations, volatilité et drawdown', () => {
   assert.equal(result.portfolioId, 'portfolio-1');
   assert.equal(result.currency, 'EUR');
   assert.deepEqual(result.absoluteChange.toJSON(), { amount: 8, currency: 'EUR' });
+  assert.deepEqual(result.netExternalFlow.toJSON(), { amount: 0, currency: 'EUR' });
+  assert.deepEqual(result.investmentGain.toJSON(), { amount: 8, currency: 'EUR' });
   assert.equal(result.cumulativeReturn, 0.08);
+  assert.equal(result.timeWeightedReturn, 0.08);
   assert.deepEqual(result.returns.map(entry => entry.rate), [0.2, -0.25, 0.2]);
   assert.equal(result.averagePeriodicReturn, 0.05);
   assert.equal(result.periodicVolatility, 0.2598076211);
@@ -56,6 +66,33 @@ test('calcule variations, volatilité et drawdown', () => {
   assert.equal(Object.isFrozen(result.returns), true);
 });
 
+test('neutralise les apports et retraits dans le rendement pondéré dans le temps', () => {
+  const result = new AnalyzePortfolioSeries().execute({
+    snapshots: [
+      snapshot(100, '2026-01-01'),
+      snapshot(160, '2026-01-02'),
+      snapshot(126, '2026-01-03')
+    ],
+    externalFlows: [
+      flow(50, '2026-01-02T00:00:00Z'),
+      flow(-20, '2026-01-03T00:00:00Z')
+    ]
+  });
+
+  assert.deepEqual(result.returns.map(entry => entry.rate), [0.1, -0.0875]);
+  assert.deepEqual(
+    result.returns.map(entry => entry.netExternalFlow.toJSON()),
+    [
+      { amount: 50, currency: 'EUR' },
+      { amount: -20, currency: 'EUR' }
+    ]
+  );
+  assert.deepEqual(result.netExternalFlow.toJSON(), { amount: 30, currency: 'EUR' });
+  assert.deepEqual(result.investmentGain.toJSON(), { amount: -4, currency: 'EUR' });
+  assert.equal(result.cumulativeReturn, 0.26);
+  assert.equal(result.timeWeightedReturn, 0.00375);
+});
+
 test('trie les snapshots et gère les séries insuffisantes', () => {
   const analytics = new AnalyzePortfolioSeries();
   const single = analytics.execute({
@@ -63,6 +100,7 @@ test('trie les snapshots et gère les séries insuffisantes', () => {
   });
 
   assert.equal(single.cumulativeReturn, 0);
+  assert.equal(single.timeWeightedReturn, 0);
   assert.equal(single.averagePeriodicReturn, null);
   assert.equal(single.periodicVolatility, null);
   assert.equal(single.annualizedVolatility, null);
@@ -71,6 +109,7 @@ test('trie les snapshots et gère les séries insuffisantes', () => {
   const empty = analytics.execute({ snapshots: [] });
   assert.equal(empty.portfolioId, null);
   assert.equal(empty.startValue, null);
+  assert.equal(empty.timeWeightedReturn, null);
   assert.deepEqual(empty.returns, []);
 });
 
@@ -84,6 +123,7 @@ test('retourne un rendement nul lorsque la base précédente vaut zéro', () => 
 
   assert.equal(result.returns[0].rate, null);
   assert.equal(result.cumulativeReturn, null);
+  assert.equal(result.timeWeightedReturn, null);
   assert.equal(result.averagePeriodicReturn, null);
 });
 
@@ -93,6 +133,11 @@ test('refuse les séries incohérentes et les paramètres invalides', () => {
   assert.throws(
     () => analytics.execute({ snapshots: {} }),
     /snapshots doit être un tableau/
+  );
+
+  assert.throws(
+    () => analytics.execute({ snapshots: [], externalFlows: {} }),
+    /externalFlows doit être un tableau/
   );
 
   assert.throws(
@@ -133,6 +178,22 @@ test('refuse les séries incohérentes et les paramètres invalides', () => {
   assert.throws(
     () => analytics.execute({ snapshots: [], periodsPerYear: 0 }),
     /strictement positif/
+  );
+
+  assert.throws(
+    () => analytics.execute({
+      snapshots: [snapshot(100, '2026-01-01')],
+      externalFlows: [flow(10, '2026-01-01', 'USD')]
+    }),
+    /devise du portefeuille/
+  );
+
+  assert.throws(
+    () => analytics.execute({
+      snapshots: [snapshot(100, '2026-01-01')],
+      externalFlows: [{ amount: 10, occurredAt: '2026-01-01' }]
+    }),
+    /instance de Money/
   );
 
   assert.throws(
