@@ -2,6 +2,7 @@ import './leynor-brand.js';
 import './pwa.js';
 import './api-fetch-router.js';
 import './leynor-assistant.js';
+import './opportunity-radar-ui.js';
 import { apiUrl, getApiBaseUrl, getApiToken, setApiBaseUrl, setApiToken } from './api-connection.js';
 
 function addNavigationLink({ href, label, icon, marker, before }) {
