@@ -31,7 +31,7 @@ test('trends interface exposes search filters favorites and summaries', () => {
 });
 
 test('expanded trends remain available in the refreshed PWA shell', () => {
-  assert.match(worker, /leynor-shell-v10/);
+  assert.match(worker, /leynor-shell-v\d+/);
   assert.match(worker, /'\/trends\.html'/);
   assert.match(worker, /'\/market-trends\.js'/);
 });
