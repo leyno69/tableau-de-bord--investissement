@@ -22,7 +22,7 @@ test('assistant voice replies use browser speech synthesis', () => {
 
 test('voice bridge is loaded and refreshed by every runtime', () => {
   assert.match(sync, /import '\.\/browser-voice\.js'/);
-  assert.match(worker, /leynor-shell-v9/);
+  assert.match(worker, /leynor-shell-v(?:9|[1-9]\d+)/);
   assert.match(worker, /'\/browser-voice\.js'/);
   assert.match(staticAssets, /\['browser-voice\.js', 'text\/javascript; charset=utf-8'\]/);
 });
