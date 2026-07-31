@@ -42,7 +42,7 @@ jobs:
         run: node --check runtime/main.js
 
   docker:
-    name: Docker build
+    name: Docker production smoke test
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -51,3 +51,43 @@ jobs:
 
       - name: Build image
         run: docker build --tag leynor-ci .
+
+      - name: Start production container
+        run: |
+          docker run --detach --name leynor-ci \
+            --publish 3000:3000 \
+            --env HOST=0.0.0.0 \
+            --env APP_AUTH_TOKEN=ci-secret-token \
+            --volume leynor-ci-data:/app/data \
+            leynor-ci
+
+      - name: Wait for readiness
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3000/ready >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs leynor-ci
+          exit 1
+
+      - name: Verify public health endpoint
+        run: curl --fail --silent http://127.0.0.1:3000/health
+
+      - name: Verify authentication is enforced
+        run: test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:3000/portfolios)" = "401"
+
+      - name: Verify authenticated API
+        run: |
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' \
+            --header 'Authorization: Bearer ci-secret-token' \
+            http://127.0.0.1:3000/portfolios)" = "200"
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker logs leynor-ci
+
+      - name: Stop production container
+        if: always()
+        run: docker rm --force leynor-ci || true
