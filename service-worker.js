@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'leynor-shell-v17';
+const CACHE_VERSION = 'leynor-shell-v18';
 const OFFLINE_URL = '/offline.html';
 const APP_SHELL = [
   '/', '/index.html', '/offline.html', '/style.css', '/app.js',
@@ -6,6 +6,8 @@ const APP_SHELL = [
   '/server-sync.js', '/api-connection.js', '/api-fetch-router.js',
   '/profile-menu.js', '/profile-menu.css', '/resolver-ui.js',
   '/guided-tour.js', '/guided-tour.css', '/asset-details.js', '/asset-details.css',
+  '/broker-import.js', '/broker-import-core.js', '/broker-import.css',
+  '/broker-import-guide.js', '/broker-import-guide.css',
   '/trends.html', '/market-trends.js', '/probability-assessment.js',
   '/opportunity-radar.js', '/opportunity-radar-ui.js',
   '/simulator.html', '/simulator-ui.js', '/simulation-presets.js',
