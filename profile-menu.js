@@ -1,3 +1,5 @@
+import './radar-freshness.js';
+
 const PROFILE_MENU_ID = 'leynor-profile-menu';
 const PROFILE_STYLE_ID = 'leynor-profile-menu-styles';
 const RESET_EVENT = 'leynor-local-profile-reset';
