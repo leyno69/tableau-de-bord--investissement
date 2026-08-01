@@ -27,8 +27,8 @@ test('le guide possède des captures illustrées responsives', () => {
   assert.match(styles, /@media\(max-width:760px\)/);
 });
 
-test('le guide est disponible hors connexion dans le cache v18', () => {
-  assert.match(serviceWorker, /leynor-shell-v18/);
+test('le guide est disponible hors connexion dans le cache courant', () => {
+  assert.match(serviceWorker, /leynor-shell-v(?:19|[2-9]\d+)/);
   assert.match(serviceWorker, /broker-import-guide\.js/);
   assert.match(serviceWorker, /broker-import-guide\.css/);
 });
