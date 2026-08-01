@@ -32,15 +32,25 @@ test('voice bridge is loaded and refreshed by every runtime', () => {
 });
 
 test('deployment exposes an identifiable brand pronunciation build marker', () => {
-  assert.match(voice, /beta-20260801-brand-pronunciation/);
+  assert.match(voice, /beta-20260801-brand-pronunciation-v2/);
   assert.match(voice, /dataset\.leynorBuild = BUILD_ID/);
+  assert.match(voice, /PRONUNCIATION_REFERENCE = 'Lainor, A I'/);
 });
 
-test('LEYNOR and LEYNOR AI receive a stable French pronunciation', () => {
-  assert.match(voice, /LEYNOR\\s\+AI/);
-  assert.match(voice, /Léïnor, A I/);
-  assert.match(voice, /Léïnor/);
+test('LEYNOR and LEYNOR AI receive the requested pronunciation without diaeresis', () => {
+  assert.match(voice, /LEYNOR\\s\+\(\?:AI\|A\\s\*I\|IA\)/);
+  assert.match(voice, /Lainor, A, I/);
+  assert.match(voice, /Lainor/);
+  assert.doesNotMatch(voice, /Lé-ï-nor|Léïnor/);
   assert.match(voice, /patchSpeechSynthesisPronunciation/);
-  assert.match(voice, /replacement\.voice = utterance\.voice/);
   assert.match(voice, /replacement\.rate = utterance\.rate/);
+});
+
+test('male and female preferences are enforced instead of silently falling back', () => {
+  assert.match(voice, /VOICE_SETTINGS_KEY = 'leynor-voice-settings'/);
+  assert.match(voice, /choosePreferredFrenchVoice/);
+  assert.match(voice, /inferredVoiceGender\(voice\) === preference/);
+  assert.match(voice, /preference !== 'auto' && !preferredVoice/);
+  assert.match(voice, /n’utilise pas silencieusement une autre voix/);
+  assert.match(voice, /replacement\.voice = preferredVoice \|\| utterance\.voice \|\| null/);
 });
