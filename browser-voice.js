@@ -1,16 +1,54 @@
 const SpeechRecognition = globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition;
-const BUILD_ID = 'beta-20260801-brand-pronunciation';
-const PRONUNCIATION_REFERENCE = 'Léïnor, A I';
+const BUILD_ID = 'beta-20260801-brand-pronunciation-v2';
+const PRONUNCIATION_REFERENCE = 'Lainor, A I';
+const VOICE_SETTINGS_KEY = 'leynor-voice-settings';
+const FEMALE_VOICE_PATTERN = /audrey|aurélie|aurelie|amelie|amélie|marie|hortense|virginie|julie|celine|céline|lea|léa|alice|sophie|claire|denise|eloise|éloïse|charlotte|isabelle|valerie|valérie/i;
+const MALE_VOICE_PATTERN = /thomas|henri|paul|nicolas|antoine|luc|mathieu|pierre|alain|claude|daniel|gerard|gérard|jacques|jean|louis|remy|rémy|bernard|yves|françois|francois/i;
 
 let recognition = null;
 let speechPatched = false;
 let speechUnlocked = false;
+let unavailablePreferenceNotice = '';
 
 function normalizeBrandPronunciation(text) {
   return String(text || '')
-    .replace(/\bLEYNOR\s+AI\b/gi, 'Lé-ï-nor, A, I')
-    .replace(/\bLEYNOR\s+(?:A\s*I|IA)\b/gi, 'Lé-ï-nor, A, I')
-    .replace(/\bLEYNOR\b/gi, 'Lé-ï-nor');
+    .replace(/\bLEYNOR\s+(?:AI|A\s*I|IA)\b/gi, 'Lainor, A, I')
+    .replace(/\bLEYNOR\b/gi, 'Lainor');
+}
+
+function readVoicePreference() {
+  try {
+    const stored = JSON.parse(globalThis.localStorage?.getItem(VOICE_SETTINGS_KEY) || '{}');
+    return ['female', 'male', 'auto'].includes(stored.preference) ? stored.preference : 'female';
+  } catch {
+    return 'female';
+  }
+}
+
+function inferredVoiceGender(voice) {
+  const identity = `${voice?.name || ''} ${voice?.voiceURI || ''}`;
+  if (FEMALE_VOICE_PATTERN.test(identity)) return 'female';
+  if (MALE_VOICE_PATTERN.test(identity)) return 'male';
+  return 'unknown';
+}
+
+function voiceQualityScore(voice) {
+  const identity = `${voice?.name || ''} ${voice?.voiceURI || ''}`.toLowerCase();
+  const language = String(voice?.lang || '').replace('_', '-').toLowerCase();
+  let score = language === 'fr-fr' ? 80 : language.startsWith('fr-') ? 60 : -1000;
+  if (/premium|enhanced|natural|neural|studio|eloquence/.test(identity)) score += 80;
+  if (/compact|basic|standard/.test(identity)) score -= 25;
+  if (voice?.localService) score += 10;
+  if (voice?.default) score += 5;
+  return score;
+}
+
+function choosePreferredFrenchVoice(preference = readVoicePreference(), voices = globalThis.speechSynthesis?.getVoices?.() || []) {
+  const french = voices.filter(voice => /^fr[-_]/i.test(voice?.lang || ''));
+  if (!french.length) return null;
+  if (preference === 'auto') return [...french].sort((a, b) => voiceQualityScore(b) - voiceQualityScore(a))[0] || null;
+  const matching = french.filter(voice => inferredVoiceGender(voice) === preference);
+  return [...matching].sort((a, b) => voiceQualityScore(b) - voiceQualityScore(a))[0] || null;
 }
 
 function unlockSpeechSynthesis() {
@@ -28,17 +66,33 @@ function unlockSpeechSynthesis() {
   return speechUnlocked;
 }
 
+function appendNotice(message) {
+  const container = assistantElements().messages;
+  if (!container) return;
+  const notice = document.createElement('article');
+  notice.className = 'leynor-message assistant notice';
+  notice.textContent = message;
+  container.append(notice);
+  container.scrollTop = container.scrollHeight;
+}
+
+function reportUnavailablePreference(preference) {
+  if (!['female', 'male'].includes(preference) || unavailablePreferenceNotice === preference) return;
+  unavailablePreferenceNotice = preference;
+  const label = preference === 'male' ? 'masculine' : 'féminine';
+  appendNotice(`Aucune voix française ${label} identifiable n’est installée sur cet appareil. LEYNOR conserve votre choix et n’utilise pas silencieusement une autre voix.`);
+}
+
 function patchSpeechSynthesisPronunciation() {
   const synthesis = globalThis.speechSynthesis;
   const Utterance = globalThis.SpeechSynthesisUtterance;
   if (speechPatched || !synthesis?.speak || !Utterance) return false;
   const originalSpeak = synthesis.speak.bind(synthesis);
   synthesis.speak = utterance => {
-    const normalized = normalizeBrandPronunciation(utterance?.text);
-    if (!utterance || normalized === utterance.text) return originalSpeak(utterance);
+    if (!utterance) return originalSpeak(utterance);
+    const normalized = normalizeBrandPronunciation(utterance.text);
     const replacement = new Utterance(normalized);
-    replacement.lang = utterance.lang;
-    replacement.voice = utterance.voice;
+    replacement.lang = utterance.lang || 'fr-FR';
     replacement.rate = utterance.rate;
     replacement.pitch = utterance.pitch;
     replacement.volume = utterance.volume;
@@ -49,6 +103,17 @@ function patchSpeechSynthesisPronunciation() {
     replacement.onresume = utterance.onresume;
     replacement.onmark = utterance.onmark;
     replacement.onboundary = utterance.onboundary;
+
+    const preference = readVoicePreference();
+    const preferredVoice = choosePreferredFrenchVoice(preference);
+    if (preference !== 'auto' && !preferredVoice) {
+      reportUnavailablePreference(preference);
+      utterance.onerror?.({ error: 'voice-unavailable' });
+      return undefined;
+    }
+    replacement.voice = preferredVoice || utterance.voice || null;
+    if (replacement.voice?.lang) replacement.lang = replacement.voice.lang;
+    unavailablePreferenceNotice = '';
     return originalSpeak(replacement);
   };
   speechPatched = true;
@@ -65,16 +130,6 @@ function assistantElements() {
   };
 }
 
-function appendNotice(message) {
-  const container = assistantElements().messages;
-  if (!container) return;
-  const notice = document.createElement('article');
-  notice.className = 'leynor-message assistant notice';
-  notice.textContent = message;
-  container.append(notice);
-  container.scrollTop = container.scrollHeight;
-}
-
 function setListening(active) {
   const { mic, input, panel } = assistantElements();
   if (!mic || !input) return;
@@ -84,10 +139,7 @@ function setListening(active) {
 }
 
 function chooseFrenchVoice() {
-  const voices = globalThis.speechSynthesis?.getVoices?.() || [];
-  return voices.find(voice => /^fr[-_]/i.test(voice.lang) && /premium|enhanced|natural/i.test(voice.name))
-    || voices.find(voice => /^fr[-_]/i.test(voice.lang))
-    || null;
+  return choosePreferredFrenchVoice('auto');
 }
 
 function submitTranscript(transcript) {
@@ -188,4 +240,4 @@ function waitForAssistant() {
 
 waitForAssistant();
 
-export { BUILD_ID, PRONUNCIATION_REFERENCE, initializeBrowserVoice, chooseFrenchVoice, submitTranscript, normalizeBrandPronunciation, patchSpeechSynthesisPronunciation, unlockSpeechSynthesis };
+export { BUILD_ID, PRONUNCIATION_REFERENCE, initializeBrowserVoice, chooseFrenchVoice, choosePreferredFrenchVoice, inferredVoiceGender, readVoicePreference, submitTranscript, normalizeBrandPronunciation, patchSpeechSynthesisPronunciation, unlockSpeechSynthesis };
