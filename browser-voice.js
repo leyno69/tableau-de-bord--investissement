@@ -1,7 +1,41 @@
 const SpeechRecognition = globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition;
-const BUILD_ID = 'beta-20260801-direct-voice';
+const BUILD_ID = 'beta-20260801-brand-pronunciation';
 
 let recognition = null;
+let speechPatched = false;
+
+function normalizeBrandPronunciation(text) {
+  return String(text || '')
+    .replace(/\bLEYNOR\s+AI\b/gi, 'Léïnor, A I')
+    .replace(/\bLEYNOR\b/gi, 'Léïnor');
+}
+
+function patchSpeechSynthesisPronunciation() {
+  const synthesis = globalThis.speechSynthesis;
+  const Utterance = globalThis.SpeechSynthesisUtterance;
+  if (speechPatched || !synthesis?.speak || !Utterance) return false;
+  const originalSpeak = synthesis.speak.bind(synthesis);
+  synthesis.speak = utterance => {
+    const normalized = normalizeBrandPronunciation(utterance?.text);
+    if (!utterance || normalized === utterance.text) return originalSpeak(utterance);
+    const replacement = new Utterance(normalized);
+    replacement.lang = utterance.lang;
+    replacement.voice = utterance.voice;
+    replacement.rate = utterance.rate;
+    replacement.pitch = utterance.pitch;
+    replacement.volume = utterance.volume;
+    replacement.onstart = utterance.onstart;
+    replacement.onend = utterance.onend;
+    replacement.onerror = utterance.onerror;
+    replacement.onpause = utterance.onpause;
+    replacement.onresume = utterance.onresume;
+    replacement.onmark = utterance.onmark;
+    replacement.onboundary = utterance.onboundary;
+    return originalSpeak(replacement);
+  };
+  speechPatched = true;
+  return true;
+}
 
 function assistantElements() {
   return {
@@ -112,6 +146,7 @@ function handleMic(event) {
 }
 
 function initializeBrowserVoice() {
+  patchSpeechSynthesisPronunciation();
   document.documentElement.dataset.leynorBuild = BUILD_ID;
   const { mic } = assistantElements();
   if (!mic || mic.dataset.browserVoice === 'true') return false;
@@ -122,6 +157,7 @@ function initializeBrowserVoice() {
 }
 
 function waitForAssistant() {
+  patchSpeechSynthesisPronunciation();
   if (initializeBrowserVoice()) return;
   const observer = new MutationObserver(() => {
     if (initializeBrowserVoice()) observer.disconnect();
@@ -131,4 +167,4 @@ function waitForAssistant() {
 
 waitForAssistant();
 
-export { BUILD_ID, initializeBrowserVoice, chooseFrenchVoice, submitTranscript };
+export { BUILD_ID, initializeBrowserVoice, chooseFrenchVoice, submitTranscript, normalizeBrandPronunciation, patchSpeechSynthesisPronunciation };
