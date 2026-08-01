@@ -27,5 +27,5 @@ test('la déconnexion locale laisse un espace invité vide', () => {
 });
 
 test('le cache PWA est renouvelé pour propager la correction de confidentialité', () => {
-  assert.match(serviceWorker, /leynor-shell-v17/);
+  assert.match(serviceWorker, /leynor-shell-v18/);
 });
