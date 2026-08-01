@@ -66,7 +66,7 @@ async function openDetails(item, type = 'asset') {
   const symbol = resolveMarketSymbol(item);
   savePoint(symbol, item.price);
   content.innerHTML = '<div class="asset-details-loading">Chargement du cours…</div>';
-  modal.showModal();
+  if (!modal.open) modal.showModal();
   let quote = null, error = null;
   if (symbol !== 'PORTFOLIO') {
     try {
@@ -126,13 +126,15 @@ function init() {
   const data = portfolio();
   savePoint('PORTFOLIO', data.positions.reduce((sum, item) => sum + Number(item.quantity) * Number(item.price), Number(data.cash || 0)));
   document.getElementById('portfolioTable')?.addEventListener('click', event => {
-    const ticker = event.target.closest('tr')?.querySelector('.asset-cell small')?.textContent?.split('•')[0]?.trim();
-    const item = portfolio().positions.find(position => position.ticker === ticker);
+    const row = event.target.closest('tr');
+    const ticker = row?.dataset.ticker || row?.querySelector('.asset-cell small')?.textContent?.split('•')[0]?.trim();
+    const item = portfolio().positions.find(position => position.ticker === ticker || position.marketSymbol === ticker);
     if (item) openDetails(item);
   });
   document.getElementById('watchlist')?.addEventListener('click', event => {
-    const ticker = event.target.closest('.watch-card')?.querySelector('.ticker')?.textContent?.split('•')[0]?.trim();
-    const item = watchlist().find(entry => entry.ticker === ticker);
+    const card = event.target.closest('.watch-card');
+    const ticker = card?.dataset.ticker || card?.dataset.marketSymbol || card?.querySelector('.ticker')?.textContent?.split('•')[0]?.trim();
+    const item = watchlist().find(entry => entry.ticker === ticker || entry.marketSymbol === ticker);
     if (item) openDetails(item);
   });
   document.querySelector('.wealth-card')?.addEventListener('click', () => {
@@ -145,3 +147,5 @@ function init() {
 }
 
 init();
+
+export { RANGES, openDetails, savePoint, pointsFor };
