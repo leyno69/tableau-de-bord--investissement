@@ -7,6 +7,7 @@ import './browser-voice.js';
 import './guided-tour.js';
 import './opportunity-radar-ui.js';
 import './asset-details.js';
+import './asset-chart-touch.js';
 import './mobile-experience-fixes.js';
 import './broker-import-mobile-fixes.js';
 import './refresh-runtime.js';
