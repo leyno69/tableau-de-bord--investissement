@@ -4,6 +4,12 @@ import { LeynorPromptBuilder } from './LeynorPromptBuilder.js';
 import { LeynorResponseOrchestrator } from './LeynorResponseOrchestrator.js';
 import { MarketWeatherService } from './MarketWeatherService.js';
 
+const MODE_INSTRUCTIONS = Object.freeze({
+  brief: 'Réponds directement en quelques phrases, sans rapport formel ni introduction générique.',
+  standard: 'Réponds de façon structurée et proportionnée à la question, sans développer des sections non demandées.',
+  expert: 'Produis une analyse approfondie, explicite les hypothèses, les risques, les limites et les éléments à vérifier.'
+});
+
 export class LeynorAnalysisPipeline {
   constructor({
     contextBuilder = new LeynorContextBuilder(),
@@ -27,8 +33,13 @@ export class LeynorAnalysisPipeline {
     goals = [],
     alerts = [],
     evidence = [],
-    generatedAt
+    generatedAt,
+    conversationIntent = 'general_finance',
+    responseMode = 'standard'
   } = {}) {
+    const normalizedQuestion = String(question ?? '').trim();
+    if (!normalizedQuestion) throw new TypeError('La question est obligatoire.');
+
     const weather = this.marketWeatherService.evaluate({
       ...marketIndicators,
       dataQuality: marketIndicators.dataQuality ?? market.dataQuality ?? 'complete',
@@ -52,8 +63,9 @@ export class LeynorAnalysisPipeline {
     });
     const contextJson = context.toJSON();
     const combinedEvidence = [...evidence, ...weatherJson.evidence];
+    const routedQuestion = `${normalizedQuestion}\n\nIntention détectée : ${conversationIntent}. ${MODE_INSTRUCTIONS[responseMode] ?? MODE_INSTRUCTIONS.standard}`;
     const plan = this.orchestrator.prepare({
-      question,
+      question: routedQuestion,
       user: contextJson.user,
       portfolio: {
         ...contextJson.portfolio,
