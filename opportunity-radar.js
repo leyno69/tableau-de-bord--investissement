@@ -17,8 +17,10 @@ function probability(value) {
 }
 
 export function createOpportunityCard({
+  id,
   asset,
   category,
+  kind = 'theme',
   thesis,
   confidence,
   horizon,
@@ -31,8 +33,10 @@ export function createOpportunityCard({
   status = 'à étudier'
 }) {
   const card = {
+    id: text(id || asset.toLowerCase().replace(/[^a-z0-9]+/gi, '-'), 'id'),
     asset: text(asset, 'asset'),
     category: text(category, 'category'),
+    kind: kind === 'asset' ? 'asset' : 'theme',
     thesis: text(thesis, 'thesis'),
     confidence: probability(confidence),
     horizon: text(horizon, 'horizon'),
@@ -51,8 +55,10 @@ export function opportunityFromTrend(signal, overrides = {}) {
   if (!signal?.forecast) throw new TypeError('Un signal de tendance complet est obligatoire.');
   const direction = signal.direction === 'baisse' ? 'fragilité' : 'dynamique favorable';
   return createOpportunityCard({
+    id: signal.id,
     asset: signal.asset,
-    category: overrides.category ?? 'Marché',
+    category: overrides.category ?? signal.category ?? 'Marché',
+    kind: overrides.kind ?? 'theme',
     thesis: overrides.thesis ?? `${signal.asset} présente une ${direction} sur l’horizon ${signal.horizon}. Ce signal invite à approfondir, pas à acheter ou vendre automatiquement.`,
     confidence: signal.probability,
     horizon: signal.horizon,
@@ -70,9 +76,7 @@ export function rankOpportunities(cards = []) {
   return Object.freeze([...cards].sort((left, right) => right.confidence - left.confidence));
 }
 
-export const demoOpportunityCards = rankOpportunities(demoTrendSignals.map((signal, index) => opportunityFromTrend(signal, {
-  category: index === 0 ? 'ETF' : 'Secteur',
-  risks: index === 0
-    ? ['Concentration des indices sur quelques grandes capitalisations', 'Sensibilité aux taux et aux valorisations']
-    : ['Volatilité élevée', 'Cycle industriel et risque de correction rapide']
+export const demoOpportunityCards = rankOpportunities(demoTrendSignals.map(signal => opportunityFromTrend(signal, {
+  category: signal.category,
+  risks: signal.forecast.counterEvidence.length ? signal.forecast.counterEvidence : ['Volatilité et dépendance au contexte de marché']
 })));
