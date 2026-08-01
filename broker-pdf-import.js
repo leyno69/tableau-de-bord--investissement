@@ -1,6 +1,9 @@
+import { extractPdfTextWithOcr, OCR_IMPORT_ENGINE } from './broker-pdf-ocr.js';
+
 const PDFJS_VERSION = '6.1.200';
 const PDFJS_MODULE = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.min.mjs`;
 const PDFJS_WORKER = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`;
+const MIN_TEXT_LENGTH = 24;
 
 let pdfjsPromise;
 
@@ -111,7 +114,7 @@ function parseCandidate(block, index, context) {
 
   return {
     id: `pdf_${context.broker}_${context.fileName}_${index}_${date}_${isin || ticker || name}`.replace(/\s+/g, '_'),
-    source: { broker: context.broker, fileName: context.fileName, row: index + 1, format: 'pdf' },
+    source: { broker: context.broker, fileName: context.fileName, row: index + 1, format: context.format || 'pdf' },
     date,
     operation,
     name,
@@ -130,18 +133,25 @@ function parseCandidate(block, index, context) {
 }
 
 export function parseBrokerPdfText(text, context = {}) {
-  const safeContext = { broker: context.broker || 'generic', fileName: context.fileName || 'document.pdf' };
+  const safeContext = { broker: context.broker || 'generic', fileName: context.fileName || 'document.pdf', format: context.format || 'pdf' };
   return splitIntoCandidates(text)
     .map((block, index) => parseCandidate(block, index, safeContext))
     .filter(row => row.operation !== 'unknown' || row.isin || row.ticker || Number.isFinite(row.amount));
 }
 
-export async function extractPdfText(file, { onProgress } = {}) {
+function hasUsableText(text) {
+  const compact = String(text || '').replace(/\s/g, '');
+  return compact.length >= MIN_TEXT_LENGTH && /[A-Za-zÀ-ÿ]{4}/.test(compact);
+}
+
+async function openPdf(file) {
   if (!(file instanceof Blob)) throw new TypeError('Un fichier PDF valide est requis.');
   const pdfjs = await loadPdfJs();
   const data = new Uint8Array(await file.arrayBuffer());
-  const loadingTask = pdfjs.getDocument({ data, useWorkerFetch: false, isEvalSupported: false });
-  const document = await loadingTask.promise;
+  return pdfjs.getDocument({ data, useWorkerFetch: false, isEvalSupported: false }).promise;
+}
+
+async function extractTextLayer(document, { onProgress } = {}) {
   const pages = [];
   for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
     const page = await document.getPage(pageNumber);
@@ -160,15 +170,38 @@ export async function extractPdfText(file, { onProgress } = {}) {
     }
     if (currentLine.length) lines.push(currentLine.join(' '));
     pages.push(lines.map(normalizeSpaces).filter(Boolean).join('\n'));
-    onProgress?.({ page: pageNumber, total: document.numPages });
+    onProgress?.({ phase: 'text', page: pageNumber, total: document.numPages, progress: 1 });
   }
-  return { text: pages.join('\n\n'), pageCount: document.numPages };
+  return { text: pages.join('\n\n'), pageCount: document.numPages, mode: 'text' };
+}
+
+export async function extractPdfText(file, options = {}) {
+  const document = await openPdf(file);
+  const textLayer = await extractTextLayer(document, options);
+  if (hasUsableText(textLayer.text)) return textLayer;
+  options.onProgress?.({ phase: 'ocr-start', page: 0, total: document.numPages, progress: 0 });
+  const ocr = await extractPdfTextWithOcr(document, options);
+  if (!hasUsableText(ocr.text)) throw new Error('L’OCR n’a pas trouvé de texte suffisamment lisible dans ce document.');
+  return ocr;
 }
 
 export async function parseBrokerPdf(file, context = {}, options = {}) {
   const extracted = await extractPdfText(file, options);
-  const rows = parseBrokerPdfText(extracted.text, { ...context, fileName: context.fileName || file.name });
+  const rows = parseBrokerPdfText(extracted.text, {
+    ...context,
+    fileName: context.fileName || file.name,
+    format: extracted.mode === 'ocr' ? 'pdf-ocr' : 'pdf'
+  });
   return { ...extracted, rows };
 }
 
-export const PDF_IMPORT_ENGINE = Object.freeze({ name: 'Mozilla PDF.js', version: PDFJS_VERSION });
+export const PDF_IMPORT_ENGINE = Object.freeze({
+  name: 'Mozilla PDF.js + OCR local',
+  version: PDFJS_VERSION,
+  textEngine: 'Mozilla PDF.js',
+  ocrEngine: OCR_IMPORT_ENGINE.name,
+  ocrVersion: OCR_IMPORT_ENGINE.version,
+  local: true
+});
+
+export { hasUsableText, MIN_TEXT_LENGTH };
