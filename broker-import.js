@@ -1,3 +1,4 @@
+import './broker-import-guide.js';
 import { parseDelimited, normalizeBrokerRows, detectDuplicates, buildPortfolioPatch } from './broker-import-core.js';
 
 const KEYS = {
