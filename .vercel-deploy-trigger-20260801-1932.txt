@@ -1,0 +1,2 @@
+Déploiement Vercel déclenché le 2026-08-01 à 19:32 (Europe/Paris).
+Commit fonctionnel de référence : 19f20babbb727fe8414b2eecc4b4e458c4d0a9e2.
