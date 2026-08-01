@@ -24,15 +24,34 @@ function ensureMetadata() {
   if (!themeColor.parentNode) document.head.append(themeColor);
 }
 
+function openUnifiedAssistant(event) {
+  const launcher = document.querySelector('#leynorLauncher');
+  const panel = document.querySelector('#leynorPanel');
+  if (!launcher || !panel) return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  if (panel.hidden) launcher.click();
+  else document.querySelector('#leynorInput')?.focus({ preventScroll: true });
+}
+
+function bindUnifiedAssistantTrigger(element) {
+  if (!element || element.dataset.unifiedLeynorAssistant === 'true') return;
+  element.dataset.unifiedLeynorAssistant = 'true';
+  element.addEventListener('click', openUnifiedAssistant, { capture: true });
+}
+
 function refineBrandCopy() {
   const subtitle = document.querySelector('.brand small');
   if (subtitle) subtitle.textContent = 'Votre copilote d’investissement';
 
-  const assistantButton = document.querySelector('.assistant-trigger');
-  if (assistantButton) {
-    assistantButton.innerHTML = '<span aria-hidden="true">✦</span> Parler à LEYNOR AI';
-    assistantButton.setAttribute('aria-label', 'Ouvrir LEYNOR AI');
-  }
+  document.querySelectorAll('.assistant-trigger, a[href="#assistant"], .ai-brief .text-button').forEach(element => {
+    bindUnifiedAssistantTrigger(element);
+    if (element.classList.contains('assistant-trigger')) {
+      element.innerHTML = '<span aria-hidden="true">✦</span> Parler à LEYNOR AI';
+      element.setAttribute('aria-label', 'Ouvrir l’assistant conversationnel et vocal LEYNOR AI');
+    }
+  });
 
   const orb = document.querySelector('.ai-orb');
   if (orb) {
