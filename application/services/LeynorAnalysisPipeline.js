@@ -37,6 +37,9 @@ export class LeynorAnalysisPipeline {
     conversationIntent = 'general_finance',
     responseMode = 'standard'
   } = {}) {
+    const normalizedQuestion = String(question ?? '').trim();
+    if (!normalizedQuestion) throw new TypeError('La question est obligatoire.');
+
     const weather = this.marketWeatherService.evaluate({
       ...marketIndicators,
       dataQuality: marketIndicators.dataQuality ?? market.dataQuality ?? 'complete',
@@ -60,7 +63,7 @@ export class LeynorAnalysisPipeline {
     });
     const contextJson = context.toJSON();
     const combinedEvidence = [...evidence, ...weatherJson.evidence];
-    const routedQuestion = `${question}\n\nIntention détectée : ${conversationIntent}. ${MODE_INSTRUCTIONS[responseMode] ?? MODE_INSTRUCTIONS.standard}`;
+    const routedQuestion = `${normalizedQuestion}\n\nIntention détectée : ${conversationIntent}. ${MODE_INSTRUCTIONS[responseMode] ?? MODE_INSTRUCTIONS.standard}`;
     const plan = this.orchestrator.prepare({
       question: routedQuestion,
       user: contextJson.user,
