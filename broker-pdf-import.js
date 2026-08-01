@@ -31,18 +31,22 @@ function parseNumber(value) {
 }
 
 function normalizeDate(value) {
-  const match = String(value || '').match(/(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
-  if (!match) return '';
-  const year = match[3].length === 2 ? `20${match[3]}` : match[3];
-  return `${year}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}`;
+  const input = String(value || '');
+  const iso = input.match(/\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/);
+  if (iso) return `${iso[1]}-${iso[2].padStart(2, '0')}-${iso[3].padStart(2, '0')}`;
+  const european = input.match(/\b(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})\b/);
+  if (!european) return '';
+  const year = european[3].length === 2 ? `20${european[3]}` : european[3];
+  return `${year}-${european[2].padStart(2, '0')}-${european[1].padStart(2, '0')}`;
 }
 
 function inferOperation(text) {
   const value = text.toLocaleLowerCase('fr');
-  if (/\b(achat|buy|bought|acquisition|exécuté achat)\b/.test(value)) return 'buy';
-  if (/\b(vente|sell|sold|cession|exécuté vente)\b/.test(value)) return 'sell';
-  if (/\b(dividende|dividend|distribution)\b/.test(value)) return 'cashflow';
-  if (/\b(dépôt|depot|deposit|versement|retrait|withdrawal|cash)\b/.test(value)) return 'cashflow';
+  if (/\b(achat|buy|bought|acquisition|purchase|exécuté achat|ordre d'achat)\b/.test(value)) return 'buy';
+  if (/\b(vente|sell|sold|cession|sale|exécuté vente|ordre de vente)\b/.test(value)) return 'sell';
+  if (/\b(dividende|dividend|distribution|coupon|intérêt|interest)\b/.test(value)) return 'cashflow';
+  if (/\b(dépôt|depot|deposit|versement|retrait|withdrawal|cash transfer|virement)\b/.test(value)) return 'cashflow';
+  if (/\b(solde espèces|cash balance|solde du compte|available cash)\b/.test(value)) return 'cash';
   return 'unknown';
 }
 
@@ -58,12 +62,12 @@ function findCurrency(text) {
 }
 
 function findTicker(text) {
-  const explicit = text.match(/(?:ticker|symbole|symbol)\s*[:\-]?\s*([A-Z][A-Z0-9.\-]{1,11})/i)?.[1];
+  const explicit = text.match(/(?:ticker|symbole|symbol|code valeur)\s*[:\-]?\s*([A-Z][A-Z0-9.\-]{1,15})/i)?.[1];
   return explicit?.toUpperCase() || '';
 }
 
 function extractLabelValue(text, labels) {
-  const pattern = new RegExp(`(?:${labels.join('|')})\\s*[:\\-]?\\s*([^\\n]{1,80})`, 'i');
+  const pattern = new RegExp(`(?:${labels.join('|')})\\s*[:\\-]?\\s*([^\\n]{1,100})`, 'i');
   return normalizeSpaces(text.match(pattern)?.[1] || '');
 }
 
@@ -74,9 +78,9 @@ function extractNumericValue(text, labels) {
 
 function splitIntoCandidates(text) {
   const normalized = text.replace(/\r/g, '\n').replace(/\n{3,}/g, '\n\n');
-  const blocks = normalized.split(/\n\s*\n|(?=\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b)/g)
+  const blocks = normalized.split(/\n\s*\n|(?=\b(?:\d{1,2}[./-]\d{1,2}[./-]\d{2,4}|20\d{2}-\d{1,2}-\d{1,2})\b)/g)
     .map(normalizeSpaces)
-    .filter(block => block.length >= 20);
+    .filter(block => block.length >= 16);
   return blocks.length ? blocks : [normalizeSpaces(normalized)];
 }
 
@@ -86,11 +90,12 @@ function parseCandidate(block, index, context) {
   const isin = findIsin(block);
   const ticker = findTicker(block);
   const currency = findCurrency(block);
-  const quantity = extractNumericValue(block, ['quantité', 'quantite', 'quantity', 'qty', 'nombre de titres', 'parts']);
-  let avgPrice = extractNumericValue(block, ['prix unitaire', 'cours', 'prix', 'price', 'unit price', 'prix d.exécution']);
-  const amount = extractNumericValue(block, ['montant total', 'montant', 'amount', 'total', 'valeur']);
-  const fees = extractNumericValue(block, ['frais', 'fees', 'commission']);
-  const rawName = extractLabelValue(block, ['instrument', 'titre', 'actif', 'produit', 'security', 'asset', 'nom']);
+  const quantity = extractNumericValue(block, ['quantité', 'quantite', 'quantity', 'qty', 'nombre de titres', 'parts', 'shares']);
+  let avgPrice = extractNumericValue(block, ['prix unitaire', 'cours exécuté', 'cours', 'prix', 'price', 'unit price', 'prix d.exécution', 'execution price']);
+  const amount = extractNumericValue(block, ['montant total', 'net amount', 'montant', 'amount', 'total', 'valeur', 'proceeds']);
+  const cash = extractNumericValue(block, ['solde espèces', 'cash balance', 'solde du compte', 'available cash']);
+  const fees = extractNumericValue(block, ['frais', 'fees', 'commission', 'courtage', 'brokerage']);
+  const rawName = extractLabelValue(block, ['instrument', 'titre', 'actif', 'produit', 'security', 'asset', 'nom', 'description']);
   const name = rawName || isin || ticker || `Opération PDF ${index + 1}`;
   if (!Number.isFinite(avgPrice) && Number.isFinite(amount) && Number.isFinite(quantity) && quantity !== 0) avgPrice = Math.abs(amount / quantity);
 
@@ -102,6 +107,7 @@ function parseCandidate(block, index, context) {
     if (!Number.isFinite(quantity) || quantity <= 0) messages.push('quantité absente');
     if (!Number.isFinite(avgPrice) || avgPrice <= 0) messages.push('prix absent');
   }
+  if (operation === 'cash' && !Number.isFinite(cash) && !Number.isFinite(amount)) messages.push('solde absent');
 
   return {
     id: `pdf_${context.broker}_${context.fileName}_${index}_${date}_${isin || ticker || name}`.replace(/\s+/g, '_'),
@@ -115,7 +121,7 @@ function parseCandidate(block, index, context) {
     quantity,
     avgPrice,
     amount,
-    cash: NaN,
+    cash: Number.isFinite(cash) ? cash : (operation === 'cash' && Number.isFinite(amount) ? amount : NaN),
     fees: Number.isFinite(fees) ? fees : 0,
     currency,
     duplicate: false,
