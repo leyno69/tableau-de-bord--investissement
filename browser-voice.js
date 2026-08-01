@@ -1,5 +1,6 @@
 const SpeechRecognition = globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition;
 const BUILD_ID = 'beta-20260801-brand-pronunciation';
+const PRONUNCIATION_REFERENCE = 'Léïnor, A I';
 
 let recognition = null;
 let speechPatched = false;
@@ -167,6 +168,7 @@ function handleMic(event) {
 function initializeBrowserVoice() {
   patchSpeechSynthesisPronunciation();
   document.documentElement.dataset.leynorBuild = BUILD_ID;
+  document.documentElement.dataset.leynorPronunciation = PRONUNCIATION_REFERENCE;
   const { mic } = assistantElements();
   if (!mic || mic.dataset.browserVoice === 'true') return false;
   mic.dataset.browserVoice = 'true';
@@ -186,4 +188,4 @@ function waitForAssistant() {
 
 waitForAssistant();
 
-export { BUILD_ID, initializeBrowserVoice, chooseFrenchVoice, submitTranscript, normalizeBrandPronunciation, patchSpeechSynthesisPronunciation, unlockSpeechSynthesis };
+export { BUILD_ID, PRONUNCIATION_REFERENCE, initializeBrowserVoice, chooseFrenchVoice, submitTranscript, normalizeBrandPronunciation, patchSpeechSynthesisPronunciation, unlockSpeechSynthesis };
