@@ -7,81 +7,94 @@ const KEYS = {
   fingerprints: 'leynor-broker-import-fingerprints-v1'
 };
 
-const state = {
-  file: null,
-  broker: 'trade-republic',
-  rows: [],
-  parsed: false
-};
+const BROKERS = Object.freeze([
+  ['trade-republic', 'Trade Republic', 'France'], ['revolut', 'Revolut', 'France'],
+  ['bourso-bank', 'BoursoBank / Boursorama', 'France'], ['fortuneo', 'Fortuneo', 'France'],
+  ['bourse-direct', 'Bourse Direct', 'France'], ['easybourse', 'EasyBourse', 'France'],
+  ['credit-agricole', 'Crédit Agricole Invest', 'France'], ['societe-generale', 'Société Générale', 'France'],
+  ['bnp-paribas', 'BNP Paribas', 'France'], ['hello-bank', 'Hello bank!', 'France'],
+  ['credit-mutuel', 'Crédit Mutuel', 'France'], ['cic', 'CIC', 'France'], ['lcl', 'LCL', 'France'],
+  ['caisse-epargne', "Caisse d'Épargne", 'France'], ['interactive-brokers', 'Interactive Brokers', 'International'],
+  ['degiro', 'DEGIRO', 'International'], ['saxo', 'Saxo', 'International'], ['etoro', 'eToro', 'International'],
+  ['trading-212', 'Trading 212', 'International'], ['xtb', 'XTB', 'International'],
+  ['scalable-capital', 'Scalable Capital', 'International'], ['charles-schwab', 'Charles Schwab', 'International'],
+  ['fidelity', 'Fidelity', 'International'], ['vanguard', 'Vanguard', 'International'],
+  ['robinhood', 'Robinhood', 'International'], ['webull', 'Webull', 'International'],
+  ['moomoo', 'Moomoo', 'International'], ['generic', 'Autre courtier', 'Autre']
+]);
 
-function load(key, fallback) {
-  try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; }
-}
+const state = { file: null, broker: 'trade-republic', rows: [], parsed: false, importing: false };
+
+function load(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } }
 function save(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
 function money(value) { return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(Number(value || 0)); }
 function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[char]); }
+function brokerLabel(value) { return BROKERS.find(([id]) => id === value)?.[1] || value; }
+function brokerOptions(filter = '') {
+  const term = filter.trim().toLocaleLowerCase('fr');
+  const visible = BROKERS.filter(([, label, region]) => !term || `${label} ${region}`.toLocaleLowerCase('fr').includes(term));
+  const groups = ['France', 'International', 'Autre'];
+  return groups.map(group => {
+    const rows = visible.filter(([, , region]) => region === group);
+    return rows.length ? `<optgroup label="${group}">${rows.map(([id, label]) => `<option value="${id}"${id === state.broker ? ' selected' : ''}>${escapeHtml(label)}</option>`).join('')}</optgroup>` : '';
+  }).join('');
+}
 
 function ensureUi() {
   if (document.getElementById('brokerImportDialog')) return;
   const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = 'broker-import.css';
-  document.head.append(link);
-
+  link.rel = 'stylesheet'; link.href = 'broker-import.css'; document.head.append(link);
   const button = document.createElement('button');
-  button.id = 'openBrokerImport';
-  button.className = 'btn secondary';
+  button.id = 'openBrokerImport'; button.className = 'btn secondary'; button.type = 'button';
   button.textContent = '⇩ Importer un portefeuille';
-  const anchor = document.getElementById('addPositionBtn');
-  anchor?.parentElement?.append(button);
+  document.getElementById('addPositionBtn')?.parentElement?.append(button);
 
   const dialog = document.createElement('dialog');
-  dialog.id = 'brokerImportDialog';
-  dialog.className = 'broker-import-dialog';
+  dialog.id = 'brokerImportDialog'; dialog.className = 'broker-import-dialog';
   dialog.innerHTML = `
-    <form method="dialog" class="import-shell" id="brokerImportForm">
+    <form class="import-shell" id="brokerImportForm">
       <header class="import-head">
-        <div><p class="eyebrow">IMPORT COURTIER</p><h2>Importer votre portefeuille</h2><span>Vos documents restent sur cet appareil pendant l’analyse locale.</span></div>
-        <button value="cancel" class="icon-btn" aria-label="Fermer">×</button>
+        <div><p class="eyebrow">IMPORT COURTIER</p><h2>Importer votre portefeuille</h2><span>Analyse locale, vérification obligatoire avant enregistrement.</span></div>
+        <button type="button" class="icon-btn" data-close-import aria-label="Fermer la fenêtre d’import">×</button>
       </header>
-
       <section class="import-step">
         <div class="import-grid">
-          <label class="field"><span>Courtier</span><select id="importBroker"><option value="trade-republic">Trade Republic</option><option value="revolut">Revolut</option><option value="generic">Autre courtier</option></select></label>
-          <label class="import-drop" for="brokerImportFile"><strong>Choisir un CSV ou un PDF</strong><small>CSV traité automatiquement. PDF préparé pour validation manuelle contrôlée.</small><input id="brokerImportFile" type="file" accept=".csv,.txt,.tsv,.pdf,text/csv,application/pdf" /></label>
+          <div class="broker-picker">
+            <label class="field" for="brokerSearch"><span>Rechercher un courtier</span><input class="broker-search" id="brokerSearch" type="search" placeholder="Trade Republic, Fortuneo, DEGIRO…" autocomplete="off"></label>
+            <label class="field" for="importBroker"><span>Courtier</span><select id="importBroker">${brokerOptions()}</select></label>
+          </div>
+          <label class="import-drop" for="brokerImportFile"><strong>Choisir un CSV ou un PDF</strong><small>CSV traité automatiquement. PDF conservé pour le futur parseur contrôlé.</small><input id="brokerImportFile" type="file" accept=".csv,.txt,.tsv,.pdf,text/csv,application/pdf"></label>
         </div>
         <div class="import-actions"><button type="button" class="btn" id="parseBrokerImport">Analyser le document</button><button type="button" class="btn secondary" id="downloadImportTemplate">Télécharger un modèle CSV</button></div>
-        <p class="import-status" id="brokerImportStatus">Aucun document sélectionné.</p>
+        <p class="import-status" id="brokerImportStatus" aria-live="polite">Aucun document sélectionné.</p>
       </section>
-
       <section class="import-step" id="importReview" hidden>
         <div class="panel-head"><div><p class="eyebrow">VÉRIFICATION OBLIGATOIRE</p><h3>Opérations reconnues</h3></div><span id="importSummary" class="badge"></span></div>
         <div class="import-warning">LEYNOR ne modifie rien avant votre confirmation. Les lignes incomplètes et les doublons sont ignorés.</div>
         <div class="import-table-wrap"><table class="import-table"><thead><tr><th>Inclure</th><th>Date</th><th>Opération</th><th>Actif</th><th>Qté</th><th>Prix</th><th>État</th></tr></thead><tbody id="importRows"></tbody></table></div>
-        <div class="import-actions"><button type="button" class="btn" id="confirmBrokerImport">Confirmer l’import</button><button type="button" class="btn secondary" id="resetBrokerImport">Recommencer</button></div>
+        <div class="import-actions import-review-actions"><button type="button" class="btn" id="confirmBrokerImport">Importer dans LEYNOR</button><button type="button" class="btn secondary" id="resetBrokerImport">Recommencer</button></div>
       </section>
-
-      <section class="import-step">
-        <div class="panel-head"><div><p class="eyebrow">HISTORIQUE</p><h3>Imports précédents</h3></div></div>
-        <div id="importHistory" class="import-history"></div>
-      </section>
-
-      <section class="import-step future-sync">
-        <div><p class="eyebrow">CONNEXION AUTOMATIQUE</p><h3>Architecture prête</h3><p>La connexion directe sera activée uniquement via une API officielle ou un agrégateur autorisé. LEYNOR ne demandera jamais votre code PIN, mot de passe ou code SMS.</p></div>
-        <button type="button" class="btn secondary" disabled>Connecter le courtier — bientôt</button>
-      </section>
+      <section class="import-step"><div class="panel-head"><div><p class="eyebrow">HISTORIQUE</p><h3>Imports précédents</h3></div></div><div id="importHistory" class="import-history"></div></section>
+      <section class="import-step future-sync"><div><p class="eyebrow">CONNEXION AUTOMATIQUE</p><h3>Architecture prête</h3><p>Elle sera activée uniquement via une API officielle ou un agrégateur autorisé. Aucun PIN, mot de passe ou code SMS ne sera demandé.</p></div><button type="button" class="btn secondary" disabled>Connecter le courtier — bientôt</button></section>
     </form>`;
   document.body.append(dialog);
-  bind(dialog, button);
-  renderHistory();
+  bind(dialog, button); renderHistory();
 }
 
 function bind(dialog, button) {
-  button?.addEventListener('click', () => { renderHistory(); dialog.showModal(); });
+  button?.addEventListener('click', () => { renderHistory(); dialog.showModal(); document.getElementById('brokerSearch')?.focus(); });
+  dialog.querySelector('[data-close-import]').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+  dialog.addEventListener('cancel', event => { event.preventDefault(); dialog.close(); });
+  document.getElementById('brokerSearch').addEventListener('input', event => {
+    const select = document.getElementById('importBroker');
+    select.innerHTML = brokerOptions(event.target.value);
+    if (![...select.options].some(option => option.value === state.broker)) state.broker = select.value || 'generic';
+  });
   document.getElementById('importBroker').addEventListener('change', event => { state.broker = event.target.value; });
   document.getElementById('brokerImportFile').addEventListener('change', event => {
-    state.file = event.target.files?.[0] || null;
-    setStatus(state.file ? `${state.file.name} sélectionné.` : 'Aucun document sélectionné.');
+    state.file = event.target.files?.[0] || null; state.parsed = false;
+    setStatus(state.file ? `${state.file.name} sélectionné. Appuyez sur Analyser.` : 'Aucun document sélectionné.');
   });
   document.getElementById('parseBrokerImport').addEventListener('click', parseFile);
   document.getElementById('confirmBrokerImport').addEventListener('click', confirmImport);
@@ -90,112 +103,70 @@ function bind(dialog, button) {
 }
 
 async function parseFile() {
-  if (!state.file) return setStatus('Sélectionnez d’abord un document.', true);
+  if (!state.file) return setStatus('Sélectionnez d’abord un document.', 'warning');
   const extension = state.file.name.split('.').pop().toLowerCase();
   if (extension === 'pdf' || state.file.type === 'application/pdf') {
-    state.rows = [manualPdfPlaceholder(state.file)];
-    state.parsed = true;
-    setStatus('PDF détecté. La bêta ne lit pas encore automatiquement son contenu : utilisez le modèle CSV ou saisissez les données après export.', true);
-    renderRows();
-    return;
+    state.rows = [manualPdfPlaceholder(state.file)]; state.parsed = true;
+    setStatus('PDF détecté. L’extraction automatique n’est pas encore activée : utilisez un CSV pour importer maintenant.', 'warning');
+    renderRows(); return;
   }
   try {
+    setStatus('Analyse du document en cours…');
     const text = await state.file.text();
     const parsed = parseDelimited(text);
     if (!parsed.rows.length) throw new Error('Aucune ligne détectée.');
     const normalized = normalizeBrokerRows(parsed.rows, { broker: state.broker, fileName: state.file.name });
-    state.rows = detectDuplicates(normalized, load(KEYS.fingerprints, []));
-    state.parsed = true;
-    setStatus(`${state.rows.length} ligne${state.rows.length > 1 ? 's' : ''} détectée${state.rows.length > 1 ? 's' : ''}.`);
+    state.rows = detectDuplicates(normalized, load(KEYS.fingerprints, [])); state.parsed = true;
+    setStatus(`${state.rows.length} ligne${state.rows.length > 1 ? 's' : ''} détectée${state.rows.length > 1 ? 's' : ''}. Vérifiez puis confirmez.`);
     renderRows();
-  } catch (error) {
-    setStatus(`Import impossible : ${error.message}`, true);
-  }
+  } catch (error) { setStatus(`Import impossible : ${error.message}`, 'warning'); }
 }
 
 function renderRows() {
-  const review = document.getElementById('importReview');
-  review.hidden = false;
+  const review = document.getElementById('importReview'); review.hidden = false;
   const body = document.getElementById('importRows');
   body.innerHTML = state.rows.map((row, index) => {
     const valid = row.status?.level === 'ok' && !row.duplicate;
     const label = row.duplicate ? 'Doublon' : row.status?.level === 'ok' ? 'Prêt' : row.status?.messages?.join(', ') || 'À vérifier';
-    return `<tr class="${valid ? '' : 'invalid'}">
-      <td><input type="checkbox" data-include="${index}" ${valid ? 'checked' : ''} ${valid ? '' : 'disabled'} /></td>
-      <td>${escapeHtml(row.date || '—')}</td>
-      <td>${escapeHtml(operationLabel(row.operation))}</td>
-      <td><strong>${escapeHtml(row.name)}</strong><small>${escapeHtml(row.ticker || row.isin || '')}</small></td>
-      <td>${Number.isFinite(row.quantity) ? row.quantity : '—'}</td>
-      <td>${Number.isFinite(row.avgPrice) ? money(row.avgPrice) : '—'}</td>
-      <td><span class="badge ${valid ? 'ok' : ''}">${escapeHtml(label)}</span></td>
-    </tr>`;
+    return `<tr class="${valid ? '' : 'invalid'}"><td><input type="checkbox" data-include="${index}" ${valid ? 'checked' : ''} ${valid ? '' : 'disabled'}></td><td>${escapeHtml(row.date || '—')}</td><td>${escapeHtml(operationLabel(row.operation))}</td><td><strong>${escapeHtml(row.name)}</strong><small>${escapeHtml(row.ticker || row.isin || '')}</small></td><td>${Number.isFinite(row.quantity) ? row.quantity : '—'}</td><td>${Number.isFinite(row.avgPrice) ? money(row.avgPrice) : '—'}</td><td><span class="badge ${valid ? 'ok' : ''}">${escapeHtml(label)}</span></td></tr>`;
   }).join('');
   const ready = state.rows.filter(row => row.status?.level === 'ok' && !row.duplicate).length;
   document.getElementById('importSummary').textContent = `${ready}/${state.rows.length} prêtes`;
+  document.getElementById('confirmBrokerImport').disabled = ready === 0;
+  review.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function confirmImport() {
-  if (!state.parsed) return;
+  if (!state.parsed || state.importing) return;
   const selected = [...document.querySelectorAll('[data-include]:checked')].map(input => state.rows[Number(input.dataset.include)]);
-  if (!selected.length) return setStatus('Aucune ligne valide sélectionnée.', true);
-  const current = load(KEYS.portfolio, { cash: 0, positions: [] });
-  const result = buildPortfolioPatch(selected, current);
-  save(KEYS.portfolio, result.portfolio);
-  const fingerprints = new Set(load(KEYS.fingerprints, []));
-  result.applied.forEach(row => fingerprints.add(row.id));
-  save(KEYS.fingerprints, [...fingerprints]);
-  const history = load(KEYS.imports, []);
-  history.unshift({
-    id: `batch_${Date.now()}`,
-    at: new Date().toISOString(),
-    broker: state.broker,
-    fileName: state.file?.name || 'import manuel',
-    applied: result.applied.length,
-    skipped: result.skipped.length
-  });
-  save(KEYS.imports, history.slice(0, 50));
-  setStatus(`${result.applied.length} opération${result.applied.length > 1 ? 's' : ''} importée${result.applied.length > 1 ? 's' : ''}. Rechargement du portefeuille…`);
-  renderHistory();
-  window.setTimeout(() => location.reload(), 900);
+  if (!selected.length) return setStatus('Aucune ligne valide sélectionnée.', 'warning');
+  state.importing = true;
+  const button = document.getElementById('confirmBrokerImport'); button.disabled = true; button.textContent = 'Import en cours…';
+  try {
+    const current = load(KEYS.portfolio, { cash: 0, positions: [] });
+    const result = buildPortfolioPatch(selected, current); save(KEYS.portfolio, result.portfolio);
+    const fingerprints = new Set(load(KEYS.fingerprints, [])); result.applied.forEach(row => fingerprints.add(row.id)); save(KEYS.fingerprints, [...fingerprints]);
+    const history = load(KEYS.imports, []); history.unshift({ id: `batch_${Date.now()}`, at: new Date().toISOString(), broker: state.broker, fileName: state.file?.name || 'import manuel', applied: result.applied.length, skipped: result.skipped.length }); save(KEYS.imports, history.slice(0, 50));
+    setStatus(`${result.applied.length} opération${result.applied.length > 1 ? 's' : ''} importée${result.applied.length > 1 ? 's' : ''} avec succès.`, 'success');
+    renderHistory(); button.textContent = 'Import terminé';
+    window.dispatchEvent(new CustomEvent('leynor:portfolio-imported', { detail: result }));
+    window.setTimeout(() => location.reload(), 1200);
+  } catch (error) {
+    state.importing = false; button.disabled = false; button.textContent = 'Importer dans LEYNOR'; setStatus(`Échec de l’import : ${error.message}`, 'warning');
+  }
 }
 
 function renderHistory() {
-  const target = document.getElementById('importHistory');
-  if (!target) return;
+  const target = document.getElementById('importHistory'); if (!target) return;
   const history = load(KEYS.imports, []);
   target.innerHTML = history.length ? history.map(item => `<article><div><strong>${escapeHtml(brokerLabel(item.broker))}</strong><small>${escapeHtml(item.fileName)}</small></div><div><span>${new Date(item.at).toLocaleString('fr-FR')}</span><small>${item.applied} intégrée${item.applied > 1 ? 's' : ''} · ${item.skipped} ignorée${item.skipped > 1 ? 's' : ''}</small></div></article>`).join('') : '<p class="empty">Aucun import enregistré sur cet appareil.</p>';
 }
 
-function reset() {
-  state.file = null; state.rows = []; state.parsed = false;
-  document.getElementById('brokerImportFile').value = '';
-  document.getElementById('importReview').hidden = true;
-  setStatus('Aucun document sélectionné.');
-}
-
-function downloadTemplate() {
-  const csv = 'Date;Operation;Name;Ticker;ISIN;Quantity;Avg Price;Amount;Currency;Fees;Cash\n01/08/2026;Achat;Exemple ETF Monde;WPEA;IE0002XZSHO1;2;5,50;11,00;EUR;1,00;\n01/08/2026;Solde espèces;;;;;;;EUR;;7,42\n';
-  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-  const anchor = document.createElement('a');
-  anchor.href = url; anchor.download = 'modele-import-leynor.csv'; anchor.click();
-  URL.revokeObjectURL(url);
-}
-
-function manualPdfPlaceholder(file) {
-  return {
-    id: `pdf_${Date.now()}`,
-    source: { broker: state.broker, fileName: file.name, row: 0 },
-    date: '', operation: 'unknown', name: file.name, ticker: '', isin: '', type: '', quantity: NaN, avgPrice: NaN, amount: NaN, cash: NaN, fees: 0, currency: 'EUR', duplicate: false,
-    status: { level: 'error', messages: ['Extraction PDF automatique non activée'] }
-  };
-}
-
-function setStatus(message, warning = false) {
-  const node = document.getElementById('brokerImportStatus');
-  node.textContent = message;
-  node.classList.toggle('warning', warning);
-}
+function reset() { state.file = null; state.rows = []; state.parsed = false; state.importing = false; document.getElementById('brokerImportFile').value = ''; document.getElementById('importReview').hidden = true; const button = document.getElementById('confirmBrokerImport'); button.disabled = false; button.textContent = 'Importer dans LEYNOR'; setStatus('Aucun document sélectionné.'); }
+function downloadTemplate() { const csv = 'Date;Operation;Name;Ticker;ISIN;Quantity;Avg Price;Amount;Currency;Fees;Cash\n01/08/2026;Achat;Exemple ETF Monde;WPEA;IE0002XZSHO1;2;5,50;11,00;EUR;1,00;\n01/08/2026;Solde espèces;;;;;;;EUR;;7,42\n'; const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'modele-import-leynor.csv'; anchor.click(); URL.revokeObjectURL(url); }
+function manualPdfPlaceholder(file) { return { id: `pdf_${Date.now()}`, source: { broker: state.broker, fileName: file.name, row: 0 }, date: '', operation: 'unknown', name: file.name, ticker: '', isin: '', type: '', quantity: NaN, avgPrice: NaN, amount: NaN, cash: NaN, fees: 0, currency: 'EUR', duplicate: false, status: { level: 'error', messages: ['Extraction PDF automatique non activée'] } }; }
+function setStatus(message, tone = '') { const node = document.getElementById('brokerImportStatus'); node.textContent = message; node.classList.toggle('warning', tone === 'warning'); node.classList.toggle('success', tone === 'success'); }
 function operationLabel(value) { return ({ buy: 'Achat', sell: 'Vente', cash: 'Solde espèces', cashflow: 'Flux', unknown: 'Non reconnu' })[value] || value; }
-function brokerLabel(value) { return ({ 'trade-republic': 'Trade Republic', revolut: 'Revolut', generic: 'Autre courtier' })[value] || value; }
 
 ensureUi();
+export { BROKERS };
