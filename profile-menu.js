@@ -1,3 +1,5 @@
+import './radar-freshness.js';
+
 const PROFILE_MENU_ID = 'leynor-profile-menu';
 const PROFILE_STYLE_ID = 'leynor-profile-menu-styles';
 const RESET_EVENT = 'leynor-local-profile-reset';
@@ -49,6 +51,12 @@ function clearLocalProfile(storage = localStorage, session = sessionStorage) {
   window.dispatchEvent(new CustomEvent(RESET_EVENT));
 }
 
+function updateGreeting(mode = localStorage.getItem(PROFILE_MODE_KEY)) {
+  const title = document.querySelector('#overview h1');
+  if (!title) return;
+  title.textContent = mode === 'guest' ? 'Bienvenue, voici l’essentiel.' : 'Bonjour Oscar, voici l’essentiel.';
+}
+
 function updateProfileCard(mode = localStorage.getItem(PROFILE_MODE_KEY)) {
   const card = document.querySelector('.profile-card');
   if (!card) return;
@@ -60,6 +68,7 @@ function updateProfileCard(mode = localStorage.getItem(PROFILE_MODE_KEY)) {
   if (name) name.textContent = guest ? 'Invité' : 'Oscar';
   if (subtitle) subtitle.textContent = guest ? 'Portefeuille privé masqué' : 'Profil investisseur';
   card.dataset.profileMode = guest ? 'guest' : 'private';
+  updateGreeting(mode);
 }
 
 function createProfileMenu() {
@@ -146,6 +155,7 @@ export {
   applyGuestData,
   restorePrivateData,
   clearLocalProfile,
+  updateGreeting,
   updateProfileCard,
   createProfileMenu
 };

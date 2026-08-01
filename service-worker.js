@@ -4,7 +4,7 @@ const APP_SHELL = [
   '/', '/index.html', '/offline.html', '/style.css', '/app.js',
   '/assistant-ui.js', '/assistant-memory.js', '/portfolio-assistant.js',
   '/server-sync.js', '/api-connection.js', '/api-fetch-router.js',
-  '/profile-menu.js', '/profile-menu.css', '/resolver-ui.js',
+  '/profile-menu.js', '/profile-menu.css', '/radar-freshness.js', '/resolver-ui.js',
   '/guided-tour.js', '/guided-tour.css', '/asset-details.js', '/asset-details.css',
   '/broker-import.js', '/broker-import-core.js', '/broker-import.css',
   '/broker-import-guide.js', '/broker-import-guide.css',
