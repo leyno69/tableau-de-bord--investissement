@@ -91,7 +91,7 @@ async function openDetails(item, type = 'asset') {
   const render = () => {
     const price = quote?.price ?? item.price;
     const change = quote?.percentChange ?? item.change;
-    content.innerHTML = `<header class="asset-details-head"><div><p>${type === 'portfolio' ? 'DÉTAIL DU PORTEFEUILLE' : 'FICHE ACTIF'}</p><h2>${item.name}</h2><span>${symbol}</span></div><button type="button" data-close aria-label="Fermer">×</button></header><section class="asset-quote"><strong>${money.format(Number(price || 0))}</strong><span class="${Number(change) >= 0 ? 'positive' : 'negative'}">${Number.isFinite(Number(change)) ? `${Number(change) >= 0 ? '+' : ''}${Number(change).toFixed(2)} %` : 'Variation indisponible'}</span></section><nav class="chart-ranges">${RANGES.map(range => `<button type="button" data-range="${range}" class="${range === activeRange ? 'active' : ''}">${range}</button>`).join('')}</nav><section class="chart-shell">${rangeState.loading ? '<div class="chart-empty">Chargement de l’historique…</div>' : chart(rangeState.points)}</section><footer class="asset-details-foot"><span>${quoteError || `Dernière donnée : ${quote?.datetime || item.marketUpdatedAt || 'cours enregistré localement'}`}</span><small>${rangeState.source || 'Aucune donnée historique chargée.'}${type === 'portfolio' ? ' Les périodes longues se construiront au fil des synchronisations.' : ''}</small></footer>`;
+    content.innerHTML = `<header class="asset-details-head"><div><p>${type === 'portfolio' ? 'DÉTAIL DU PORTEFEUILLE' : 'FICHE ACTIF'}</p><h2>${item.name}</h2><span>${symbol}</span></div><button type="button" data-close aria-label="Fermer">×</button></header><section class="asset-quote"><strong>${money.format(Number(price || 0))}</strong><span class="${Number(change) >= 0 ? 'positive' : 'negative'}">${Number.isFinite(Number(change)) ? `${Number(change) >= 0 ? '+' : ''}${Number(change).toFixed(2)} %` : 'Variation indisponible'}</span></section><nav class="chart-ranges">${RANGES.map(range => `<button type="button" data-range="${range}" class="${range === activeRange ? 'active' : ''}">${range}</button>`).join('')}</nav><section class="chart-shell">${rangeState.loading ? '<div class="chart-empty">Chargement de l’historique…</div>' : chart(rangeState.points)}</section><footer class="asset-details-foot"><span>${quoteError || `Dernière donnée : ${quote?.datetime || item.marketUpdatedAt || 'cours enregistré localement'}`}</span><small>${rangeState.source || 'Aucune donnée historique chargée.'}${type === 'portfolio' ? ' Les périodes longues se construiront au fil des synchronisations.' : ''} Le graphique affiche uniquement les observations réellement enregistrées ou l’historique quotidien contrôlé.</small></footer>`;
     content.querySelector('[data-close]').addEventListener('click', () => modal.close());
     content.querySelectorAll('[data-range]').forEach(button => button.addEventListener('click', async () => {
       activeRange = button.dataset.range;
@@ -134,9 +134,9 @@ function initEditableSettings() {
   const cashCard = document.getElementById('cashValue')?.closest('.metric-card');
   const note = cashCard?.querySelector('small');
   if (note) note.textContent = 'valeur locale — cliquez pour corriger';
-  makeEditableCard('#cashValue', 'Liquidités disponibles chez votre courtier :', () => portfolio().cash || 0, value => Number.isFinite(value) && value >= 0, value => {
+  makeEditableCard('#cashValue', 'Liquidités disponibles chez votre courtier :', () => portfolio().cash || 0, amount => Number.isFinite(amount) && amount >= 0, amount => {
     const data = portfolio();
-    data.cash = value;
+    data.cash = amount;
     localStorage.setItem(PORTFOLIO_KEY, JSON.stringify(data));
   }, 'Cliquer pour corriger les liquidités locales');
 }
