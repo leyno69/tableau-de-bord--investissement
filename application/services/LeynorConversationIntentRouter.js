@@ -1,6 +1,7 @@
 const GREETINGS = /^(bonjour|bonsoir|salut|hello|coucou|hey|bonjour leynor|salut leynor)[\s!.?]*$/i;
 const THANKS = /^(merci|merci beaucoup|super merci|parfait merci)[\s!.?]*$/i;
 const SHORT_VAGUE = /^(aide-moi|aide moi|que peux-tu faire|qu'est-ce que tu peux faire|quoi de neuf|analyse|conseille-moi|conseille moi)[\s!.?]*$/i;
+const CASUAL_CONVERSATION = /\b(comment vas-tu|quel âge|quel age|qui es-tu|parle-moi de toi|raconte|blague|météo|meteo|quel temps|bonjour.*temps|ça va|ca va)\b/i;
 
 const INTENTS = Object.freeze([
   ['simulation', /\b(simul|projection|scénario|scenario|monte[- ]carlo|dans \d+ ans|par mois pendant)\b/i],
@@ -31,24 +32,29 @@ export class LeynorConversationIntentRouter {
       return Object.freeze({
         intent: 'greeting',
         mode: 'brief',
-        directAnswer: `Bonjour${name ? ` ${name}` : ''} ! Que souhaites-tu faire aujourd’hui : analyser ton portefeuille, étudier un actif, comparer deux stratégies ou lancer une simulation ?`
+        directAnswer: `Bonjour${name ? ` ${name}` : ''} ! Que souhaites-tu faire aujourd’hui : discuter, analyser ton portefeuille, étudier un actif ou lancer une simulation ?`
       });
     }
 
     if (THANKS.test(text)) {
-      return Object.freeze({ intent: 'conversation', mode: 'brief', directAnswer: 'Avec plaisir. Quelle est la prochaine question que tu souhaites examiner ?' });
+      return Object.freeze({ intent: 'conversation', mode: 'brief', directAnswer: 'Avec plaisir. Que souhaites-tu faire ensuite ?' });
     }
 
     if (SHORT_VAGUE.test(text) || text.length < 4) {
       return Object.freeze({
         intent: 'clarification',
         mode: 'brief',
-        directAnswer: 'Précise ce que tu veux examiner : ton portefeuille, un actif, une comparaison, un risque ou une simulation.'
+        directAnswer: 'Précise ce que tu veux examiner : une question générale, ton portefeuille, un actif, une comparaison ou une simulation.'
       });
     }
 
+    if (CASUAL_CONVERSATION.test(text)) {
+      return Object.freeze({ intent: 'general_conversation', mode: 'brief', directAnswer: null });
+    }
+
     const detected = INTENTS.find(([, pattern]) => pattern.test(text));
-    return Object.freeze({ intent: detected?.[0] ?? 'general_finance', mode: responseMode(text), directAnswer: null });
+    if (detected) return Object.freeze({ intent: detected[0], mode: responseMode(text), directAnswer: null });
+    return Object.freeze({ intent: 'general_conversation', mode: 'brief', directAnswer: null });
   }
 }
 

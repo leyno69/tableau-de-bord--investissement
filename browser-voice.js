@@ -1,9 +1,7 @@
 const SpeechRecognition = globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition;
-const BUILD_ID = 'beta-20260801-voice-proxy';
+const BUILD_ID = 'beta-20260801-direct-voice';
 
 let recognition = null;
-let voiceRequestPending = false;
-let lastSpokenText = '';
 
 function assistantElements() {
   return {
@@ -40,47 +38,12 @@ function chooseFrenchVoice() {
     || null;
 }
 
-function speak(text) {
-  if (!globalThis.speechSynthesis || !globalThis.SpeechSynthesisUtterance || !text) return;
-  globalThis.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'fr-FR';
-  utterance.rate = 1.02;
-  utterance.pitch = 1;
-  const voice = chooseFrenchVoice();
-  if (voice) utterance.voice = voice;
-  globalThis.speechSynthesis.speak(utterance);
-}
-
-function latestAssistantText() {
-  const messages = [...document.querySelectorAll('#leynorMessages .leynor-message.assistant:not(.notice):not(.leynor-thinking-message)')];
-  const last = messages.at(-1);
-  return last?.querySelector('div')?.textContent?.trim() || last?.textContent?.trim() || '';
-}
-
-function observeVoiceReply() {
-  const { messages } = assistantElements();
-  if (!messages || messages.dataset.voiceObserver === 'true') return;
-  messages.dataset.voiceObserver = 'true';
-  const observer = new MutationObserver(() => {
-    if (!voiceRequestPending) return;
-    const text = latestAssistantText();
-    if (!text || text === lastSpokenText) return;
-    if (/analyse en cours/i.test(text)) return;
-    lastSpokenText = text;
-    voiceRequestPending = false;
-    speak(text);
-  });
-  observer.observe(messages, { childList: true, subtree: true });
-}
-
 function submitTranscript(transcript) {
   const { input, form } = assistantElements();
   const text = String(transcript || '').trim();
   if (!input || !form || !text) return;
   input.value = text;
   input.dispatchEvent(new Event('input', { bubbles: true }));
-  voiceRequestPending = true;
   form.requestSubmit();
 }
 
@@ -155,7 +118,6 @@ function initializeBrowserVoice() {
   mic.dataset.browserVoice = 'true';
   mic.title = SpeechRecognition ? 'Parler à LEYNOR AI' : 'Reconnaissance vocale non prise en charge';
   mic.addEventListener('click', handleMic, { capture: true });
-  observeVoiceReply();
   return true;
 }
 

@@ -11,7 +11,8 @@ test('LEYNOR AI exposes explicit living presence states', async () => {
     assert.match(source, new RegExp(`${presence}:`));
   }
   assert.match(source, /data-presence|dataset\.presence/);
-  assert.match(source, /Que souhaites-tu analyser aujourd’hui/);
+  assert.match(source, /Que souhaites-tu faire aujourd’hui/);
+  assert.match(source, /Conversation libre, finance, portefeuille/);
   assert.match(source, /Ouvrir LEYNOR AI/);
 });
 

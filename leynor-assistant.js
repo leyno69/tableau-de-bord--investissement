@@ -12,7 +12,7 @@ const PRESENCE_STATES = Object.freeze({
   error: 'Connexion à vérifier'
 });
 
-const state = { messages: loadMessages(), pending: false, presence: 'idle' };
+const state = { messages: loadMessages(), pending: false, presence: 'idle', voiceEnabled: true, lastAnswer: '' };
 
 function loadMessages() {
   try {
@@ -21,7 +21,7 @@ function loadMessages() {
   } catch {}
   return [createConversationMessage({
     role: 'assistant',
-    content: 'Bonjour, je suis LEYNOR AI. Je peux t’aider à comprendre ton portefeuille, tes performances et les mécanismes financiers. Que souhaites-tu analyser aujourd’hui ?'
+    content: 'Bonjour, je suis LEYNOR AI. Pose-moi une question librement : je peux converser, expliquer un sujet, analyser un actif, ton portefeuille ou lancer une simulation.'
   })];
 }
 
@@ -50,6 +50,31 @@ function injectStylesheet() {
   link.href = './leynor-assistant.css';
   link.dataset.leynorAssistant = 'true';
   document.head.append(link);
+}
+
+function chooseFrenchVoice() {
+  const voices = globalThis.speechSynthesis?.getVoices?.() || [];
+  return voices.find(voice => /^fr[-_]/i.test(voice.lang) && /premium|enhanced|natural/i.test(voice.name))
+    || voices.find(voice => /^fr[-_]/i.test(voice.lang))
+    || null;
+}
+
+function speakAnswer(text) {
+  const normalized = String(text || '').trim();
+  if (!state.voiceEnabled || !normalized || !globalThis.speechSynthesis || !globalThis.SpeechSynthesisUtterance) return false;
+  globalThis.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(normalized);
+  utterance.lang = 'fr-FR';
+  utterance.rate = 1.02;
+  utterance.pitch = 1;
+  const voice = chooseFrenchVoice();
+  if (voice) utterance.voice = voice;
+  utterance.onstart = () => setPresence('speaking');
+  utterance.onend = () => setPresence('idle');
+  utterance.onerror = () => setPresence('idle');
+  state.lastAnswer = normalized;
+  globalThis.speechSynthesis.speak(utterance);
+  return true;
 }
 
 function presenceMarkup({ compact = false } = {}) {
@@ -91,6 +116,7 @@ function createInterface() {
   panel.className = 'leynor-panel';
   panel.hidden = true;
   panel.dataset.presence = state.presence;
+  panel.dataset.directVoice = 'true';
   panel.setAttribute('aria-label', 'Conversation avec LEYNOR AI');
   panel.innerHTML = `
     <header class="leynor-head">
@@ -101,7 +127,7 @@ function createInterface() {
       </div></div>
       <button class="leynor-close" type="button" aria-label="Fermer">×</button>
     </header>
-    <div class="leynor-welcome"><strong>Que souhaites-tu analyser aujourd’hui ?</strong><span>Portefeuille, stratégie, risque ou compréhension d’un mécanisme financier.</span></div>
+    <div class="leynor-welcome"><strong>Que souhaites-tu faire aujourd’hui ?</strong><span>Conversation libre, finance, portefeuille, stratégie, pédagogie ou simulation.</span></div>
     <div id="leynorMessages" class="leynor-messages" aria-live="polite"></div>
     <form id="leynorForm" class="leynor-form">
       <button class="leynor-mic" type="button" aria-pressed="false" title="Activer l’écoute LEYNOR AI"><span aria-hidden="true">◉</span><span class="sr-only">Activer l’écoute</span></button>
@@ -133,22 +159,9 @@ function bindEvents() {
   const mic = panel.querySelector('.leynor-mic');
 
   launcher.addEventListener('click', () => { panel.hidden = false; launcher.hidden = true; input.focus(); });
-  panel.querySelector('.leynor-close').addEventListener('click', () => { panel.hidden = true; launcher.hidden = false; setPresence('idle'); });
-  mic.addEventListener('click', () => {
-    const listening = mic.getAttribute('aria-pressed') !== 'true';
-    mic.setAttribute('aria-pressed', String(listening));
-    setPresence(listening ? 'listening' : 'idle');
-    input.placeholder = listening ? 'LEYNOR AI vous écoute…' : 'Écrivez votre question…';
-    if (listening) window.setTimeout(() => {
-      if (mic.getAttribute('aria-pressed') === 'true') {
-        mic.setAttribute('aria-pressed', 'false');
-        input.placeholder = 'Écrivez votre question…';
-        setPresence('idle');
-        appendTransientError('Le module vocal est prêt visuellement. La transcription sera activée avec le fournisseur vocal dédié.');
-      }
-    }, 4500);
-  });
+  panel.querySelector('.leynor-close').addEventListener('click', () => { panel.hidden = true; launcher.hidden = false; globalThis.speechSynthesis?.cancel?.(); setPresence('idle'); });
   input.addEventListener('input', () => {
+    state.voiceEnabled = true;
     document.querySelector('#leynorSend').disabled = state.pending || !input.value.trim();
     input.style.height = 'auto';
     input.style.height = `${Math.min(input.scrollHeight, 120)}px`;
@@ -157,16 +170,23 @@ function bindEvents() {
     if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); panel.querySelector('#leynorForm').requestSubmit(); }
   });
   panel.querySelector('#leynorForm').addEventListener('submit', sendMessage);
+  panel.querySelector('#leynorMessages').addEventListener('click', event => {
+    const replay = event.target.closest('[data-replay-message]');
+    if (!replay) return;
+    const index = Number(replay.dataset.replayMessage);
+    const message = state.messages[index];
+    if (message?.role === 'assistant') speakAnswer(message.content);
+  });
 }
 
 function renderMessages() {
   const container = document.querySelector('#leynorMessages');
   if (!container) return;
-  container.innerHTML = state.messages.map(message => `
+  container.innerHTML = state.messages.map((message, index) => `
     <article class="leynor-message ${message.role}">
       <div>${escapeHtml(message.content)}</div>
       ${message.role === 'assistant' ? cardMarkup(normalizeFinancialCards(message.cards)) : ''}
-      <small>${formatTime(message.createdAt)}</small>
+      <footer class="leynor-message-footer"><small>${formatTime(message.createdAt)}</small>${message.role === 'assistant' ? `<button type="button" class="leynor-replay" data-replay-message="${index}" aria-label="Réécouter cette réponse">🔊 Réécouter</button>` : ''}</footer>
     </article>`).join('');
   if (state.pending) container.insertAdjacentHTML('beforeend', `
     <article class="leynor-message assistant leynor-thinking-message" aria-label="LEYNOR AI réfléchit">
@@ -188,6 +208,8 @@ async function sendMessage(event) {
   const question = input.value.trim();
   if (!question) return;
 
+  state.voiceEnabled = true;
+  globalThis.speechSynthesis?.cancel?.();
   const portfolio = readPortfolio();
   const previousConversation = state.messages.slice(-8);
   state.messages.push(createConversationMessage({ role: 'user', content: question }));
@@ -199,6 +221,7 @@ async function sendMessage(event) {
   persistMessages();
   renderMessages();
 
+  let answerToSpeak = '';
   try {
     const token = localStorage.getItem(API_TOKEN_KEY) || '';
     const response = await fetch('./leynor/assistant/answer', {
@@ -210,23 +233,22 @@ async function sendMessage(event) {
     if (!response.ok) throw new Error(payload?.error?.message || `Erreur LEYNOR (${response.status})`);
     const answer = payload?.data?.answer;
     if (!answer) throw new Error('LEYNOR AI n’a retourné aucune réponse.');
-    setPresence('speaking');
     const cards = normalizeFinancialCards(payload?.data?.cards?.length ? payload.data.cards : buildFinancialCards(portfolio));
     state.messages.push(Object.freeze({ ...createConversationMessage({ role: 'assistant', content: answer }), cards }));
+    answerToSpeak = answer;
     persistMessages();
   } catch (error) {
     setPresence('error');
-    state.messages.push(createConversationMessage({
-      role: 'assistant',
-      content: `Je ne peux pas répondre pour le moment. ${error instanceof Error ? error.message : 'Vérifiez la connexion au serveur.'}`
-    }));
+    const failure = `Je ne peux pas répondre pour le moment. ${error instanceof Error ? error.message : 'Vérifiez la connexion au serveur.'}`;
+    state.messages.push(createConversationMessage({ role: 'assistant', content: failure }));
+    answerToSpeak = failure;
   } finally {
     state.pending = false;
     renderMessages();
-    window.setTimeout(() => setPresence('idle'), state.presence === 'speaking' ? 1800 : 2600);
+    if (!speakAnswer(answerToSpeak)) window.setTimeout(() => setPresence('idle'), 1200);
     input.focus();
   }
 }
 
 createInterface();
-export { PRESENCE_STATES, setPresence };
+export { PRESENCE_STATES, setPresence, chooseFrenchVoice, speakAnswer };

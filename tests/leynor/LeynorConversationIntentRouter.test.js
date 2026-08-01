@@ -20,6 +20,15 @@ test('le routeur distingue simulation, comparaison et pédagogie', () => {
   assert.equal(router.route({ question: "Explique comment fonctionne une obligation" }).intent, 'education');
 });
 
+test('les questions non financières utilisent une conversation brève', () => {
+  const weather = router.route({ question: "Quel temps va-t-il faire aujourd'hui ?" });
+  const casual = router.route({ question: 'Quel âge as-tu ?' });
+  assert.equal(weather.intent, 'general_conversation');
+  assert.equal(weather.mode, 'brief');
+  assert.equal(casual.intent, 'general_conversation');
+  assert.equal(casual.mode, 'brief');
+});
+
 test('le niveau expert augmente le budget de réponse', async () => {
   let generationInput;
   const service = new LeynorAssistantService({

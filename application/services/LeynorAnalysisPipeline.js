@@ -10,6 +10,12 @@ const MODE_INSTRUCTIONS = Object.freeze({
   expert: 'Produis une analyse approfondie, explicite les hypothèses, les risques, les limites et les éléments à vérifier.'
 });
 
+const INTENT_INSTRUCTIONS = Object.freeze({
+  general_conversation: 'La question n’est pas financière. Réponds naturellement en un seul paragraphe court, sans titres, sans sections Introduction/Faits/Conclusion, sans métaphore financière forcée et sans ramener inutilement la réponse à l’investissement.',
+  greeting: 'Réponds comme dans une conversation naturelle et brève.',
+  conversation: 'Réponds comme dans une conversation naturelle et brève.'
+});
+
 export class LeynorAnalysisPipeline {
   constructor({
     contextBuilder = new LeynorContextBuilder(),
@@ -63,7 +69,8 @@ export class LeynorAnalysisPipeline {
     });
     const contextJson = context.toJSON();
     const combinedEvidence = [...evidence, ...weatherJson.evidence];
-    const routedQuestion = `${normalizedQuestion}\n\nIntention détectée : ${conversationIntent}. ${MODE_INSTRUCTIONS[responseMode] ?? MODE_INSTRUCTIONS.standard}`;
+    const intentInstruction = INTENT_INSTRUCTIONS[conversationIntent] || '';
+    const routedQuestion = `${normalizedQuestion}\n\nIntention détectée : ${conversationIntent}. ${MODE_INSTRUCTIONS[responseMode] ?? MODE_INSTRUCTIONS.standard} ${intentInstruction}`.trim();
     const plan = this.orchestrator.prepare({
       question: routedQuestion,
       user: contextJson.user,
