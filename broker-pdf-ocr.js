@@ -71,6 +71,20 @@ export async function extractPdfTextWithOcr(pdfDocument, { onProgress, maxPages 
   };
 }
 
+function updateImportCopy() {
+  if (typeof document === 'undefined') return;
+  const dropHint = document.querySelector('label.import-drop small');
+  if (dropHint) dropHint.textContent = 'CSV, PDF texte et PDF scannés analysés localement. Vérification obligatoire avant import.';
+  const notice = document.querySelector('.pdf-import-notice');
+  if (notice) notice.innerHTML = '<strong>Import PDF avec OCR local</strong><br>LEYNOR lit d’abord la couche texte puis utilise la reconnaissance d’image si le document est scanné. Le fichier reste sur cet appareil.';
+}
+
+if (typeof document !== 'undefined') {
+  new MutationObserver(updateImportCopy).observe(document.documentElement, { childList: true, subtree: true });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', updateImportCopy);
+  else updateImportCopy();
+}
+
 export const OCR_IMPORT_ENGINE = Object.freeze({
   name: 'Tesseract.js',
   version: TESSERACT_VERSION,
@@ -78,3 +92,5 @@ export const OCR_IMPORT_ENGINE = Object.freeze({
   maxPages: MAX_OCR_PAGES,
   local: true
 });
+
+export { cleanOcrText, updateImportCopy };
