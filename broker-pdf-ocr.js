@@ -43,11 +43,7 @@ export async function extractPdfTextWithOcr(pdfDocument, { onProgress, maxPages 
   if (!pdfDocument?.numPages || typeof pdfDocument.getPage !== 'function') throw new TypeError('Un document PDF.js valide est requis pour l’OCR.');
   const pageCount = Math.min(pdfDocument.numPages, Math.max(1, Number(maxPages) || MAX_OCR_PAGES));
   const { createWorker } = await loadTesseract();
-  const worker = await createWorker(OCR_LANGUAGES, 1, {
-    logger(message) {
-      if (message?.status === 'recognizing text') onProgress?.({ phase: 'ocr', page: null, total: pageCount, progress: Number(message.progress || 0) });
-    }
-  });
+  const worker = await createWorker(OCR_LANGUAGES, 1);
 
   const pages = [];
   try {
