@@ -1,0 +1,206 @@
+.import-wizard {
+  width: min(760px, calc(100vw - 24px));
+  max-width: 100%;
+  max-height: min(900px, calc(var(--leynor-visual-height, 100dvh) - 16px));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border-radius: 24px;
+}
+
+.import-wizard__header {
+  position: relative;
+  z-index: 3;
+  padding: 22px 72px 16px 22px;
+  background: inherit;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.import-wizard__eyebrow {
+  margin: 0 0 4px;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  opacity: .62;
+}
+
+.import-wizard__header h2 {
+  margin: 0;
+  font-size: clamp(1.15rem, 4vw, 1.65rem);
+  line-height: 1.15;
+}
+
+.import-wizard__progress {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 18px;
+}
+
+.import-wizard__dot {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.import-wizard__dot span {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  font-size: .78rem;
+  font-weight: 800;
+  transition: transform .18s ease, background .18s ease;
+}
+
+.import-wizard__dot small {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .66rem;
+  opacity: .58;
+}
+
+.import-wizard__dot.is-active span,
+.import-wizard__dot.is-complete span {
+  background: var(--accent, #7c5cff);
+  color: #fff;
+}
+
+.import-wizard__dot.is-active span {
+  transform: scale(1.08);
+}
+
+.import-wizard__body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px 22px 28px;
+  scroll-padding-bottom: 120px;
+}
+
+.import-wizard__panel[hidden] {
+  display: none !important;
+}
+
+.import-wizard__panel {
+  min-height: 180px;
+}
+
+.import-wizard__footer {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  background: color-mix(in srgb, var(--surface, #111827) 94%, transparent);
+  backdrop-filter: blur(18px);
+}
+
+.import-wizard__footer .btn {
+  min-height: 46px;
+}
+
+.import-wizard__footer-spacer {
+  flex: 1;
+}
+
+.import-wizard [data-close-import] {
+  position: absolute !important;
+  top: max(14px, env(safe-area-inset-top)) !important;
+  right: 14px !important;
+  z-index: 8 !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 16px !important;
+}
+
+@media (max-width: 760px) {
+  #brokerImportDialog {
+    padding: 6px !important;
+    align-items: center !important;
+  }
+
+  .import-wizard {
+    width: calc(100vw - 12px);
+    height: calc(var(--leynor-visual-height, 100dvh) - 12px);
+    max-height: calc(var(--leynor-visual-height, 100dvh) - 12px);
+    border-radius: 20px;
+  }
+
+  .import-wizard__header {
+    padding: 18px 62px 12px 16px;
+  }
+
+  .import-wizard__progress {
+    gap: 2px;
+    margin-top: 14px;
+  }
+
+  .import-wizard__dot span {
+    width: 27px;
+    height: 27px;
+  }
+
+  .import-wizard__dot small {
+    font-size: .58rem;
+  }
+
+  .import-wizard__body {
+    padding: 16px;
+  }
+
+  .import-wizard__footer {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    padding-inline: 12px;
+  }
+
+  .import-wizard__footer-spacer {
+    display: none;
+  }
+
+  .import-wizard__footer [data-close-import-footer] {
+    display: none;
+  }
+
+  .import-wizard__footer [data-wizard-next] {
+    grid-column: 3;
+  }
+
+  .import-wizard input[type="file"] {
+    width: 100%;
+    max-width: 100%;
+    min-height: 52px;
+  }
+
+  .import-wizard .import-step,
+  .import-wizard fieldset,
+  .import-wizard section {
+    max-width: 100%;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 390px) {
+  .import-wizard__dot small {
+    display: none;
+  }
+
+  .import-wizard__progress {
+    margin-top: 10px;
+  }
+}

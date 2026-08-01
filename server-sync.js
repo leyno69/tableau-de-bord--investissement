@@ -10,6 +10,7 @@ import './asset-details.js';
 import './asset-chart-touch.js';
 import './mobile-experience-fixes.js';
 import './broker-import-mobile-fixes.js';
+import './broker-import-wizard.js';
 import './refresh-runtime.js';
 import { apiUrl, getApiBaseUrl, getApiToken, setApiBaseUrl, setApiToken, usesSecureProxy } from './api-connection.js';
 
