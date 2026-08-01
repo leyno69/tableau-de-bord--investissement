@@ -8,7 +8,7 @@ const details = await readFile(new URL('../../asset-details.js', import.meta.url
 
 test('le bouton de compte mobile reste visible et restaure le profil local', () => {
   assert.match(source, /Connexion à mon compte/);
-  assert.match(source, /data\.mobileAccount/);
+  assert.match(source, /dataset\.mobileAccount/);
   assert.match(source, /@media \(max-width:680px\)/);
   assert.match(source, /restorePrivateProfile/);
 });
