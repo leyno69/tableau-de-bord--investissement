@@ -6,6 +6,7 @@ import './leynor-assistant.js';
 import './browser-voice.js';
 import './guided-tour.js';
 import './opportunity-radar-ui.js';
+import './asset-details.js';
 import { apiUrl, getApiBaseUrl, getApiToken, setApiBaseUrl, setApiToken, usesSecureProxy } from './api-connection.js';
 
 function addNavigationLink({ href, label, icon, marker, before }) {
