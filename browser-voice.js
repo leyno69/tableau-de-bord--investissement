@@ -1,5 +1,5 @@
 const SpeechRecognition = globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition;
-const BUILD_ID = 'beta-20260801-market-voice-brand';
+const BUILD_ID = 'beta-20260801-brand-pronunciation';
 
 let recognition = null;
 let speechPatched = false;
@@ -7,7 +7,8 @@ let speechUnlocked = false;
 
 function normalizeBrandPronunciation(text) {
   return String(text || '')
-    .replace(/\bLEYNOR\s+(?:AI|A\s*I|IA)\b/gi, 'Lé-ï-nor, A, I')
+    .replace(/\bLEYNOR\s+AI\b/gi, 'Lé-ï-nor, A, I')
+    .replace(/\bLEYNOR\s+(?:A\s*I|IA)\b/gi, 'Lé-ï-nor, A, I')
     .replace(/\bLEYNOR\b/gi, 'Lé-ï-nor');
 }
 
