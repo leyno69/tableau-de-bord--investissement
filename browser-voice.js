@@ -31,6 +31,13 @@ function setListening(active) {
   if (panel) panel.dataset.presence = active ? 'listening' : 'idle';
 }
 
+function chooseFrenchVoice() {
+  const voices = globalThis.speechSynthesis?.getVoices?.() || [];
+  return voices.find(voice => /^fr[-_]/i.test(voice.lang) && /premium|enhanced|natural/i.test(voice.name))
+    || voices.find(voice => /^fr[-_]/i.test(voice.lang))
+    || null;
+}
+
 function submitTranscript(transcript) {
   const { input, form } = assistantElements();
   const text = String(transcript || '').trim();
@@ -124,4 +131,4 @@ function waitForAssistant() {
 
 waitForAssistant();
 
-export { BUILD_ID, initializeBrowserVoice, submitTranscript };
+export { BUILD_ID, initializeBrowserVoice, chooseFrenchVoice, submitTranscript };
