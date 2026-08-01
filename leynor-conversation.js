@@ -5,6 +5,14 @@ const DEFAULT_USER = Object.freeze({
   objective: 'Comprendre et piloter son patrimoine sur le long terme'
 });
 
+const RESPONSE_RULES = [
+  'Réponds d’abord et directement à la dernière question exacte de l’utilisateur.',
+  'Ne réutilise jamais une ancienne question comme sujet principal.',
+  'Pour une question générale ou personnelle sur LEYNOR, réponds brièvement sans structure financière.',
+  'N’invente aucune donnée en temps réel. Signale clairement les données indisponibles.',
+  'Ton nom de marque est LEYNOR AI.'
+].join(' ');
+
 export function createConversationMessage({ role, content, createdAt = new Date().toISOString() } = {}) {
   if (!['user', 'assistant'].includes(role)) throw new TypeError('Le rôle du message est invalide.');
   const normalizedContent = String(content ?? '').trim();
@@ -31,8 +39,14 @@ export function buildAssistantRequest({ question, portfolio = {}, conversation =
     .map(message => `${message.role === 'user' ? 'Utilisateur' : 'LEYNOR'} : ${message.content}`)
     .join('\n');
 
+  const prompt = [
+    `Instruction prioritaire : ${RESPONSE_RULES}`,
+    `Question actuelle : ${contextualQuestion}`,
+    recentContext ? `Contexte antérieur uniquement si utile :\n${recentContext}` : ''
+  ].filter(Boolean).join('\n\n');
+
   return Object.freeze({
-    question: recentContext ? `${contextualQuestion}\n\nContexte récent de la conversation :\n${recentContext}` : contextualQuestion,
+    question: prompt,
     user: DEFAULT_USER,
     portfolio: Object.freeze({
       value,
