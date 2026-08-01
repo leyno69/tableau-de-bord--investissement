@@ -13,7 +13,10 @@ const PRESENCE_STATES = Object.freeze({
   error: 'Connexion à vérifier'
 });
 
-const DEFAULT_VOICE_SETTINGS = Object.freeze({ rate: 0.94, pitch: 0.98, volume: 1 });
+const VOICE_PREFERENCES = Object.freeze(['auto', 'female', 'male']);
+const FEMALE_VOICE_PATTERN = /audrey|aurélie|aurelie|amelie|amélie|marie|hortense|virginie|julie|celine|céline|lea|léa|alice|sophie|claire|denise|eloise|éloïse|charlotte|isabelle|valerie|valérie/i;
+const MALE_VOICE_PATTERN = /thomas|henri|paul|nicolas|antoine|luc|mathieu|pierre|alain|claude|daniel|gerard|gérard|jacques|jean|louis|remy|rémy/i;
+const DEFAULT_VOICE_SETTINGS = Object.freeze({ rate: 0.94, pitch: 0.98, volume: 1, preference: 'female' });
 const state = { messages: loadMessages(), pending: false, presence: 'idle', voiceEnabled: true, lastAnswer: '' };
 
 function loadMessages() {
@@ -41,11 +44,19 @@ function readVoiceSettings() {
     return {
       rate: Number.isFinite(stored.rate) ? Math.min(1.08, Math.max(0.82, stored.rate)) : DEFAULT_VOICE_SETTINGS.rate,
       pitch: Number.isFinite(stored.pitch) ? Math.min(1.12, Math.max(0.86, stored.pitch)) : DEFAULT_VOICE_SETTINGS.pitch,
-      volume: Number.isFinite(stored.volume) ? Math.min(1, Math.max(0.2, stored.volume)) : DEFAULT_VOICE_SETTINGS.volume
+      volume: Number.isFinite(stored.volume) ? Math.min(1, Math.max(0.2, stored.volume)) : DEFAULT_VOICE_SETTINGS.volume,
+      preference: VOICE_PREFERENCES.includes(stored.preference) ? stored.preference : DEFAULT_VOICE_SETTINGS.preference
     };
   } catch {
     return { ...DEFAULT_VOICE_SETTINGS };
   }
+}
+
+function saveVoicePreference(preference) {
+  const settings = readVoiceSettings();
+  const normalized = VOICE_PREFERENCES.includes(preference) ? preference : DEFAULT_VOICE_SETTINGS.preference;
+  localStorage.setItem(VOICE_SETTINGS_KEY, JSON.stringify({ ...settings, preference: normalized }));
+  return normalized;
 }
 
 function formatTime(value) {
@@ -67,7 +78,14 @@ function injectStylesheet() {
   document.head.append(link);
 }
 
-function voiceScore(voice) {
+function inferredVoiceGender(voice) {
+  const name = `${voice?.name || ''} ${voice?.voiceURI || ''}`;
+  if (FEMALE_VOICE_PATTERN.test(name)) return 'female';
+  if (MALE_VOICE_PATTERN.test(name)) return 'male';
+  return 'unknown';
+}
+
+function voiceScore(voice, preference = 'auto') {
   const name = `${voice.name || ''} ${voice.voiceURI || ''}`.toLowerCase();
   const language = String(voice.lang || '').replace('_', '-').toLowerCase();
   let score = 0;
@@ -75,18 +93,23 @@ function voiceScore(voice) {
   else if (language.startsWith('fr-')) score += 60;
   else return -1000;
   if (/premium|enhanced|natural|neural|studio|eloquence/.test(name)) score += 80;
-  if (/audrey|aurélie|amelie|amélie|marie|thomas|henri|hortense|virginie/.test(name)) score += 35;
+  if (FEMALE_VOICE_PATTERN.test(name) || MALE_VOICE_PATTERN.test(name)) score += 35;
+  const gender = inferredVoiceGender(voice);
+  if (preference !== 'auto') {
+    if (gender === preference) score += 120;
+    else if (gender !== 'unknown') score -= 90;
+  }
   if (/compact|basic|standard/.test(name)) score -= 25;
   if (voice.localService) score += 10;
   if (voice.default) score += 5;
   return score;
 }
 
-function chooseFrenchVoice() {
+function chooseFrenchVoice(preference = readVoiceSettings().preference) {
   const voices = globalThis.speechSynthesis?.getVoices?.() || [];
   return voices
     .filter(voice => /^fr[-_]/i.test(voice.lang || ''))
-    .sort((left, right) => voiceScore(right) - voiceScore(left))[0] || null;
+    .sort((left, right) => voiceScore(right, preference) - voiceScore(left, preference))[0] || null;
 }
 
 function normalizeTextForSpeech(text) {
@@ -122,7 +145,7 @@ function speakAnswer(text) {
   utterance.rate = settings.rate;
   utterance.pitch = settings.pitch;
   utterance.volume = settings.volume;
-  const voice = chooseFrenchVoice();
+  const voice = chooseFrenchVoice(settings.preference);
   if (voice) {
     utterance.voice = voice;
     utterance.lang = voice.lang || 'fr-FR';
@@ -169,6 +192,7 @@ function createInterface() {
   launcher.setAttribute('aria-label', 'Ouvrir LEYNOR AI');
   launcher.innerHTML = presenceMarkup({ compact: true });
 
+  const settings = readVoiceSettings();
   const panel = document.createElement('section');
   panel.id = 'leynorPanel';
   panel.className = 'leynor-panel';
@@ -185,7 +209,17 @@ function createInterface() {
       </div></div>
       <button class="leynor-close" type="button" aria-label="Fermer">×</button>
     </header>
-    <div class="leynor-welcome"><strong>Que souhaites-tu faire aujourd’hui ?</strong><span>Conversation libre, finance, portefeuille, stratégie, pédagogie ou simulation.</span></div>
+    <div class="leynor-welcome">
+      <div><strong>Que souhaites-tu faire aujourd’hui ?</strong><span>Conversation libre, finance, portefeuille, stratégie, pédagogie ou simulation.</span></div>
+      <label class="leynor-voice-choice" for="leynorVoicePreference">
+        <span>Voix</span>
+        <select id="leynorVoicePreference" aria-label="Choisir le type de voix de LEYNOR">
+          <option value="female"${settings.preference === 'female' ? ' selected' : ''}>Féminine</option>
+          <option value="male"${settings.preference === 'male' ? ' selected' : ''}>Masculine</option>
+          <option value="auto"${settings.preference === 'auto' ? ' selected' : ''}>Automatique</option>
+        </select>
+      </label>
+    </div>
     <div id="leynorMessages" class="leynor-messages" aria-live="polite"></div>
     <form id="leynorForm" class="leynor-form">
       <button class="leynor-mic" type="button" aria-pressed="false" title="Activer l’écoute LEYNOR AI"><span aria-hidden="true">◉</span><span class="sr-only">Activer l’écoute</span></button>
@@ -214,9 +248,16 @@ function bindEvents() {
   const panel = document.querySelector('#leynorPanel');
   const launcher = document.querySelector('#leynorLauncher');
   const input = document.querySelector('#leynorInput');
+  const voicePreference = panel.querySelector('#leynorVoicePreference');
 
   launcher.addEventListener('click', () => { panel.hidden = false; launcher.hidden = true; input.focus(); });
   panel.querySelector('.leynor-close').addEventListener('click', () => { panel.hidden = true; launcher.hidden = false; globalThis.speechSynthesis?.cancel?.(); setPresence('idle'); });
+  voicePreference.addEventListener('change', () => {
+    const selected = saveVoicePreference(voicePreference.value);
+    voicePreference.value = selected;
+    globalThis.speechSynthesis?.cancel?.();
+    speakAnswer(selected === 'female' ? 'La voix féminine est sélectionnée.' : selected === 'male' ? 'La voix masculine est sélectionnée.' : 'La sélection automatique de la voix est activée.');
+  });
   input.addEventListener('input', () => {
     state.voiceEnabled = true;
     document.querySelector('#leynorSend').disabled = state.pending || !input.value.trim();
@@ -308,4 +349,4 @@ async function sendMessage(event) {
 }
 
 createInterface();
-export { PRESENCE_STATES, setPresence, voiceScore, chooseFrenchVoice, normalizeTextForSpeech, speakAnswer };
+export { PRESENCE_STATES, VOICE_PREFERENCES, setPresence, inferredVoiceGender, voiceScore, chooseFrenchVoice, normalizeTextForSpeech, speakAnswer };
