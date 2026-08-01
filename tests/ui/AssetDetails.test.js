@@ -10,7 +10,8 @@ const worker = await readFile(new URL('../../service-worker.js', import.meta.url
 test('les graphiques détaillés couvrent les périodes demandées', () => {
   for (const range of ['1H', '1J', '5J', '1S', '1M', '6M', '1A', 'MAX']) assert.match(details, new RegExp(`'${range}'`));
   assert.match(details, /market-chart/);
-  assert.match(details, /Le graphique affiche uniquement les observations réellement enregistrées/);
+  assert.match(details, /\/api\/market-history/);
+  assert.match(details, /Historique local de secours/);
 });
 
 test('les positions, le radar et le portefeuille ouvrent une fiche détaillée', () => {

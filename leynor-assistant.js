@@ -122,6 +122,8 @@ function normalizeTextForSpeech(text) {
     .replace(/^\s*\d+[.)]\s+/gm, '. ')
     .replace(/\*\*|__/g, '')
     .replace(/\*/g, '')
+    .replace(/\bLEYNOR\s+(?:AI|A\s*I|IA)\b/gi, 'Lé-ï-nor, A, I')
+    .replace(/\bLEYNOR\b/gi, 'Lé-ï-nor')
     .replace(/\bETF\b/g, 'E T F')
     .replace(/\bIA\b/g, 'I A')
     .replace(/\bPEA\b/g, 'P E A')
