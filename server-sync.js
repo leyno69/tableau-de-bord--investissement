@@ -7,6 +7,7 @@ import './browser-voice.js';
 import './guided-tour.js';
 import './opportunity-radar-ui.js';
 import './asset-details.js';
+import './refresh-runtime.js';
 import { apiUrl, getApiBaseUrl, getApiToken, setApiBaseUrl, setApiToken, usesSecureProxy } from './api-connection.js';
 
 function addNavigationLink({ href, label, icon, marker, before }) {
@@ -23,6 +24,7 @@ function addNavigationLink({ href, label, icon, marker, before }) {
 
 function createProductNavigation() {
   addNavigationLink({ href: 'trends.html', label: 'Tendances', icon: '↗', marker: 'data-trends-link', before: 'a[href="#assistant"]' });
+  addNavigationLink({ href: 'trading.html', label: 'Très court terme', icon: '⚡', marker: 'data-trading-link', before: 'a[href="#assistant"]' });
   addNavigationLink({ href: 'simulator.html', label: 'Simulation', icon: '◈', marker: 'data-simulation-link', before: 'a[href="#assistant"]' });
   addNavigationLink({ href: 'feedback.html', label: 'Retour bêta', icon: '◇', marker: 'data-feedback-link', before: 'a[href="#assistant"]' });
 }
@@ -64,13 +66,10 @@ async function configureConnection() {
   const currentUrl = getApiBaseUrl();
   const url = window.prompt('Adresse publique du serveur LEYNOR :', currentUrl);
   if (url == null) return;
-  try {
-    setApiBaseUrl(url);
-  } catch (error) {
+  try { setApiBaseUrl(url); } catch (error) {
     window.alert(error instanceof Error ? error.message : 'Adresse serveur invalide.');
     return;
   }
-
   if (!usesSecureProxy()) {
     const token = window.prompt('Jeton APP_AUTH_TOKEN du serveur :', getApiToken());
     if (token != null) setApiToken(token);
@@ -88,30 +87,16 @@ function setConnectionStatus(message, detail = message) {
 async function verifyConnection() {
   const button = document.querySelector('#serverConnectionBtn');
   const baseUrl = getApiBaseUrl();
-  if (!baseUrl) {
-    setConnectionStatus('Serveur non configuré', 'Aucune adresse de backend n’est enregistrée.');
-    return;
-  }
-
+  if (!baseUrl) { setConnectionStatus('Serveur non configuré', 'Aucune adresse de backend n’est enregistrée.'); return; }
   const token = getApiToken();
-  if (!usesSecureProxy() && !token) {
-    setConnectionStatus('Token requis', 'Renseigne le APP_AUTH_TOKEN du serveur pour tester la connexion sécurisée.');
-    return;
-  }
-
+  if (!usesSecureProxy() && !token) { setConnectionStatus('Token requis', 'Renseigne le APP_AUTH_TOKEN du serveur pour tester la connexion sécurisée.'); return; }
   setConnectionStatus('Vérification…', usesSecureProxy() ? 'Connexion via le proxy sécurisé Vercel.' : `Test sécurisé de ${baseUrl}`);
   if (button) button.disabled = true;
   try {
     const headers = token && !usesSecureProxy() ? { Authorization: `Bearer ${token}` } : {};
     const response = await fetch(apiUrl('/portfolios'), { headers, cache: 'no-store' });
-    if (response.status === 401) {
-      setConnectionStatus('Token invalide', `${baseUrl} répond, mais refuse le jeton enregistré.`);
-      return;
-    }
-    if (response.status === 503) {
-      setConnectionStatus('Proxy à configurer', 'Ajoute LEYNOR_BACKEND_URL et LEYNOR_BACKEND_TOKEN dans Vercel.');
-      return;
-    }
+    if (response.status === 401) { setConnectionStatus('Token invalide', `${baseUrl} répond, mais refuse le jeton enregistré.`); return; }
+    if (response.status === 503) { setConnectionStatus('Proxy à configurer', 'Ajoute LEYNOR_BACKEND_URL et LEYNOR_BACKEND_TOKEN dans Vercel.'); return; }
     if (!response.ok) throw new Error(`L’API répond HTTP ${response.status} sur /portfolios.`);
     const payload = await response.json();
     updatePortfolioCount(Array.isArray(payload?.data) ? payload.data.length : 0, baseUrl);
@@ -119,9 +104,7 @@ async function verifyConnection() {
     const reason = error instanceof Error ? error.message : 'Erreur réseau inconnue.';
     console.error('Server connection error:', error);
     setConnectionStatus('Serveur inaccessible', `${baseUrl} — ${reason}`);
-  } finally {
-    if (button) button.disabled = false;
-  }
+  } finally { if (button) button.disabled = false; }
 }
 
 function updatePortfolioCount(count, baseUrl = getApiBaseUrl()) {
