@@ -4,6 +4,7 @@ import { buildFinancialCards, normalizeFinancialCards } from './leynor-financial
 const API_TOKEN_KEY = 'invest-dashboard-api-token';
 const PORTFOLIO_KEY = 'invest-dashboard-portfolio';
 const CONVERSATION_KEY = 'leynor-conversation-history';
+const VOICE_SETTINGS_KEY = 'leynor-voice-settings';
 const PRESENCE_STATES = Object.freeze({
   idle: 'Disponible',
   listening: 'Je vous écoute…',
@@ -12,6 +13,7 @@ const PRESENCE_STATES = Object.freeze({
   error: 'Connexion à vérifier'
 });
 
+const DEFAULT_VOICE_SETTINGS = Object.freeze({ rate: 0.94, pitch: 0.98, volume: 1 });
 const state = { messages: loadMessages(), pending: false, presence: 'idle', voiceEnabled: true, lastAnswer: '' };
 
 function loadMessages() {
@@ -33,6 +35,19 @@ function readPortfolio() {
   try { return JSON.parse(localStorage.getItem(PORTFOLIO_KEY) || '{}'); } catch { return {}; }
 }
 
+function readVoiceSettings() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(VOICE_SETTINGS_KEY) || '{}');
+    return {
+      rate: Number.isFinite(stored.rate) ? Math.min(1.08, Math.max(0.82, stored.rate)) : DEFAULT_VOICE_SETTINGS.rate,
+      pitch: Number.isFinite(stored.pitch) ? Math.min(1.12, Math.max(0.86, stored.pitch)) : DEFAULT_VOICE_SETTINGS.pitch,
+      volume: Number.isFinite(stored.volume) ? Math.min(1, Math.max(0.2, stored.volume)) : DEFAULT_VOICE_SETTINGS.volume
+    };
+  } catch {
+    return { ...DEFAULT_VOICE_SETTINGS };
+  }
+}
+
 function formatTime(value) {
   return new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
 }
@@ -52,23 +67,66 @@ function injectStylesheet() {
   document.head.append(link);
 }
 
+function voiceScore(voice) {
+  const name = `${voice.name || ''} ${voice.voiceURI || ''}`.toLowerCase();
+  const language = String(voice.lang || '').replace('_', '-').toLowerCase();
+  let score = 0;
+  if (language === 'fr-fr') score += 80;
+  else if (language.startsWith('fr-')) score += 60;
+  else return -1000;
+  if (/premium|enhanced|natural|neural|studio|eloquence/.test(name)) score += 80;
+  if (/audrey|aurélie|amelie|amélie|marie|thomas|henri|hortense|virginie/.test(name)) score += 35;
+  if (/compact|basic|standard/.test(name)) score -= 25;
+  if (voice.localService) score += 10;
+  if (voice.default) score += 5;
+  return score;
+}
+
 function chooseFrenchVoice() {
   const voices = globalThis.speechSynthesis?.getVoices?.() || [];
-  return voices.find(voice => /^fr[-_]/i.test(voice.lang) && /premium|enhanced|natural/i.test(voice.name))
-    || voices.find(voice => /^fr[-_]/i.test(voice.lang))
-    || null;
+  return voices
+    .filter(voice => /^fr[-_]/i.test(voice.lang || ''))
+    .sort((left, right) => voiceScore(right) - voiceScore(left))[0] || null;
+}
+
+function normalizeTextForSpeech(text) {
+  return String(text || '')
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/https?:\/\/\S+/gi, ' lien ')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/^\s*[-*•]\s+/gm, '. ')
+    .replace(/^\s*\d+[.)]\s+/gm, '. ')
+    .replace(/\*\*|__/g, '')
+    .replace(/\*/g, '')
+    .replace(/\bETF\b/g, 'E T F')
+    .replace(/\bIA\b/g, 'I A')
+    .replace(/\bPEA\b/g, 'P E A')
+    .replace(/\bPER\b/g, 'P E R')
+    .replace(/(\d)\s*%/g, '$1 pour cent')
+    .replace(/(\d[\d\s.,]*)\s*€/g, '$1 euros')
+    .replace(/\s*[:;]\s*/g, ', ')
+    .replace(/\s*[—–]\s*/g, ', ')
+    .replace(/\.{3,}/g, '…')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function speakAnswer(text) {
-  const normalized = String(text || '').trim();
+  const normalized = normalizeTextForSpeech(text);
   if (!state.voiceEnabled || !normalized || !globalThis.speechSynthesis || !globalThis.SpeechSynthesisUtterance) return false;
   globalThis.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(normalized);
+  const settings = readVoiceSettings();
   utterance.lang = 'fr-FR';
-  utterance.rate = 1.02;
-  utterance.pitch = 1;
+  utterance.rate = settings.rate;
+  utterance.pitch = settings.pitch;
+  utterance.volume = settings.volume;
   const voice = chooseFrenchVoice();
-  if (voice) utterance.voice = voice;
+  if (voice) {
+    utterance.voice = voice;
+    utterance.lang = voice.lang || 'fr-FR';
+  }
   utterance.onstart = () => setPresence('speaking');
   utterance.onend = () => setPresence('idle');
   utterance.onerror = () => setPresence('idle');
@@ -156,7 +214,6 @@ function bindEvents() {
   const panel = document.querySelector('#leynorPanel');
   const launcher = document.querySelector('#leynorLauncher');
   const input = document.querySelector('#leynorInput');
-  const mic = panel.querySelector('.leynor-mic');
 
   launcher.addEventListener('click', () => { panel.hidden = false; launcher.hidden = true; input.focus(); });
   panel.querySelector('.leynor-close').addEventListener('click', () => { panel.hidden = true; launcher.hidden = false; globalThis.speechSynthesis?.cancel?.(); setPresence('idle'); });
@@ -251,4 +308,4 @@ async function sendMessage(event) {
 }
 
 createInterface();
-export { PRESENCE_STATES, setPresence, chooseFrenchVoice, speakAnswer };
+export { PRESENCE_STATES, setPresence, voiceScore, chooseFrenchVoice, normalizeTextForSpeech, speakAnswer };

@@ -32,3 +32,15 @@ test('assistant endpoint remains relative for GitHub Pages deployments', async (
   const source = await readText('leynor-assistant.js');
   assert.match(source, /fetch\('\.\/leynor\/assistant\/answer'/);
 });
+
+test('browser speech prioritizes natural French voices and conversational prosody', async () => {
+  const source = await readText('leynor-assistant.js');
+
+  assert.match(source, /function voiceScore/);
+  assert.match(source, /premium\|enhanced\|natural\|neural\|studio\|eloquence/);
+  assert.match(source, /rate: 0\.94/);
+  assert.match(source, /pitch: 0\.98/);
+  assert.match(source, /function normalizeTextForSpeech/);
+  assert.match(source, /utterance\.rate = settings\.rate/);
+  assert.match(source, /utterance\.pitch = settings\.pitch/);
+});

@@ -26,7 +26,7 @@ test('assistant replies use direct browser speech synthesis and can be replayed'
 
 test('voice bridge is loaded and refreshed by every runtime', () => {
   assert.match(sync, /import '\.\/browser-voice\.js'/);
-  assert.match(worker, /leynor-shell-v(?:13|[2-9]\d+)/);
+  assert.match(worker, /leynor-shell-v(?:1[3-9]|[2-9]\d+)/);
   assert.match(worker, /'\/browser-voice\.js'/);
   assert.match(staticAssets, /\['browser-voice\.js', 'text\/javascript; charset=utf-8'\]/);
 });
