@@ -1,0 +1,47 @@
+.guided-tour[hidden] { display: none; }
+.guided-tour { position: fixed; inset: 0; z-index: 120; pointer-events: none; }
+.guided-tour-backdrop { position: absolute; inset: 0; background: rgba(2, 10, 22, .68); backdrop-filter: blur(3px); }
+.guided-tour-card {
+  position: fixed;
+  z-index: 122;
+  left: 50%;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  width: min(560px, calc(100vw - 28px));
+  transform: translateX(-50%);
+  padding: 22px;
+  pointer-events: auto;
+  border: 1px solid rgba(214, 171, 83, .42);
+  border-radius: 24px;
+  background: linear-gradient(150deg, #0b2039, #071426 76%);
+  color: #eef6ff;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .62), 0 0 36px rgba(39, 151, 255, .18);
+}
+.guided-tour-card h2 { margin: 8px 0 8px; font-size: 1.35rem; }
+.guided-tour-card > p:not(.eyebrow) { margin: 0; color: #bdd0e1; line-height: 1.62; }
+.guided-tour-progress { height: 5px; overflow: hidden; margin-bottom: 18px; border-radius: 999px; background: rgba(255,255,255,.08); }
+.guided-tour-progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #62e5c2, #6ca8ff, #d6ab53); transition: width .28s ease; }
+.guided-tour-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 20px; }
+.guided-tour-actions button:disabled { opacity: .38; cursor: not-allowed; }
+.guided-tour-target {
+  position: relative;
+  z-index: 121 !important;
+  border-radius: 18px;
+  outline: 3px solid rgba(214, 171, 83, .9);
+  outline-offset: 5px;
+  box-shadow: 0 0 0 10px rgba(39, 151, 255, .18), 0 0 50px rgba(39, 151, 255, .38) !important;
+}
+.guided-tour-launch { white-space: nowrap; }
+.guided-tour-launch.guided-tour-new { animation: guided-tour-invite 2.2s ease-in-out 3; }
+body.guided-tour-active { overflow: hidden; }
+@keyframes guided-tour-invite { 50% { box-shadow: 0 0 0 7px rgba(214,171,83,.16), 0 0 24px rgba(214,171,83,.35); transform: translateY(-1px); } }
+@media (max-width: 760px) {
+  .guided-tour-card { bottom: max(12px, env(safe-area-inset-bottom)); padding: 18px; border-radius: 20px; }
+  .guided-tour-card h2 { font-size: 1.16rem; }
+  .guided-tour-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .guided-tour-actions [data-tour-action="quit"] { grid-column: 1 / -1; order: 3; }
+  .guided-tour-target { outline-offset: 2px; }
+  .guided-tour-launch { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .guided-tour-launch.guided-tour-new, .guided-tour-progress span { animation: none; transition: none; }
+}
