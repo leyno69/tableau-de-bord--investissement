@@ -31,7 +31,16 @@ test('voice bridge is loaded and refreshed by every runtime', () => {
   assert.match(staticAssets, /\['browser-voice\.js', 'text\/javascript; charset=utf-8'\]/);
 });
 
-test('deployment exposes an identifiable direct voice build marker', () => {
-  assert.match(voice, /beta-20260801-direct-voice/);
+test('deployment exposes an identifiable brand pronunciation build marker', () => {
+  assert.match(voice, /beta-20260801-brand-pronunciation/);
   assert.match(voice, /dataset\.leynorBuild = BUILD_ID/);
+});
+
+test('LEYNOR and LEYNOR AI receive a stable French pronunciation', () => {
+  assert.match(voice, /LEYNOR\\s\+AI/);
+  assert.match(voice, /Léïnor, A I/);
+  assert.match(voice, /Léïnor/);
+  assert.match(voice, /patchSpeechSynthesisPronunciation/);
+  assert.match(voice, /replacement\.voice = utterance\.voice/);
+  assert.match(voice, /replacement\.rate = utterance\.rate/);
 });
