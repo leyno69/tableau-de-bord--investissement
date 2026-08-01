@@ -31,13 +31,13 @@ function parseNumber(value) {
 }
 
 function normalizeDate(value) {
-  const european = String(value || '').match(/(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
-  if (european) {
-    const year = european[3].length === 2 ? `20${european[3]}` : european[3];
-    return `${year}-${european[2].padStart(2, '0')}-${european[1].padStart(2, '0')}`;
-  }
-  const iso = String(value || '').match(/\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/);
-  return iso ? `${iso[1]}-${iso[2].padStart(2, '0')}-${iso[3].padStart(2, '0')}` : '';
+  const input = String(value || '');
+  const iso = input.match(/\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/);
+  if (iso) return `${iso[1]}-${iso[2].padStart(2, '0')}-${iso[3].padStart(2, '0')}`;
+  const european = input.match(/\b(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})\b/);
+  if (!european) return '';
+  const year = european[3].length === 2 ? `20${european[3]}` : european[3];
+  return `${year}-${european[2].padStart(2, '0')}-${european[1].padStart(2, '0')}`;
 }
 
 function inferOperation(text) {
