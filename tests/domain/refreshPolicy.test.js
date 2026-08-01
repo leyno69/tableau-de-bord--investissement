@@ -7,7 +7,7 @@ test('daily radar exposes four deterministic refresh slots', () => {
 });
 
 test('next radar refresh selects the next local slot', () => {
-  const next = nextDailyRadarRefresh(new Date('2026-08-01T13:00:00+02:00'));
+  const next = nextDailyRadarRefresh(new Date(2026, 7, 1, 13, 0, 0));
   assert.equal(next.label, 'Clôture Europe');
   assert.equal(next.at.getHours(), 17);
   assert.equal(next.at.getMinutes(), 45);
