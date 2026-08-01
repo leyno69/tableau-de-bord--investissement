@@ -1,13 +1,29 @@
 const SpeechRecognition = globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition;
-const BUILD_ID = 'beta-20260801-brand-pronunciation';
+const BUILD_ID = 'beta-20260801-market-voice-brand';
 
 let recognition = null;
 let speechPatched = false;
+let speechUnlocked = false;
 
 function normalizeBrandPronunciation(text) {
   return String(text || '')
-    .replace(/\bLEYNOR\s+AI\b/gi, 'Léïnor, A I')
-    .replace(/\bLEYNOR\b/gi, 'Léïnor');
+    .replace(/\bLEYNOR\s+(?:AI|A\s*I|IA)\b/gi, 'Lé-ï-nor, A, I')
+    .replace(/\bLEYNOR\b/gi, 'Lé-ï-nor');
+}
+
+function unlockSpeechSynthesis() {
+  if (speechUnlocked || !globalThis.speechSynthesis || !globalThis.SpeechSynthesisUtterance) return speechUnlocked;
+  try {
+    const utterance = new SpeechSynthesisUtterance(' ');
+    utterance.lang = 'fr-FR';
+    utterance.volume = 0.01;
+    utterance.rate = 1;
+    globalThis.speechSynthesis.speak(utterance);
+    speechUnlocked = true;
+  } catch {
+    speechUnlocked = false;
+  }
+  return speechUnlocked;
 }
 
 function patchSpeechSynthesisPronunciation() {
@@ -78,6 +94,7 @@ function submitTranscript(transcript) {
   if (!input || !form || !text) return;
   input.value = text;
   input.dispatchEvent(new Event('input', { bubbles: true }));
+  form.dataset.voiceSubmission = 'true';
   form.requestSubmit();
 }
 
@@ -121,6 +138,7 @@ function handleMic(event) {
   if (!mic) return;
   event.preventDefault();
   event.stopImmediatePropagation();
+  unlockSpeechSynthesis();
 
   if (!SpeechRecognition) {
     appendNotice('La reconnaissance vocale n’est pas prise en charge par ce navigateur. Utilise Chrome, Edge ou Safari récent.');
@@ -167,4 +185,4 @@ function waitForAssistant() {
 
 waitForAssistant();
 
-export { BUILD_ID, initializeBrowserVoice, chooseFrenchVoice, submitTranscript, normalizeBrandPronunciation, patchSpeechSynthesisPronunciation };
+export { BUILD_ID, initializeBrowserVoice, chooseFrenchVoice, submitTranscript, normalizeBrandPronunciation, patchSpeechSynthesisPronunciation, unlockSpeechSynthesis };
