@@ -10,6 +10,8 @@ const LEGACY_MARKET_SYMBOLS = new Map([
   ['SU', 'SU.PA']
 ]);
 
+const QUOTE_ENDPOINTS = Object.freeze(['/api/quote', '/.netlify/functions/quote']);
+
 export function resolveMarketSymbol(item) {
   const explicit = String(item.marketSymbol || '').trim().toUpperCase();
   if (explicit) return explicit;
@@ -18,30 +20,42 @@ export function resolveMarketSymbol(item) {
   return LEGACY_MARKET_SYMBOLS.get(ticker) || ticker;
 }
 
+async function requestQuote(endpoint, normalized) {
+  const response = await fetch(`${endpoint}?symbol=${encodeURIComponent(normalized)}`, {
+    headers: { accept: 'application/json' },
+    cache: 'no-store'
+  });
+  const data = await response.json().catch(() => ({}));
+  return { response, data };
+}
+
 export async function fetchQuote(symbol) {
   const normalized = String(symbol || '').trim().toUpperCase();
 
-  if (!normalized) {
-    throw new Error('Symbole de marché manquant.');
+  if (!normalized) throw new Error('Symbole de marché manquant.');
+
+  let lastFailure = null;
+  for (const endpoint of QUOTE_ENDPOINTS) {
+    try {
+      const { response, data } = await requestQuote(endpoint, normalized);
+      if (!response.ok) {
+        lastFailure = new Error(data.error || `Cours indisponible (${response.status}).`);
+        if (response.status === 404) continue;
+        throw lastFailure;
+      }
+      if (!Number.isFinite(Number(data.price))) throw new Error(`Cours invalide reçu pour ${normalized}.`);
+      return {
+        ...data,
+        price: Number(data.price),
+        change: data.change == null ? null : Number(data.change),
+        percentChange: data.percentChange == null ? null : Number(data.percentChange)
+      };
+    } catch (error) {
+      lastFailure = error instanceof Error ? error : new Error('Actualisation impossible.');
+    }
   }
 
-  const response = await fetch(`/.netlify/functions/quote?symbol=${encodeURIComponent(normalized)}`);
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(data.error || `Erreur marché (${response.status}).`);
-  }
-
-  if (!Number.isFinite(Number(data.price))) {
-    throw new Error(`Cours invalide reçu pour ${normalized}.`);
-  }
-
-  return {
-    ...data,
-    price: Number(data.price),
-    change: data.change == null ? null : Number(data.change),
-    percentChange: data.percentChange == null ? null : Number(data.percentChange)
-  };
+  throw lastFailure || new Error('Cours indisponible.');
 }
 
 export async function refreshMarketItems(items) {
@@ -55,8 +69,8 @@ export async function refreshMarketItems(items) {
         marketSymbol,
         price: quote.price,
         change: Number.isFinite(quote.percentChange) ? quote.percentChange : item.change,
-        marketUpdatedAt: quote.datetime || null,
-        marketSource: quote.source || 'EODHD',
+        marketUpdatedAt: quote.datetime || new Date().toISOString(),
+        marketSource: quote.source || 'Finnhub',
         marketError: null
       };
     })
