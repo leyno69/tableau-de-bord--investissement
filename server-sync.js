@@ -8,6 +8,7 @@ import './guided-tour.js';
 import './opportunity-radar-ui.js';
 import './asset-details.js';
 import './mobile-experience-fixes.js';
+import './broker-import-mobile-fixes.js';
 import './refresh-runtime.js';
 import { apiUrl, getApiBaseUrl, getApiToken, setApiBaseUrl, setApiToken, usesSecureProxy } from './api-connection.js';
 
