@@ -28,7 +28,7 @@ test('la visite reste volontaire et mémorise son achèvement', () => {
 
 test('les ressources de visite sont chargées et disponibles hors connexion', () => {
   assert.match(sync, /import '\.\/guided-tour\.js'/);
-  assert.match(worker, /leynor-shell-v16/);
+  assert.match(worker, /leynor-shell-v17/);
   assert.match(worker, /'\/guided-tour\.js'/);
   assert.match(worker, /'\/guided-tour\.css'/);
   assert.match(staticAssets, /\['guided-tour\.js', 'text\/javascript; charset=utf-8'\]/);

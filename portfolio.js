@@ -1,33 +1,6 @@
 export const defaultPortfolio = {
   cash: 0,
-  positions: [
-    {
-      id: 1,
-      name: 'iShares MSCI World Swap PEA UCITS ETF EUR (Acc)',
-      ticker: 'WPEA',
-      isin: 'IE0002XZSHO1',
-      marketSymbol: 'WPEA.PA',
-      type: 'ETF',
-      broker: 'trade-republic',
-      quantity: 276.121345,
-      avgPrice: 6.8626,
-      price: 6.84,
-      region: 'Monde'
-    },
-    {
-      id: 2,
-      name: 'Amundi PEA Asie Pacifique MSCI AC Asia Pacific Ex Japan UCITS ETF Acc',
-      ticker: 'PAEJ',
-      isin: 'FR0011869312',
-      marketSymbol: 'PAEJ.PA',
-      type: 'ETF',
-      broker: 'trade-republic',
-      quantity: 9,
-      avgPrice: 26.1911,
-      price: 25.63,
-      region: 'Asie-Pacifique hors Japon'
-    }
-  ]
+  positions: []
 };
 
 export function summarizePortfolio(portfolio) {
