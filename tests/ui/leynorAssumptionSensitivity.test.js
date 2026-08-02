@@ -86,7 +86,7 @@ test('refuse les variantes invalides et les hypothèses inconnues', () => {
 });
 
 test('refuse les bornes incohérentes et les définitions incomplètes', () => {
-  assert.throws(() => analyzeAssumptionSensitivity({ definition, variants: [variants[0], { id: 'fees', changes: { annualFees: 0.5 } }] }), /annualFees/);
+  assert.throws(() => analyzeAssumptionSensitivity({ definition, variants: [variants[0], { id: 'fees-invalid', changes: { annualFees: 0.5 } }] }), /annualFees/);
   assert.throws(() => analyzeAssumptionSensitivity({ type: 'correlated', definition, variants: [variants[0], variants[1]] }), /correlationMatrix/);
   assert.throws(() => analyzeAssumptionSensitivity({ type: 'magique', definition, variants }), /independent ou correlated/);
   assert.throws(() => analyzeAssumptionSensitivity({ variants }), /definition/);
