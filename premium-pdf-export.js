@@ -100,13 +100,26 @@ export function downloadPremiumPdf(report, filename = 'rapport-leynor-ai.pdf', e
   if (!environment.Blob || !environment.URL?.createObjectURL || !environment.document?.createElement) {
     throw new Error('Le téléchargement PDF n’est pas disponible dans cet environnement.');
   }
+
   const blob = new environment.Blob([bytes], { type: 'application/pdf' });
   const url = environment.URL.createObjectURL(blob);
   const anchor = environment.document.createElement('a');
   anchor.href = url;
   anchor.download = requiredText(filename, 'filename');
   anchor.rel = 'noopener';
+  anchor.hidden = true;
+
+  const body = environment.document.body;
+  body?.append?.(anchor);
   anchor.click();
-  environment.URL.revokeObjectURL(url);
+
+  const cleanup = () => {
+    anchor.remove?.();
+    environment.URL.revokeObjectURL(url);
+  };
+  const schedule = environment.setTimeout ?? globalThis.setTimeout;
+  if (typeof schedule === 'function') schedule(cleanup, 1_000);
+  else cleanup();
+
   return Object.freeze({ filename: anchor.download, size: bytes.byteLength, mimeType: 'application/pdf' });
 }
