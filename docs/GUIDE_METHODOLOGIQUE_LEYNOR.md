@@ -178,6 +178,32 @@ Avant toute classification, chaque critère doit disposer :
 
 Sans calibration documentée, aucun niveau de confiance ne doit être affiché.
 
+### 7.1 Registre versionné des calibrations
+
+Chaque résultat de calibration doit être conservé dans un registre immuable et versionné.
+
+Un enregistrement doit contenir au minimum :
+
+- un identifiant unique ;
+- l’identifiant et la version du protocole ;
+- la version du moteur ;
+- la conclusion ciblée ;
+- les campagnes de calibration ;
+- les campagnes de validation hors échantillon ;
+- les empreintes des jeux de données et des résultats ;
+- le résultat de chaque critère ;
+- la référence de calibration ;
+- la justification de la décision ;
+- les limites ;
+- le statut `prepared`, `validated`, `rejected` ou `obsolete` ;
+- l’identifiant de l’enregistrement remplacé, le cas échéant.
+
+Une calibration validée exige que tous les critères enregistrés soient satisfaits et validés hors échantillon.
+
+Une calibration existante ne doit jamais être écrasée silencieusement. Une évolution produit un nouvel enregistrement qui référence explicitement la version remplacée. Deux résultats divergents ne peuvent pas partager le même identifiant ou la même empreinte de résultat.
+
+Le registre conserve la traçabilité ; il ne transforme pas une calibration en score de confiance et ne garantit pas la généralisation hors des campagnes documentées.
+
 ---
 
 ## 8. Niveau de preuve
@@ -302,3 +328,10 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - formalisation des principes d’explicabilité, de reproductibilité et de séparation analyse/décision ;
 - formalisation des exigences applicables aux simulations, à la confiance, à la preuve, aux rapports Premium et au futur IGL ;
 - obligation de mise à jour du guide dans la même pull request que toute évolution méthodologique.
+
+### Registre des calibrations
+
+- ajout d’un registre immuable et versionné des résultats de calibration ;
+- interdiction des écrasements silencieux et des empreintes divergentes ;
+- validation conditionnée à des critères satisfaits et contrôlés hors échantillon ;
+- conservation explicite des versions remplacées, des justifications et des limites.
