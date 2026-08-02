@@ -100,7 +100,6 @@ export async function runLabBatch(input, options = {}) {
   return Object.freeze({
     definition,
     results: Object.freeze(results),
-    completedAt: new Date().toISOString(),
     methodology: Object.freeze({
       execution: 'Les simulations sont exécutées séquentiellement avec une progression observable et un point d’annulation entre chaque job.',
       reproducibility: 'Chaque job conserve sa propre graine et reste reproductible indépendamment de l’ordre du lot.',
