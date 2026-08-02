@@ -9,10 +9,21 @@ const RANGE_CONFIG = Object.freeze({
   MAX: { seconds: 10 * 366 * 24 * 60 * 60, resolution: 'W' }
 });
 
+const PUBLIC_ERRORS = Object.freeze({
+  unavailable: 'Données historiques temporairement indisponibles.',
+  rateLimited: 'Le fournisseur de marché est temporairement saturé. Réessayez plus tard.',
+  notFound: 'Aucun historique vérifiable n’est disponible pour ce ticker et cette période.'
+});
+
 function normalizeFinnhubSymbol(input) {
   const symbol = String(input || '').trim().toUpperCase();
   if (/^[A-Z0-9.-]+\.US$/.test(symbol)) return symbol.slice(0, -3);
   return symbol;
+}
+
+function upstreamStatus(status) {
+  if (status === 429) return 503;
+  return status >= 400 && status < 500 ? 502 : 503;
 }
 
 export default async function handler(req, res) {
@@ -22,7 +33,10 @@ export default async function handler(req, res) {
   if (!RANGE_CONFIG[range]) return res.status(400).json({ error: 'Période graphique invalide.' });
 
   const apiKey = process.env.FINNHUB_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'Clé Finnhub non configurée.' });
+  if (!apiKey) {
+    console.error('Historique marché indisponible : FINNHUB_API_KEY absente.');
+    return res.status(503).json({ error: PUBLIC_ERRORS.unavailable, code: 'MARKET_HISTORY_UNAVAILABLE' });
+  }
 
   const symbol = normalizeFinnhubSymbol(requestedSymbol);
   const config = RANGE_CONFIG[range];
@@ -39,9 +53,16 @@ export default async function handler(req, res) {
     const response = await fetch(url, { headers: { accept: 'application/json' }, cache: 'no-store' });
     const data = await response.json().catch(() => ({}));
 
-    if (!response.ok) return res.status(response.status).json({ error: data.error || 'Erreur Finnhub.' });
+    if (!response.ok) {
+      console.error('Erreur fournisseur historique :', { status: response.status, symbol, range, providerError: data.error || null });
+      const rateLimited = response.status === 429;
+      return res.status(upstreamStatus(response.status)).json({
+        error: rateLimited ? PUBLIC_ERRORS.rateLimited : PUBLIC_ERRORS.unavailable,
+        code: rateLimited ? 'MARKET_PROVIDER_RATE_LIMITED' : 'MARKET_PROVIDER_ERROR'
+      });
+    }
     if (data.s !== 'ok' || !Array.isArray(data.t) || !Array.isArray(data.c)) {
-      return res.status(404).json({ error: 'Historique indisponible pour ce ticker ou cette période.' });
+      return res.status(404).json({ error: PUBLIC_ERRORS.notFound, code: 'MARKET_HISTORY_NOT_FOUND' });
     }
 
     const points = data.t.map((timestamp, index) => ({
@@ -53,6 +74,10 @@ export default async function handler(req, res) {
       volume: Number(data.v?.[index])
     })).filter(point => Number.isFinite(point.at) && Number.isFinite(point.price));
 
+    if (points.length < 2) {
+      return res.status(404).json({ error: PUBLIC_ERRORS.notFound, code: 'MARKET_HISTORY_INSUFFICIENT' });
+    }
+
     return res.status(200).json({
       symbol: requestedSymbol,
       providerSymbol: symbol,
@@ -63,6 +88,8 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Erreur historique Finnhub :', error);
-    return res.status(500).json({ error: 'Impossible de récupérer l’historique.' });
+    return res.status(503).json({ error: PUBLIC_ERRORS.unavailable, code: 'MARKET_HISTORY_UNAVAILABLE' });
   }
 }
+
+export { PUBLIC_ERRORS, normalizeFinnhubSymbol, upstreamStatus };
