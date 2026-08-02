@@ -11,6 +11,11 @@ function finiteNumber(value, field) {
   return number;
 }
 
+function stableNumber(value) {
+  if (value === null) return null;
+  return Number.parseFloat(Number(value).toPrecision(15));
+}
+
 function normalizeNumericRecord(value, field) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError(`${field} doit être un objet.`);
@@ -29,7 +34,7 @@ function deepFreeze(value) {
 }
 
 function relativeDelta(current, baseline) {
-  return baseline === 0 ? null : (current - baseline) / Math.abs(baseline);
+  return baseline === 0 ? null : stableNumber((current - baseline) / Math.abs(baseline));
 }
 
 function changedAssumptions(baseline, variant) {
@@ -87,12 +92,12 @@ export function analyzeAssumptionSensitivity({ baseline, variants }) {
       const metricRelativeDelta = relativeDelta(testedMetric, baselineMetric);
       const elasticity = parameterRelativeDelta === null || parameterRelativeDelta === 0 || metricRelativeDelta === null
         ? null
-        : metricRelativeDelta / parameterRelativeDelta;
+        : stableNumber(metricRelativeDelta / parameterRelativeDelta);
       return Object.freeze({
         metric,
         baselineValue: baselineMetric,
         testedValue: testedMetric,
-        absoluteDelta: testedMetric - baselineMetric,
+        absoluteDelta: stableNumber(testedMetric - baselineMetric),
         relativeDelta: metricRelativeDelta,
         elasticity
       });
@@ -103,7 +108,7 @@ export function analyzeAssumptionSensitivity({ baseline, variants }) {
       parameter,
       baselineValue,
       testedValue,
-      absoluteDelta: testedValue - baselineValue,
+      absoluteDelta: stableNumber(testedValue - baselineValue),
       relativeDelta: parameterRelativeDelta,
       metrics: Object.freeze(metrics)
     });
