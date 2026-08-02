@@ -34,10 +34,9 @@ function normalizeReference(input, index) {
   });
 }
 
-function assertUnique(items, key, label) {
+function assertUnique(values, label) {
   const seen = new Set();
-  for (const item of items) {
-    const value = item[key];
+  for (const value of values) {
     if (seen.has(value)) throw new Error(`${label} dupliqué : ${value}.`);
     seen.add(value);
   }
@@ -58,7 +57,10 @@ export function buildTraceableExplanation({
     .map(normalizeReference)
     .sort((left, right) => left.type.localeCompare(right.type) || left.id.localeCompare(right.id));
 
-  assertUnique(normalizedReferences.map(reference => `${reference.type}:${reference.id}`), 'toString', 'référence');
+  assertUnique(
+    normalizedReferences.map(reference => `${reference.type}:${reference.id}`),
+    'référence'
+  );
 
   const grouped = {
     campaigns: normalizedReferences.filter(reference => reference.type === 'campaign'),
