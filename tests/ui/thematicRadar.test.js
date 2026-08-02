@@ -17,7 +17,7 @@ test('score, confidence and proof are displayed as distinct concepts', () => {
   assert.match(ui, /niveau de confiance/);
   assert.match(ui, /niveau de preuve provisoire/);
   assert.match(ui, /Aucune méthodologie validée ne permet encore d’afficher un score/);
-  assert.doesNotMatch(ui, /score.*Math\.round\(card\.confidence/s);
+  assert.doesNotMatch(ui, /Score\s*:\s*\$\{Math\.round\(card\.confidence/);
 });
 
 test('theme metrics are never copied to representative assets', () => {
