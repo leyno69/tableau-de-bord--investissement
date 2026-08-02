@@ -5,7 +5,7 @@ import './api-fetch-router.js';
 import './leynor-assistant.js';
 import './browser-voice.js';
 import './guided-tour.js';
-import './opportunity-radar-ui.js';
+import './opportunity-radar-v2.js';
 import './asset-details.js';
 import './asset-chart-touch.js';
 import './mobile-experience-fixes.js';
