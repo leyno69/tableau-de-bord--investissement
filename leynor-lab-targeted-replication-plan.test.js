@@ -33,7 +33,9 @@ test('produit un plan déterministe uniquement pour les cellules non convergées
   assert.deepEqual(first, second);
   assert.equal(first.cellCount, 2);
   assert.equal(first.targetedCellCount, 1);
-  assert.equal(first.additionalReplicationCount, 20);
+  assert.equal(first.cells[0].targetSeedCount, 15);
+  assert.equal(first.cells[0].additionalSeedCount, 10);
+  assert.equal(first.additionalReplicationCount, 10);
   assert.deepEqual(first.cells[0].seeds.slice(0, 3), [9000, 9001, 9002]);
   assert.equal(first.cells[1].stopReason, 'dispersion target reached');
   assert.equal(first.cells[0].factors.years, 30);
