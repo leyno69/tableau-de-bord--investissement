@@ -52,5 +52,6 @@ test('l’interface branche le moteur PDF et son fallback OCR local', async () =
   assert.match(source, /PDF scannés/);
   assert.match(source, /Vérifiez chaque ligne avant validation/);
   assert.equal(PDF_IMPORT_ENGINE.name, 'Mozilla PDF.js + OCR local');
-  assert.equal(PDF_IMPORT_ENGINE.ocr, true);
+  assert.equal(PDF_IMPORT_ENGINE.ocrEngine, 'Tesseract.js');
+  assert.equal(PDF_IMPORT_ENGINE.local, true);
 });
