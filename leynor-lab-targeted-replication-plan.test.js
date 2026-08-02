@@ -16,10 +16,10 @@ test('classe explicitement les niveaux de convergence', () => {
   assert.equal(classifyConvergence(0.01, 3), 'insufficient');
 });
 
-test('augmente le budget par lots conservateurs sans dépasser le plafond', () => {
+test('augmente le budget par lots sans dépasser le plafond', () => {
   assert.equal(requiredSeedCount(0.03, 5), 5);
   assert.equal(requiredSeedCount(0.08, 5), 15);
-  assert.equal(requiredSeedCount(0.15, 5), 20);
+  assert.equal(requiredSeedCount(0.15, 5), 15);
   assert.equal(requiredSeedCount(0.2, 5), 25);
 });
 
@@ -34,9 +34,9 @@ test('produit un plan déterministe uniquement pour les cellules non convergées
   assert.deepEqual(first, second);
   assert.equal(first.cellCount, 2);
   assert.equal(first.targetedCellCount, 1);
-  assert.equal(first.cells[0].targetSeedCount, 20);
-  assert.equal(first.cells[0].additionalSeedCount, 15);
-  assert.equal(first.additionalReplicationCount, 15);
+  assert.equal(first.cells[0].targetSeedCount, 15);
+  assert.equal(first.cells[0].additionalSeedCount, 10);
+  assert.equal(first.additionalReplicationCount, 10);
   assert.deepEqual(first.cells[0].seeds.slice(0, 3), [9000, 9001, 9002]);
   assert.equal(first.cells[1].stopReason, 'dispersion target reached');
   assert.equal(first.cells[0].factors.years, 30);
