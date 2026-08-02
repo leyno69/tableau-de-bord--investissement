@@ -1,0 +1,12 @@
+factor,levels,interpretation
+behavior,"regular|interruption","comportement de versement"
+reserveMonths,"0|6","coussin de liquidité exprimé en mois de versements"
+lineCount,"5|15","nombre de lignes équipondérées"
+assetVolatility,"0.12|0.20","volatilité annuelle individuelle synthétique"
+correlation,"0.10|0.35|0.75","corrélation équicorrélée synthétique"
+shockIntensity,"0|1800|3600|7200","choc ponctuel en euros au mois 25"
+years,"10|20|30","horizon de simulation"
+seeds,"101|202|303|404|505","réplications indépendantes"
+pathsPerReplication,250,"trajectoires par cellule et graine"
+totalReplications,2880,"combinaisons factorielles avec graines"
+totalPaths,720000,"trajectoires prévues par le protocole"
