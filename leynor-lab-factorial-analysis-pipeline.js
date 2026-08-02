@@ -69,13 +69,24 @@ export function analyzeFactorialResult(result, options = {}) {
     throw new TypeError('result.replications must be an array');
   }
 
+  const minimumSeeds = options.minimumSeeds ?? 5;
+  if (!Number.isInteger(minimumSeeds) || minimumSeeds < 2) {
+    throw new RangeError('minimumSeeds must be an integer greater than or equal to 2');
+  }
+
   const groups = groupReplicationsByCell(result.replications);
   const stability = [...groups.entries()].map(([key, rows]) => {
     const summary = summarizeCellStability(rows);
+    const insufficient = summary.seedCount < minimumSeeds;
+    const additionalSeeds = insufficient
+      ? minimumSeeds - summary.seedCount
+      : recommendAdditionalSeeds(summary.relativeDispersion, summary.seedCount, options);
+
     return Object.freeze({
       cellKey: key,
       ...summary,
-      additionalSeeds: recommendAdditionalSeeds(summary.relativeDispersion, summary.seedCount, options),
+      stability: insufficient ? 'insufficient' : summary.stability,
+      additionalSeeds,
     });
   });
 
@@ -93,6 +104,7 @@ export function analyzeFactorialResult(result, options = {}) {
     cellCount: groups.size,
     stability: Object.freeze(stability),
     interactions: Object.freeze(interactions),
+    insufficientCellCount: stability.filter((row) => row.stability === 'insufficient').length,
     unstableCellCount: stability.filter((row) => row.stability === 'unstable').length,
     watchCellCount: stability.filter((row) => row.stability === 'watch').length,
     additionalSeedCount: stability.reduce((total, row) => total + row.additionalSeeds, 0),
