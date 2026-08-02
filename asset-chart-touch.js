@@ -52,6 +52,15 @@ function formatMoment(timestamp, range) {
   ).format(date);
 }
 
+function calculateVariation(points, index) {
+  const first = Number(points[0]?.price);
+  const current = Number(points[index]?.price);
+  if (!Number.isFinite(first) || !Number.isFinite(current)) return { absolute: 0, percent: 0 };
+  const absolute = current - first;
+  const percent = first ? (current / first - 1) * 100 : 0;
+  return { absolute, percent };
+}
+
 function ensureInspector(shell) {
   let inspector = shell.querySelector('.market-chart-inspector');
   if (inspector) return inspector;
@@ -93,16 +102,17 @@ function bindChart(root) {
     const spread = max - min || 1;
     const x = index / (points.length - 1) * 100;
     const y = 100 - ((Number(point.price) - min) / spread) * 90 - 5;
-    const first = Number(points[0].price);
-    const variation = first ? (Number(point.price) / first - 1) * 100 : 0;
+    const variation = calculateVariation(points, index);
+    const positive = variation.absolute >= 0;
     const range = selectedRange(root);
 
     inspector.hidden = false;
+    inspector.dataset.ratio = String(ratio);
     crosshair.style.left = `${x}%`;
     marker.style.left = `${x}%`;
     marker.style.top = `${y}%`;
     tooltip.style.left = `${Math.max(13, Math.min(87, x))}%`;
-    tooltip.innerHTML = `<strong>${money.format(Number(point.price))}</strong><span class="${variation >= 0 ? 'positive' : 'negative'}">${variation >= 0 ? '+' : ''}${variation.toFixed(2)} %</span><small>${formatMoment(point.at, range)}</small>`;
+    tooltip.innerHTML = `<strong>${money.format(Number(point.price))}</strong><span class="${positive ? 'positive' : 'negative'}">${positive ? '+' : ''}${money.format(variation.absolute)} · ${variation.percent >= 0 ? '+' : ''}${variation.percent.toFixed(2)} %</span><small>${formatMoment(point.at, range)}</small>`;
   };
 
   svg.addEventListener('pointerdown', event => {
@@ -148,11 +158,11 @@ function installStyles() {
     .market-chart-inspector[hidden]{display:none}
     .market-chart-crosshair{position:absolute;top:8px;bottom:8px;width:1px;background:linear-gradient(180deg,transparent,rgba(235,244,255,.85),transparent);transform:translateX(-50%)}
     .market-chart-point{position:absolute;width:14px;height:14px;border-radius:50%;background:#09172a;border:3px solid #69c8ff;box-shadow:0 0 0 5px rgba(105,200,255,.18);transform:translate(-50%,-50%)}
-    .market-chart-tooltip{position:absolute;top:12px;display:grid;grid-template-columns:auto auto;gap:1px 9px;min-width:138px;padding:9px 11px;border:1px solid rgba(105,200,255,.5);border-radius:12px;background:rgba(7,20,38,.94);box-shadow:0 10px 28px rgba(0,0,0,.36);transform:translateX(-50%);font-variant-numeric:tabular-nums;backdrop-filter:blur(8px)}
+    .market-chart-tooltip{position:absolute;top:12px;display:grid;grid-template-columns:auto auto;gap:1px 9px;min-width:178px;padding:9px 11px;border:1px solid rgba(105,200,255,.5);border-radius:12px;background:rgba(7,20,38,.94);box-shadow:0 10px 28px rgba(0,0,0,.36);transform:translateX(-50%);font-variant-numeric:tabular-nums;backdrop-filter:blur(8px)}
     .market-chart-tooltip strong{font-size:.95rem;color:#f3f7ff}
-    .market-chart-tooltip span{font-size:.82rem;font-weight:750;text-align:right}
+    .market-chart-tooltip span{font-size:.82rem;font-weight:750;text-align:right;white-space:nowrap}
     .market-chart-tooltip small{grid-column:1/-1;color:#9fb2cf;font-size:.72rem}
-    @media(max-width:620px){.market-chart-tooltip{top:8px;min-width:126px;padding:8px 9px}.market-chart-point{width:16px;height:16px}}
+    @media(max-width:620px){.market-chart-tooltip{top:8px;min-width:164px;padding:8px 9px}.market-chart-point{width:16px;height:16px}}
   `;
   document.head.append(style);
 }
@@ -166,4 +176,4 @@ installStyles();
 new MutationObserver(scan).observe(document.documentElement, { childList: true, subtree: true });
 scan();
 
-export { bindChart, pointsFor, formatMoment };
+export { bindChart, pointsFor, formatMoment, calculateVariation };
