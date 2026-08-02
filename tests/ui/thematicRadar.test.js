@@ -12,10 +12,23 @@ test('opportunity cards distinguish themes from listed assets', () => {
   assert.match(model, /id: signal\.id/);
 });
 
-test('theme score is not copied to representative assets', () => {
-  assert.match(ui, /Ce score concerne le thème/);
-  assert.match(ui, /confiance dans le thème/);
+test('score, confidence and proof are displayed as distinct concepts', () => {
+  assert.match(ui, /Score : non calculé/);
+  assert.match(ui, /niveau de confiance/);
+  assert.match(ui, /niveau de preuve provisoire/);
+  assert.match(ui, /Aucune méthodologie validée ne permet encore d’afficher un score/);
+  assert.doesNotMatch(ui, /Score\s*:\s*\$\{Math\.round\(card\.confidence/);
+});
+
+test('theme metrics are never copied to representative assets', () => {
+  assert.match(ui, /Aucun score thématique n’est copié/);
   assert.doesNotMatch(ui, /asset\.confidence/);
+  assert.doesNotMatch(ui, /asset\.score/);
+});
+
+test('the explanation action uses the approved product wording', () => {
+  assert.match(ui, /Pourquoi LEYNOR pense cela \?/);
+  assert.match(ui, /Fraîcheur des données/);
 });
 
 test('representative assets open only real market sheets', () => {
