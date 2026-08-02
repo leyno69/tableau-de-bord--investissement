@@ -7,7 +7,7 @@ import { createPortfolioHttpServer } from '../../runtime/server/createPortfolioH
 
 test('loadServerConfig applique les valeurs par défaut et valide les nombres', () => {
   const config = loadServerConfig({});
-  assert.equal(config.host, '127.0.0.1');
+  assert.equal(config.host, '0.0.0.0');
   assert.equal(config.port, 3000);
   assert.equal(config.maxBodyBytes, 1_000_000);
   assert.throws(() => loadServerConfig({ PORT: 'abc' }), /PORT/);

@@ -1,5 +1,5 @@
 const DEFAULTS = Object.freeze({
-  host: '127.0.0.1',
+  host: '0.0.0.0',
   port: 3000,
   maxBodyBytes: 1_000_000,
   shutdownTimeoutMilliseconds: 10_000,
