@@ -32,11 +32,22 @@ test('génère un vrai document PDF avec en-tête, pages et fin de fichier', () 
   assert.ok(bytes.byteLength > 500);
 });
 
-test('télécharge le PDF via Blob sans dépendre d’un serveur', () => {
+test('télécharge le PDF via Blob avec un nettoyage différé compatible mobile', () => {
   let clicked = false;
+  let appended = false;
+  let removed = false;
   let revoked = null;
+  let scheduledDelay = null;
+  let cleanup = null;
   let blobType = null;
-  const anchor = { href: '', download: '', rel: '', click() { clicked = true; } };
+  const anchor = {
+    href: '',
+    download: '',
+    rel: '',
+    hidden: false,
+    click() { clicked = true; },
+    remove() { removed = true; }
+  };
   class FakeBlob {
     constructor(parts, options) {
       this.parts = parts;
@@ -50,15 +61,30 @@ test('télécharge le PDF via Blob sans dépendre d’un serveur', () => {
       createObjectURL() { return 'blob:leynor-report'; },
       revokeObjectURL(value) { revoked = value; }
     },
-    document: { createElement(tag) { assert.equal(tag, 'a'); return anchor; } }
+    document: {
+      body: { append(value) { assert.equal(value, anchor); appended = true; } },
+      createElement(tag) { assert.equal(tag, 'a'); return anchor; }
+    },
+    setTimeout(callback, delay) {
+      cleanup = callback;
+      scheduledDelay = delay;
+    }
   };
 
   const result = downloadPremiumPdf(report, 'rapport-portefeuille.pdf', environment);
   assert.equal(clicked, true);
+  assert.equal(appended, true);
+  assert.equal(anchor.hidden, true);
   assert.equal(anchor.href, 'blob:leynor-report');
   assert.equal(anchor.download, 'rapport-portefeuille.pdf');
   assert.equal(blobType, 'application/pdf');
+  assert.equal(scheduledDelay, 1_000);
+  assert.equal(revoked, null);
+  assert.equal(removed, false);
+
+  cleanup();
   assert.equal(revoked, 'blob:leynor-report');
+  assert.equal(removed, true);
   assert.equal(result.mimeType, 'application/pdf');
   assert.ok(result.size > 500);
 });
