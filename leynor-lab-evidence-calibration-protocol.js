@@ -2,29 +2,24 @@ function requiredText(value, field) {
   if (typeof value !== 'string' || value.trim() === '') throw new TypeError(`${field} doit être une chaîne non vide.`);
   return value.trim();
 }
-
 function requiredInteger(value, minimum, field) {
   const number = Number(value);
   if (!Number.isInteger(number) || number < minimum) throw new TypeError(`${field} doit être un entier supérieur ou égal à ${minimum}.`);
   return number;
 }
-
 function requiredBoolean(value, field) {
   if (typeof value !== 'boolean') throw new TypeError(`${field} doit être un booléen.`);
   return value;
 }
-
 function requiredArray(value, field, minimum = 1) {
   if (!Array.isArray(value) || value.length < minimum) throw new TypeError(`${field} doit contenir au moins ${minimum} élément(s).`);
   return value;
 }
-
 function deepFreeze(value) {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
   Object.values(value).forEach(deepFreeze);
   return Object.freeze(value);
 }
-
 function normalizeStudy(input, index) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new TypeError(`studies[${index}] doit être un objet.`);
   const role = requiredText(input.role, `studies[${index}].role`);
@@ -36,11 +31,11 @@ function normalizeStudy(input, index) {
     independentSourceCount: requiredInteger(input.independentSourceCount, 1, `studies[${index}].independentSourceCount`),
     reproducedConclusionCount: requiredInteger(input.reproducedConclusionCount, 0, `studies[${index}].reproducedConclusionCount`),
     contradictionCount: requiredInteger(input.contradictionCount, 0, `studies[${index}].contradictionCount`),
+    contradictionsReviewed: requiredBoolean(input.contradictionsReviewed, `studies[${index}].contradictionsReviewed`),
     methodologyEligible: requiredBoolean(input.methodologyEligible, `studies[${index}].methodologyEligible`),
     reproducible: requiredBoolean(input.reproducible, `studies[${index}].reproducible`)
   });
 }
-
 function normalizeCriterion(input, index) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new TypeError(`criteria[${index}] doit être un objet.`);
   return Object.freeze({
@@ -56,7 +51,6 @@ function normalizeCriterion(input, index) {
     contradictionsMustBeReviewed: requiredBoolean(input.contradictionsMustBeReviewed, `criteria[${index}].contradictionsMustBeReviewed`)
   });
 }
-
 function assertUnique(items, key, label) {
   const seen = new Set();
   for (const item of items) {
@@ -64,42 +58,28 @@ function assertUnique(items, key, label) {
     seen.add(item[key]);
   }
 }
-
 export function buildEvidenceCalibrationProtocol({ protocolId, protocolVersion, conclusionId, studies, criteria }) {
-  const normalizedStudies = requiredArray(studies, 'studies', 2).map(normalizeStudy)
-    .sort((left, right) => left.studyId.localeCompare(right.studyId));
-  const normalizedCriteria = requiredArray(criteria, 'criteria', 1).map(normalizeCriterion)
-    .sort((left, right) => left.criterionId.localeCompare(right.criterionId));
-
+  const normalizedStudies = requiredArray(studies, 'studies', 2).map(normalizeStudy).sort((a, b) => a.studyId.localeCompare(b.studyId));
+  const normalizedCriteria = requiredArray(criteria, 'criteria', 1).map(normalizeCriterion).sort((a, b) => a.criterionId.localeCompare(b.criterionId));
   assertUnique(normalizedStudies, 'studyId', 'studyId');
   assertUnique(normalizedCriteria, 'criterionId', 'criterionId');
-
   const calibrationStudies = normalizedStudies.filter(study => study.role === 'calibration');
   const holdoutStudies = normalizedStudies.filter(study => study.role === 'holdout');
-
   const evaluations = normalizedCriteria.map(criterion => {
-    const eligible = calibrationStudies.filter(study =>
-      study.methodologyEligible
-      && study.reproducible
+    const eligible = calibrationStudies.filter(study => study.methodologyEligible && study.reproducible
       && study.independentSourceCount >= criterion.minimumIndependentSourcesPerStudy
       && study.reproducedConclusionCount >= criterion.minimumReproducedConclusionsPerStudy
-      && (!criterion.contradictionsMustBeReviewed || study.contradictionCount >= 0)
-    );
+      && (!criterion.contradictionsMustBeReviewed || study.contradictionsReviewed));
     const independentStudyCount = new Set(eligible.map(study => study.datasetFingerprint)).size;
-    const holdoutAvailable = holdoutStudies.some(study =>
-      study.methodologyEligible
-      && study.reproducible
+    const holdoutAvailable = holdoutStudies.some(study => study.methodologyEligible && study.reproducible
       && study.independentSourceCount >= criterion.minimumIndependentSourcesPerStudy
       && study.reproducedConclusionCount >= criterion.minimumReproducedConclusionsPerStudy
-    );
-    const contradictionsReviewed = !criterion.contradictionsMustBeReviewed
-      || normalizedStudies.every(study => Number.isInteger(study.contradictionCount));
-
+      && (!criterion.contradictionsMustBeReviewed || study.contradictionsReviewed));
+    const contradictionsReviewed = !criterion.contradictionsMustBeReviewed || normalizedStudies.every(study => study.contradictionsReviewed);
     const blockers = [];
     if (independentStudyCount < criterion.minimumIndependentStudies) blockers.push('insufficient-independent-studies');
     if (criterion.holdoutRequired && !holdoutAvailable) blockers.push('missing-eligible-holdout');
     if (!contradictionsReviewed) blockers.push('contradictions-not-reviewed');
-
     return Object.freeze({
       criterionId: criterion.criterionId,
       measuredProperty: criterion.measuredProperty,
@@ -113,12 +93,10 @@ export function buildEvidenceCalibrationProtocol({ protocolId, protocolVersion, 
       blockers: Object.freeze(blockers)
     });
   });
-
   const blockers = [];
   if (new Set(normalizedStudies.map(study => study.datasetFingerprint)).size < 2) blockers.push('studies-not-independent');
   if (calibrationStudies.length < 2) blockers.push('insufficient-calibration-studies');
   if (evaluations.some(evaluation => evaluation.status === 'blocked')) blockers.push('criterion-blocked');
-
   return deepFreeze({
     schemaVersion: 1,
     protocolId: requiredText(protocolId, 'protocolId'),
