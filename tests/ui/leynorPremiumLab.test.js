@@ -4,12 +4,19 @@ import {
   MAX_PORTFOLIOS,
   buildLeynorLabInterpretation,
   createMassSimulationDefinition,
-  runMassSimulation
+  createSimulationCampaign,
+  runMassSimulation,
+  runSimulationCampaign
 } from '../../leynor-premium-lab.js';
 
 const allocation = [
   { id: 'world', label: 'ETF Monde', weight: 0.8, annualReturn: 0.07, annualVolatility: 0.16 },
   { id: 'bonds', label: 'Obligations', weight: 0.2, annualReturn: 0.03, annualVolatility: 0.06 }
+];
+
+const defensiveAllocation = [
+  { id: 'world', label: 'ETF Monde', weight: 0.5, annualReturn: 0.07, annualVolatility: 0.16 },
+  { id: 'bonds', label: 'Obligations', weight: 0.5, annualReturn: 0.03, annualVolatility: 0.06 }
 ];
 
 test('la définition massive est immuable et bornée', () => {
@@ -38,6 +45,37 @@ test('le rapport agrège les percentiles, le risque et la probabilité d’objec
   assert.ok(report.summary.realMedian < report.summary.nominal.median);
   assert.ok(report.summary.goalProbability >= 0 && report.summary.goalProbability <= 1);
   assert.match(report.methodology.interpretationWarning, /ne prédisent pas/);
+});
+
+test('une campagne compare plusieurs allocations avec les mêmes paramètres et la même graine', () => {
+  const input = {
+    name: 'Comparaison prudente',
+    shared: { portfolioCount: 250, years: 15, initialAmount: 5000, monthlyContribution: 150, annualInflation: 0.02, annualFees: 0.003, goal: 80000, seed: 12345 },
+    scenarios: [
+      { id: 'equilibre', label: 'Équilibré', allocation },
+      { id: 'defensif', label: 'Défensif', allocation: defensiveAllocation }
+    ]
+  };
+  const campaign = createSimulationCampaign(input);
+  const first = runSimulationCampaign(campaign);
+  const second = runSimulationCampaign(input);
+  assert.deepEqual(first, second);
+  assert.equal(first.reports.length, 2);
+  assert.equal(first.methodology.commonSeed, 12345);
+  assert.match(first.methodology.nonRecommendation, /sans désigner de meilleur portefeuille/);
+  assert.ok(Object.isFrozen(first.comparison));
+});
+
+test('la campagne refuse les identifiants dupliqués et un scénario unique', () => {
+  const shared = { portfolioCount: 10, years: 5, seed: 1 };
+  assert.throws(() => createSimulationCampaign({ shared, scenarios: [{ id: 'seul', allocation }] }), /entre 2/);
+  assert.throws(() => createSimulationCampaign({
+    shared,
+    scenarios: [
+      { id: 'meme', allocation },
+      { id: 'meme', allocation: defensiveAllocation }
+    ]
+  }), /dupliqué/);
 });
 
 test('LEYNOR transforme le rapport en observations et limites explicites', () => {

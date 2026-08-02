@@ -1,5 +1,6 @@
 const MAX_PORTFOLIOS = 10000;
 const MAX_YEARS = 50;
+const MAX_SCENARIOS = 12;
 
 function finite(value, name, { min = -Infinity, max = Infinity } = {}) {
   const number = Number(value);
@@ -13,6 +14,11 @@ function integer(value, name, limits) {
   const number = Math.floor(finite(value, name, limits));
   if (number !== Number(value)) throw new TypeError(`${name} doit être un entier.`);
   return number;
+}
+
+function requiredText(value, name) {
+  if (typeof value !== 'string' || value.trim() === '') throw new TypeError(`${name} doit être une chaîne non vide.`);
+  return value.trim();
 }
 
 function createSeededRandom(seed = 1) {
@@ -148,6 +154,67 @@ export function runMassSimulation(input) {
   });
 }
 
+export function createSimulationCampaign({ name = 'Campagne LEYNOR', shared, scenarios } = {}) {
+  if (!Array.isArray(scenarios) || scenarios.length < 2 || scenarios.length > MAX_SCENARIOS) {
+    throw new RangeError(`scenarios doit contenir entre 2 et ${MAX_SCENARIOS} scénarios.`);
+  }
+  const ids = new Set();
+  const normalizedScenarios = scenarios.map((scenario, index) => {
+    const id = requiredText(scenario?.id ?? `scenario-${index + 1}`, `scenarios[${index}].id`);
+    if (ids.has(id)) throw new RangeError(`Identifiant de scénario dupliqué : ${id}.`);
+    ids.add(id);
+    return Object.freeze({
+      id,
+      label: requiredText(scenario?.label ?? id, `scenarios[${index}].label`),
+      allocation: normalizeAllocation(scenario?.allocation)
+    });
+  });
+  const base = createMassSimulationDefinition({ ...shared, allocation: normalizedScenarios[0].allocation });
+  return Object.freeze({
+    name: requiredText(name, 'name'),
+    shared: Object.freeze({
+      portfolioCount: base.portfolioCount,
+      years: base.years,
+      initialAmount: base.initialAmount,
+      monthlyContribution: base.monthlyContribution,
+      annualInflation: base.annualInflation,
+      annualFees: base.annualFees,
+      goal: base.goal,
+      seed: base.seed
+    }),
+    scenarios: Object.freeze(normalizedScenarios)
+  });
+}
+
+export function runSimulationCampaign(input) {
+  const campaign = input?.scenarios && !Object.isFrozen(input) ? createSimulationCampaign(input) : input;
+  if (!campaign || !Object.isFrozen(campaign)) throw new TypeError('Une campagne de simulation valide est requise.');
+  const reports = campaign.scenarios.map(scenario => Object.freeze({
+    id: scenario.id,
+    label: scenario.label,
+    report: runMassSimulation({ ...campaign.shared, allocation: scenario.allocation })
+  }));
+  return Object.freeze({
+    campaign,
+    reports: Object.freeze(reports),
+    comparison: Object.freeze(reports.map(({ id, label, report }) => Object.freeze({
+      id,
+      label,
+      median: report.summary.nominal.median,
+      p05: report.summary.nominal.p05,
+      p95: report.summary.nominal.p95,
+      realMedian: report.summary.realMedian,
+      drawdownP95: report.summary.drawdown.p95,
+      goalProbability: report.summary.goalProbability
+    }))),
+    methodology: Object.freeze({
+      commonSeed: campaign.shared.seed,
+      statement: 'Chaque scénario utilise les mêmes paramètres communs et la même graine pour permettre une comparaison reproductible.',
+      nonRecommendation: 'La campagne compare des résultats simulés sans désigner de meilleur portefeuille ni formuler de recommandation.'
+    })
+  });
+}
+
 export function buildLeynorLabInterpretation(report) {
   if (!report?.summary || !report?.definition) throw new TypeError('Un rapport de simulation valide est requis.');
   const { summary, definition } = report;
@@ -177,4 +244,4 @@ export function buildLeynorLabInterpretation(report) {
   });
 }
 
-export { MAX_PORTFOLIOS, MAX_YEARS };
+export { MAX_PORTFOLIOS, MAX_SCENARIOS, MAX_YEARS };
