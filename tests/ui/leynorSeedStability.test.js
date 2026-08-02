@@ -39,7 +39,9 @@ test('mesure la dispersion sans fabriquer de score ou de niveau arbitraire', () 
   assert.ok(result.stability.nominalMedian.standardDeviation >= 0);
   assert.ok(result.stability.drawdownP95.coefficientOfVariation >= 0);
   assert.ok(result.stability.goalProbability.standardDeviation >= 0);
-  assert.doesNotMatch(JSON.stringify(result), /score|faible|moyen|élevé/i);
+  assert.equal(Object.hasOwn(result, 'score'), false);
+  assert.equal(Object.hasOwn(result, 'confidenceLevel'), false);
+  assert.equal(Object.hasOwn(result, 'rating'), false);
   assert.match(result.methodology.interpretation, /pas une certitude/);
 });
 
