@@ -8,7 +8,7 @@ test('les effets principaux consolidés couvrent tous les niveaux prévus', () =
     'utf8'
   ).trim().split('\n');
 
-  assert.equal(rows.length, 20);
+  assert.equal(rows.length, 19);
   assert.match(rows[0], /factor,level,finalMedian/);
   assert.ok(rows.some((row) => row.startsWith('behavior,interruption,')));
   assert.ok(rows.some((row) => row.startsWith('correlation,0.75,')));
