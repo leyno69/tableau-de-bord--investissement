@@ -10,8 +10,8 @@ const config = Object.freeze({
   campaignId: 'artifact-test',
   behaviors: ['regular', 'interruption'],
   reserveMonths: [0, 6],
-  lineCounts: [5],
-  assetVolatilities: [0.12],
+  lineCounts: [5, 15],
+  assetVolatilities: [0.12, 0.2],
   correlations: [0.1, 0.75],
   shockIntensities: [0, 7200],
   horizons: [10, 30],
@@ -31,9 +31,9 @@ test('génère des artefacts reproductibles et vérifiables', () => {
   const second = buildExecutionArtifacts(config, metadata);
 
   assert.deepEqual(first, second);
-  assert.equal(first.manifest.replicationCount, 160);
-  assert.equal(first.manifest.totalPaths, 320);
-  assert.equal(first.manifest.cellCount, 32);
+  assert.equal(first.manifest.replicationCount, 640);
+  assert.equal(first.manifest.totalPaths, 1280);
+  assert.equal(first.manifest.cellCount, 128);
   assert.equal(validateExecutionArtifacts(first, config).valid, true);
 });
 
