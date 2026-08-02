@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createLabIndividualPremiumReport } from '../../leynor-lab-individual-report.js';
-import { generatePremiumPdf } from '../../premium-pdf-export.js';
+import { buildPremiumPdf } from '../../premium-pdf-export.js';
 
 function simulationResult() {
   return {
@@ -61,8 +61,8 @@ test('le rapport et son PDF sont déterministes pour une entrée identique', () 
   const second = createLabIndividualPremiumReport(input);
   assert.deepEqual(first, second);
 
-  const firstPdf = generatePremiumPdf(first);
-  const secondPdf = generatePremiumPdf(second);
+  const firstPdf = buildPremiumPdf(first);
+  const secondPdf = buildPremiumPdf(second);
   assert.deepEqual(firstPdf, secondPdf);
   assert.equal(new TextDecoder().decode(firstPdf.slice(0, 8)), '%PDF-1.4');
 });
