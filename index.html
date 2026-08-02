@@ -50,13 +50,13 @@
 
       <section class="hero-grid">
         <article class="wealth-card">
-          <div class="card-label"><span>Patrimoine suivi</span><span class="live-pill">● Synchronisé</span></div>
-          <strong id="portfolioValue">—</strong>
+          <div class="card-label"><span>Patrimoine suivi</span><span class="live-pill">● Données locales</span></div>
+          <strong id="portfolioValue">Chargement…</strong>
           <div class="wealth-footer">
-            <span id="portfolioMove">—</span>
-            <small>Mis à jour à l’instant</small>
+            <span id="portfolioMove">Initialisation du portefeuille</span>
+            <small>Dernière valeur enregistrée</small>
           </div>
-          <div class="performance-chart" aria-label="Aperçu de performance décoratif">
+          <div class="performance-chart" aria-label="Aperçu visuel non contractuel">
             <span style="height:32%"></span><span style="height:42%"></span><span style="height:38%"></span><span style="height:55%"></span><span style="height:49%"></span><span style="height:66%"></span><span style="height:61%"></span><span style="height:76%"></span><span style="height:72%"></span><span style="height:88%"></span>
           </div>
         </article>
@@ -65,9 +65,9 @@
           <div class="ai-orb">✦</div>
           <div>
             <p class="eyebrow">BRIEF LEYNOR</p>
-            <h2>Votre portefeuille reste cohérent avec votre horizon long terme.</h2>
-            <p>La priorité du jour est de surveiller la concentration géographique et de conserver vos liquidités disponibles pour les prochains renforcements.</p>
-            <button class="text-button">Voir l’analyse complète →</button>
+            <h2>Analyse disponible après chargement du portefeuille.</h2>
+            <p>LEYNOR affichera ici une synthèse uniquement lorsque les données nécessaires auront été chargées et analysées.</p>
+            <button class="text-button">Ouvrir l’assistant →</button>
           </div>
         </article>
       </section>
@@ -157,6 +157,7 @@
 
   <script type="module" src="resolver-ui.js"></script>
   <script type="module" src="app.js"></script>
+  <script type="module" src="assistant-ui.js"></script>
   <script type="module" src="server-sync.js"></script>
   <script type="module" src="broker-import.js"></script>
 </body>
