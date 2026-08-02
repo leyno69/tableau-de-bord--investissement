@@ -46,10 +46,12 @@ test('signale une opération PDF incomplète sans l’autoriser', () => {
   assert.match(rows[0].status.messages.join(' '), /prix absent/);
 });
 
-test('l’interface branche le moteur PDF et explique la limite des documents scannés', async () => {
+test('l’interface branche le moteur PDF et son fallback OCR local', async () => {
   const source = await fs.readFile(new URL('../../broker-import.js', import.meta.url), 'utf8');
   assert.match(source, /parseBrokerPdf/);
-  assert.match(source, /PDF scannés sans couche texte/);
+  assert.match(source, /PDF scannés/);
   assert.match(source, /Vérifiez chaque ligne avant validation/);
-  assert.equal(PDF_IMPORT_ENGINE.name, 'Mozilla PDF.js');
+  assert.equal(PDF_IMPORT_ENGINE.name, 'Mozilla PDF.js + OCR local');
+  assert.equal(PDF_IMPORT_ENGINE.ocrEngine, 'Tesseract.js');
+  assert.equal(PDF_IMPORT_ENGINE.local, true);
 });
