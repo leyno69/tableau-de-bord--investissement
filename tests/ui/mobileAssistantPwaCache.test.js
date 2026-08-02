@@ -10,6 +10,20 @@ test('le service worker migre le cache et précharge le panneau mobile', () => {
   assert.match(worker, /'\/assistant-ui\.js'/);
   assert.match(worker, /'\/assistant-memory\.js'/);
   assert.match(worker, /'\/portfolio-assistant\.js'/);
+  assert.match(worker, /'\/pwa\.css'/);
+});
+
+test('une ressource manquante ne fait plus échouer toute l’installation PWA', () => {
+  assert.doesNotMatch(worker, /cache\.addAll\(APP_SHELL\)/);
+  assert.match(worker, /Promise\.allSettled\(APP_SHELL\.map/);
+  assert.match(worker, /cacheShellSafely/);
+  assert.match(worker, /cachedCount === 0/);
+});
+
+test('les anciens caches LEYNOR sont supprimés lors de l’activation', () => {
+  assert.match(worker, /key\.startsWith\('leynor-shell-'\)/);
+  assert.match(worker, /key !== CACHE_VERSION/);
+  assert.match(worker, /caches\.delete\(key\)/);
 });
 
 test('les scripts et styles sont chargés en priorité depuis le réseau', () => {
