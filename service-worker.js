@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'leynor-shell-v19';
+const CACHE_VERSION = 'leynor-shell-v20';
 const OFFLINE_URL = '/offline.html';
 const APP_SHELL = [
   '/', '/index.html', '/offline.html', '/style.css', '/app.js',
@@ -18,17 +18,21 @@ const APP_SHELL = [
   '/leynor-premium-lab-advanced.js', '/leynor-lab-regimes.js',
   '/leynor-brand.js', '/leynor-brand.css', '/leynor-logo.js',
   '/leynor-logo.css', '/leynor-assistant.js', '/leynor-assistant.css',
-  '/leynor-conversation.js', '/browser-voice.js', '/pwa.js',
+  '/leynor-conversation.js', '/browser-voice.js', '/pwa.js', '/pwa.css',
   '/manifest.webmanifest', '/icons/leynor-icon.svg',
   '/icons/leynor-maskable.svg', '/icons/leynor-laboratory-premium.svg'
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_VERSION).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(cacheShellSafely().then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_VERSION).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(key => key.startsWith('leynor-shell-') && key !== CACHE_VERSION).map(key => caches.delete(key))))
+      .then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', event => {
@@ -40,6 +44,17 @@ self.addEventListener('fetch', event => {
   if (request.destination === 'script' || request.destination === 'style') return event.respondWith(networkFirst(request));
   event.respondWith(staleWhileRevalidate(request));
 });
+
+async function cacheShellSafely() {
+  const cache = await caches.open(CACHE_VERSION);
+  const results = await Promise.allSettled(APP_SHELL.map(async path => {
+    const response = await fetch(path, { cache: 'reload' });
+    if (!response.ok) throw new Error(`Ressource ${path} indisponible (${response.status}).`);
+    await cache.put(path, response);
+  }));
+  const cachedCount = results.filter(result => result.status === 'fulfilled').length;
+  if (cachedCount === 0) throw new Error('Aucune ressource LEYNOR n’a pu être mise en cache.');
+}
 
 async function networkFirst(request, fallbackUrl = null) {
   try {
