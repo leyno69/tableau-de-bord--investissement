@@ -21,6 +21,28 @@ function parseCellKey(cellKey) {
   }));
 }
 
+function normalizedThresholds(options = {}) {
+  const thresholds = {
+    stable: options.stable ?? DEFAULT_THRESHOLDS.stable,
+    watch: options.watch ?? DEFAULT_THRESHOLDS.watch,
+    minimumSeeds: options.minimumSeeds ?? DEFAULT_THRESHOLDS.minimumSeeds,
+    maximumSeeds: options.maximumSeeds ?? DEFAULT_THRESHOLDS.maximumSeeds,
+    batchSize: options.batchSize ?? DEFAULT_THRESHOLDS.batchSize,
+  };
+  if (!(thresholds.stable > 0 && thresholds.watch >= thresholds.stable)) {
+    throw new RangeError('thresholds must satisfy 0 < stable <= watch');
+  }
+  for (const name of ['minimumSeeds', 'maximumSeeds', 'batchSize']) {
+    if (!Number.isInteger(thresholds[name]) || thresholds[name] < 1) {
+      throw new RangeError(`${name} must be a positive integer`);
+    }
+  }
+  if (thresholds.maximumSeeds < thresholds.minimumSeeds) {
+    throw new RangeError('maximumSeeds must be greater than or equal to minimumSeeds');
+  }
+  return Object.freeze(thresholds);
+}
+
 export function classifyConvergence(relativeDispersion, seedCount, thresholds = DEFAULT_THRESHOLDS) {
   assertFiniteNonNegative(relativeDispersion, 'relativeDispersion');
   if (!Number.isInteger(seedCount) || seedCount < 1) throw new RangeError('seedCount must be a positive integer');
@@ -30,20 +52,27 @@ export function classifyConvergence(relativeDispersion, seedCount, thresholds = 
   return 'unstable';
 }
 
-export function requiredSeedCount(relativeDispersion, seedCount, thresholds = DEFAULT_THRESHOLDS) {
+export function requiredSeedCount(relativeDispersion, seedCount, options = DEFAULT_THRESHOLDS) {
+  const thresholds = normalizedThresholds(options);
   const status = classifyConvergence(relativeDispersion, seedCount, thresholds);
   if (status === 'stable') return seedCount;
   if (status === 'insufficient') return Math.min(thresholds.maximumSeeds, thresholds.minimumSeeds);
 
   const target = status === 'watch' ? thresholds.stable : thresholds.watch;
-  const estimated = Math.ceil(seedCount * (relativeDispersion / target) ** 2);
-  const batched = Math.ceil(estimated / thresholds.batchSize) * thresholds.batchSize;
-  return Math.min(thresholds.maximumSeeds, Math.max(seedCount + thresholds.batchSize, batched));
+  const rawEstimate = seedCount * (relativeDispersion / target) ** 2;
+  const estimated = Math.ceil(Number(rawEstimate.toPrecision(12)));
+  const additionalNeeded = Math.max(0, estimated - seedCount);
+  const additionalBatches = Math.ceil(additionalNeeded / thresholds.batchSize);
+  const batchedTarget = seedCount + additionalBatches * thresholds.batchSize;
+  return Math.min(
+    thresholds.maximumSeeds,
+    Math.max(seedCount + thresholds.batchSize, batchedTarget),
+  );
 }
 
 export function buildTargetedReplicationPlan(stabilityRows, options = {}) {
   if (!Array.isArray(stabilityRows)) throw new TypeError('stabilityRows must be an array');
-  const thresholds = Object.freeze({ ...DEFAULT_THRESHOLDS, ...options });
+  const thresholds = normalizedThresholds(options);
   const startingSeed = options.startingSeed ?? 1000;
   if (!Number.isInteger(startingSeed) || startingSeed < 0) throw new RangeError('startingSeed must be a non-negative integer');
 
@@ -81,7 +110,7 @@ export function buildTargetedReplicationPlan(stabilityRows, options = {}) {
 }
 
 export function evaluateReplicationStop(previous, current, options = {}) {
-  const thresholds = Object.freeze({ ...DEFAULT_THRESHOLDS, ...options });
+  const thresholds = normalizedThresholds(options);
   if (!previous || !current) throw new TypeError('previous and current summaries are required');
   const status = classifyConvergence(current.relativeDispersion, current.seedCount, thresholds);
   const dispersionImprovement = previous.relativeDispersion === 0
