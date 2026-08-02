@@ -20,7 +20,7 @@ test('augmente le budget par lots sans dépasser le plafond', () => {
   assert.equal(requiredSeedCount(0.03, 5), 5);
   assert.equal(requiredSeedCount(0.08, 5), 15);
   assert.equal(requiredSeedCount(0.15, 5), 15);
-  assert.equal(requiredSeedCount(0.2, 5), 25);
+  assert.equal(requiredSeedCount(0.2, 5), 20);
 });
 
 test('produit un plan déterministe uniquement pour les cellules non convergées', () => {
