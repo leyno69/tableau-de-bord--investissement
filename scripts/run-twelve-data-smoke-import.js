@@ -1,4 +1,5 @@
-import { writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 import { runTwelveDataSmokeImport } from '../market-data/TwelveDataSmokeImport.js';
 
 const symbol = process.env.TWELVEDATA_SMOKE_SYMBOL ?? 'AAPL';
@@ -15,6 +16,7 @@ try {
     interval: '1day',
     outputSize: 5,
   });
+  await mkdir(dirname(outputPath), { recursive: true });
   await writeFile(outputPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
   console.log(JSON.stringify({
     configured: true,
