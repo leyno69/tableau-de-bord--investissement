@@ -14,12 +14,14 @@ function escapeHtml(value) {
 }
 
 async function mountAssistant() {
+  document.body.classList.remove('assistant-open');
+
   const style = document.createElement('style');
   style.textContent = `
-    .assistant-backdrop{position:fixed;inset:0;background:rgba(4,10,24,.55);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:.25s;z-index:80}
-    .assistant-backdrop.open{opacity:1;pointer-events:auto}
-    .assistant-drawer{position:fixed;inset:0 0 0 auto;width:min(460px,100vw);max-width:100vw;height:100dvh;box-sizing:border-box;overflow:hidden;background:#0d1728;color:#eef4ff;transform:translateX(100%);transition:.3s;z-index:90;display:grid;grid-template-rows:auto minmax(0,1fr) auto;box-shadow:-24px 0 60px rgba(0,0,0,.35);overscroll-behavior:contain}
-    .assistant-drawer.open{transform:translateX(0)}
+    .assistant-backdrop{position:fixed;inset:0;background:rgba(4,10,24,.55);backdrop-filter:blur(4px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s,visibility 0s linear .25s;z-index:80}
+    .assistant-backdrop.open{opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}
+    .assistant-drawer{position:fixed;inset:0 0 0 auto;width:min(460px,100vw);max-width:100vw;height:100dvh;box-sizing:border-box;overflow:hidden;background:#0d1728;color:#eef4ff;transform:translateX(100%);visibility:hidden;pointer-events:none;transition:transform .3s,visibility 0s linear .3s;z-index:90;display:grid;grid-template-rows:auto minmax(0,1fr) auto;box-shadow:-24px 0 60px rgba(0,0,0,.35);overscroll-behavior:contain}
+    .assistant-drawer.open{transform:translateX(0);visibility:visible;pointer-events:auto;transition-delay:0s}
     .assistant-head{min-width:0;padding:max(18px,env(safe-area-inset-top)) 18px 18px;box-sizing:border-box;border-bottom:1px solid rgba(255,255,255,.09);display:flex;justify-content:space-between;gap:12px;align-items:center}
     .assistant-head>div{min-width:0}.assistant-head strong{display:block;font-size:1.15rem;overflow-wrap:anywhere}.assistant-head small{display:block;color:#9fb0ca;overflow-wrap:anywhere}
     .assistant-close{flex:0 0 42px;border:0;background:rgba(255,255,255,.1);color:white;width:42px;height:42px;border-radius:12px;font-size:1.45rem;cursor:pointer}
@@ -38,9 +40,11 @@ async function mountAssistant() {
 
   const backdrop = document.createElement('div');
   backdrop.className = 'assistant-backdrop';
+  backdrop.setAttribute('aria-hidden', 'true');
   const drawer = document.createElement('aside');
   drawer.className = 'assistant-drawer';
   drawer.setAttribute('aria-hidden', 'true');
+  drawer.setAttribute('inert', '');
   drawer.innerHTML = `<header class="assistant-head"><div><strong>✦ Assistant LEYNOR</strong><small>Mémoire et portefeuille actifs</small></div><button class="assistant-close" type="button" aria-label="Fermer l’assistant">×</button></header><div class="assistant-content"><div class="assistant-thread" aria-live="polite"></div><div class="assistant-suggestions">${suggestedPrompts.map(prompt => `<button type="button">${prompt}</button>`).join('')}</div></div><form class="assistant-form"><input aria-label="Votre question" placeholder="Posez une question à LEYNOR…" required /><button>Envoyer</button></form>`;
   document.body.append(backdrop, drawer);
 
@@ -60,9 +64,11 @@ async function mountAssistant() {
   }
 
   function open() {
+    drawer.removeAttribute('inert');
     drawer.classList.add('open');
     backdrop.classList.add('open');
     drawer.setAttribute('aria-hidden', 'false');
+    backdrop.setAttribute('aria-hidden', 'false');
     document.body.classList.add('assistant-open');
     window.history.pushState({ leynorAssistant: true }, '');
     window.setTimeout(() => input.focus({ preventScroll: true }), 180);
@@ -72,6 +78,8 @@ async function mountAssistant() {
     drawer.classList.remove('open');
     backdrop.classList.remove('open');
     drawer.setAttribute('aria-hidden', 'true');
+    backdrop.setAttribute('aria-hidden', 'true');
+    drawer.setAttribute('inert', '');
     document.body.classList.remove('assistant-open');
     if (!fromHistory && window.history.state?.leynorAssistant) window.history.back();
   }
