@@ -1,10 +1,12 @@
 import { recordBootError, setBootPhase } from './boot-diagnostics.js';
 import './interaction-audit.js';
 
+const CURRENT_STORAGE_SCHEMA = 2;
 const STORAGE_KEYS = Object.freeze({
   portfolio: 'invest-dashboard-portfolio',
   watchlist: 'invest-dashboard-watchlist',
-  broker: 'invest-dashboard-active-broker'
+  broker: 'invest-dashboard-active-broker',
+  schema: 'leynor-storage-schema-version'
 });
 
 function readJson(storage, key) {
@@ -16,11 +18,7 @@ function readJson(storage, key) {
     return undefined;
   }
   if (raw == null || raw === '') return null;
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return undefined;
-  }
+  try { return JSON.parse(raw); } catch { return undefined; }
 }
 
 function normalizePortfolio(value) {
@@ -41,38 +39,66 @@ function normalizeWatchlist(value) {
   return [];
 }
 
-function safeSet(storage, key, value, repairedKeys) {
+function safeSet(storage, key, value, repairedKeys, { json = true } = {}) {
   try {
-    storage.setItem(key, JSON.stringify(value));
-    repairedKeys.push(key);
+    storage.setItem(key, json ? JSON.stringify(value) : String(value));
+    if (!repairedKeys.includes(key)) repairedKeys.push(key);
+    return true;
   } catch (error) {
     recordBootError(error, `storage.write.${key}`);
+    return false;
   }
+}
+
+function readSchemaVersion(storage) {
+  try {
+    const parsed = Number(storage.getItem(STORAGE_KEYS.schema));
+    return Number.isInteger(parsed) && parsed >= 0 ? parsed : 0;
+  } catch (error) {
+    recordBootError(error, `storage.read.${STORAGE_KEYS.schema}`);
+    return 0;
+  }
+}
+
+function normalizeStoredValue(storage, key, normalizer, repairedKeys) {
+  const current = readJson(storage, key);
+  if (current === null) return;
+  const normalized = normalizer(current);
+  if (current === undefined || JSON.stringify(current) !== JSON.stringify(normalized)) {
+    safeSet(storage, key, normalized, repairedKeys);
+  }
+}
+
+function migrateStorage(storage, fromVersion, repairedKeys) {
+  let version = fromVersion;
+  if (version < 1) {
+    normalizeStoredValue(storage, STORAGE_KEYS.portfolio, normalizePortfolio, repairedKeys);
+    version = 1;
+  }
+  if (version < 2) {
+    normalizeStoredValue(storage, STORAGE_KEYS.watchlist, normalizeWatchlist, repairedKeys);
+    version = 2;
+  }
+  if (version !== fromVersion) safeSet(storage, STORAGE_KEYS.schema, version, repairedKeys, { json: false });
+  return version;
+}
+
+function verifyStorageIntegrity(storage, repairedKeys) {
+  normalizeStoredValue(storage, STORAGE_KEYS.portfolio, normalizePortfolio, repairedKeys);
+  normalizeStoredValue(storage, STORAGE_KEYS.watchlist, normalizeWatchlist, repairedKeys);
 }
 
 function repairBrowserStorage(storage = globalThis.localStorage) {
   setBootPhase('repairing-storage');
   if (!storage || typeof storage.getItem !== 'function' || typeof storage.setItem !== 'function') {
     setBootPhase('storage-unavailable');
-    return Object.freeze({ repaired: false, keys: Object.freeze([]) });
+    return Object.freeze({ repaired: false, keys: Object.freeze([]), schemaVersion: 0 });
   }
 
   const repairedKeys = [];
-  const portfolio = readJson(storage, STORAGE_KEYS.portfolio);
-  if (portfolio !== null) {
-    const normalized = normalizePortfolio(portfolio);
-    if (portfolio === undefined || JSON.stringify(portfolio) !== JSON.stringify(normalized)) {
-      safeSet(storage, STORAGE_KEYS.portfolio, normalized, repairedKeys);
-    }
-  }
-
-  const watchlist = readJson(storage, STORAGE_KEYS.watchlist);
-  if (watchlist !== null) {
-    const normalized = normalizeWatchlist(watchlist);
-    if (watchlist === undefined || JSON.stringify(watchlist) !== JSON.stringify(normalized)) {
-      safeSet(storage, STORAGE_KEYS.watchlist, normalized, repairedKeys);
-    }
-  }
+  const initialVersion = readSchemaVersion(storage);
+  const schemaVersion = migrateStorage(storage, initialVersion, repairedKeys);
+  verifyStorageIntegrity(storage, repairedKeys);
 
   try {
     const broker = storage.getItem(STORAGE_KEYS.broker);
@@ -85,7 +111,19 @@ function repairBrowserStorage(storage = globalThis.localStorage) {
   }
 
   setBootPhase('storage-ready');
-  return Object.freeze({ repaired: repairedKeys.length > 0, keys: Object.freeze([...repairedKeys]) });
+  return Object.freeze({
+    repaired: repairedKeys.length > 0,
+    keys: Object.freeze([...repairedKeys]),
+    schemaVersion
+  });
 }
 
-export { STORAGE_KEYS, normalizePortfolio, normalizeWatchlist, repairBrowserStorage };
+export {
+  CURRENT_STORAGE_SCHEMA,
+  STORAGE_KEYS,
+  migrateStorage,
+  normalizePortfolio,
+  normalizeWatchlist,
+  repairBrowserStorage,
+  verifyStorageIntegrity
+};
