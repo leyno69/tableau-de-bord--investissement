@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'leynor-shell-v22';
+const CACHE_VERSION = 'leynor-shell-v23';
 const OFFLINE_URL = '/offline.html';
 const APP_SHELL = [
   '/', '/index.html', '/offline.html', '/style.css', '/app.js',
@@ -19,7 +19,8 @@ const APP_SHELL = [
   '/leynor-brand.js', '/leynor-brand.css', '/leynor-logo.js',
   '/leynor-logo.css', '/leynor-assistant.js', '/leynor-assistant.css',
   '/leynor-conversation.js', '/browser-voice.js', '/pwa.js', '/pwa.css',
-  '/storage-bootstrap.js', '/mobile-ui.js',
+  '/storage-bootstrap.js', '/boot-diagnostics.js', '/interaction-audit.js',
+  '/diagnostics-panel.js', '/diagnostics-panel.css', '/mobile-ui.js',
   '/manifest.webmanifest', '/icons/leynor-icon.svg',
   '/icons/leynor-maskable.svg', '/icons/leynor-laboratory-premium.svg'
 ];
