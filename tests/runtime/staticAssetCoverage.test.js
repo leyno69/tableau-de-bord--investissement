@@ -1,11 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { access, readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 
 import { STATIC_FILES, listStaticAssetPaths } from '../../runtime/server/staticAssets.js';
-
-const PROJECT_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 
 function serviceWorkerShellPaths(source) {
   const match = source.match(/const APP_SHELL = \[([\s\S]*?)\];/);
