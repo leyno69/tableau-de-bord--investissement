@@ -1,5 +1,7 @@
-const STORAGE_SCHEMA_KEY = 'leynor-storage-schema-version';
-const EXPECTED_STORAGE_SCHEMA = 2;
+import { CURRENT_STORAGE_SCHEMA, STORAGE_KEYS } from './storage-bootstrap.js';
+
+const STORAGE_SCHEMA_KEY = STORAGE_KEYS.schema;
+const EXPECTED_STORAGE_SCHEMA = CURRENT_STORAGE_SCHEMA;
 
 function readStorageVersion(storage = globalThis.localStorage) {
   if (!storage?.getItem) return null;
