@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { CURRENT_STORAGE_SCHEMA, STORAGE_KEYS } from '../../storage-bootstrap.js';
 import {
   EXPECTED_STORAGE_SCHEMA,
   STORAGE_SCHEMA_KEY,
@@ -13,6 +14,11 @@ function memoryStorage(initial = {}) {
   const values = new Map(Object.entries(initial));
   return { getItem(key) { return values.has(key) ? values.get(key) : null; } };
 }
+
+test('réutilise la version et la clé déclarées par le stockage', () => {
+  assert.equal(EXPECTED_STORAGE_SCHEMA, CURRENT_STORAGE_SCHEMA);
+  assert.equal(STORAGE_SCHEMA_KEY, STORAGE_KEYS.schema);
+});
 
 test('agrège le démarrage, les interactions et le schéma local sans données sensibles', () => {
   const storage = memoryStorage({ [STORAGE_SCHEMA_KEY]: String(EXPECTED_STORAGE_SCHEMA) });
@@ -49,8 +55,9 @@ test('classe un diagnostic entièrement sain comme opérationnel', () => {
 });
 
 test('produit un rapport minimal sans données de portefeuille ni secrets', () => {
+  const previousVersion = Math.max(0, EXPECTED_STORAGE_SCHEMA - 1);
   const snapshot = buildDiagnosticsSnapshot({
-    storage: memoryStorage({ [STORAGE_SCHEMA_KEY]: '1' }),
+    storage: memoryStorage({ [STORAGE_SCHEMA_KEY]: String(previousVersion) }),
     version: 'test',
     boot: { phase: 'storage-ready', errors: [] },
     interaction: { status: 'degraded', issues: ['missing-control'] }
@@ -58,7 +65,7 @@ test('produit un rapport minimal sans données de portefeuille ni secrets', () =
   const report = buildSupportReport(snapshot);
 
   assert.equal(diagnosticsHealth(snapshot), 'attention');
-  assert.match(report, /Stockage : 1\/2/);
+  assert.ok(report.includes(`Stockage : ${previousVersion}/${EXPECTED_STORAGE_SCHEMA}`));
   assert.match(report, /Anomalies d’interaction : 1/);
   assert.doesNotMatch(report, /portfolio|token|secret|api[_-]?key/i);
 });
