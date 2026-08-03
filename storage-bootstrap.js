@@ -1,4 +1,5 @@
 import { recordBootError, setBootPhase } from './boot-diagnostics.js';
+import './interaction-audit.js';
 
 const STORAGE_KEYS = Object.freeze({
   portfolio: 'invest-dashboard-portfolio',
