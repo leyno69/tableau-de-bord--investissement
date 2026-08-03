@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir, rm } from 'node:fs/promises';
+import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 
 const ROOT = new URL('../', import.meta.url);
@@ -30,6 +30,16 @@ for (const directory of BROWSER_DIRECTORIES) {
   } catch (error) {
     if (error?.code !== 'ENOENT') throw error;
   }
+}
+
+const indexUrl = new URL('index.html', DIST);
+const indexHtml = await readFile(indexUrl, 'utf8');
+if (!indexHtml.includes('browser-recovery.js')) {
+  await writeFile(
+    indexUrl,
+    indexHtml.replace('</head>', '  <script src="browser-recovery.js" defer></script>\n</head>'),
+    'utf8'
+  );
 }
 
 console.info(`Frontend statique généré dans ${join(new URL('.', DIST).pathname)}`);
