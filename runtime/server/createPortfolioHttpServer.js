@@ -57,7 +57,8 @@ export function createPortfolioHttpServer({
   clock = () => new Date(),
   idGenerator,
   logger = console,
-  fetchImplementation = globalThis.fetch
+  fetchImplementation = globalThis.fetch,
+  deploymentEnvironment = process.env
 }) {
   requireConfig(config);
   requireProviders(providers);
@@ -103,13 +104,19 @@ export function createPortfolioHttpServer({
   });
   const applicationHandler = createNodeHttpHandler({ httpAdapter, maxBodyBytes: config.maxBodyBytes });
   const secureApplicationHandler = createSecureHttpHandler({ handler: applicationHandler, token: config.authToken ?? '', logger, clock });
+  const startedAt = clock().toISOString();
 
   let ready = false;
   const server = createServer(async (request, response) => {
     const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
     if (request.method === 'GET' && pathname === '/health') return sendJson(response, 200, { status: 'ok' });
     if (request.method === 'GET' && pathname === '/ready') return sendJson(response, ready ? 200 : 503, { status: ready ? 'ready' : 'starting' });
-    if (request.method === 'GET' && STATIC_FILES.has(pathname)) return sendStaticFile(response, pathname, logger);
+    if (request.method === 'GET' && pathname === '/version') {
+      return sendJson(response, 200, createDeploymentFingerprint({ deploymentEnvironment, startedAt }));
+    }
+    if (request.method === 'GET' && STATIC_FILES.has(pathname)) {
+      return sendStaticFile(response, pathname, logger, deploymentEnvironment);
+    }
     return secureApplicationHandler(request, response);
   });
 
@@ -166,6 +173,27 @@ export function createPortfolioHttpServer({
   });
 }
 
+export function createDeploymentFingerprint({ deploymentEnvironment = {}, startedAt = null } = {}) {
+  const commit = deploymentEnvironment.RAILWAY_GIT_COMMIT_SHA
+    || deploymentEnvironment.VERCEL_GIT_COMMIT_SHA
+    || deploymentEnvironment.COMMIT_SHA
+    || 'unknown';
+  return Object.freeze({
+    application: 'LEYNOR AI',
+    commit,
+    commitShort: commit === 'unknown' ? 'unknown' : commit.slice(0, 12),
+    platform: deploymentEnvironment.RAILWAY_PROJECT_ID ? 'railway' : deploymentEnvironment.VERCEL ? 'vercel' : 'unknown',
+    projectId: deploymentEnvironment.RAILWAY_PROJECT_ID || null,
+    serviceId: deploymentEnvironment.RAILWAY_SERVICE_ID || null,
+    environmentId: deploymentEnvironment.RAILWAY_ENVIRONMENT_ID || null,
+    serviceName: deploymentEnvironment.RAILWAY_SERVICE_NAME || null,
+    publicDomain: deploymentEnvironment.RAILWAY_PUBLIC_DOMAIN || null,
+    deploymentId: deploymentEnvironment.RAILWAY_DEPLOYMENT_ID || null,
+    nodeEnvironment: deploymentEnvironment.NODE_ENV || null,
+    startedAt
+  });
+}
+
 function createLanguageModelProvider(config = {}, fetchImplementation) {
   if (!config || config.provider == null || config.provider === 'disabled') return null;
   if (config.provider !== 'openai-compatible-http') throw new RangeError('Fournisseur IA LEYNOR non pris en charge.');
@@ -179,16 +207,22 @@ function createLanguageModelProvider(config = {}, fetchImplementation) {
   });
 }
 
-async function sendStaticFile(response, pathname, logger) {
+async function sendStaticFile(response, pathname, logger, deploymentEnvironment = {}) {
   const [relativePath, contentType] = STATIC_FILES.get(pathname);
   try {
     const body = await readFile(join(PROJECT_ROOT, relativePath));
+    const commit = deploymentEnvironment.RAILWAY_GIT_COMMIT_SHA
+      || deploymentEnvironment.VERCEL_GIT_COMMIT_SHA
+      || deploymentEnvironment.COMMIT_SHA
+      || 'unknown';
     response.writeHead(200, {
       'content-type': contentType,
       'cache-control': 'no-store, max-age=0',
       'pragma': 'no-cache',
       'expires': '0',
-      'x-content-type-options': 'nosniff'
+      'x-content-type-options': 'nosniff',
+      'x-leynor-commit': commit,
+      'x-leynor-service': deploymentEnvironment.RAILWAY_SERVICE_ID || 'unknown'
     });
     response.end(body);
   } catch (error) {
