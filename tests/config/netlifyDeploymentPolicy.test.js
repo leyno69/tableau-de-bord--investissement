@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { access, readFile } from 'node:fs/promises';
-import { constants } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 
 const strategy = await readFile(
   new URL('../../docs/deployment-strategy.md', import.meta.url),
@@ -10,18 +9,23 @@ const strategy = await readFile(
 const railway = JSON.parse(
   await readFile(new URL('../../railway.json', import.meta.url), 'utf8')
 );
+const vercel = JSON.parse(
+  await readFile(new URL('../../vercel.json', import.meta.url), 'utf8')
+);
+const packageJson = JSON.parse(
+  await readFile(new URL('../../package.json', import.meta.url), 'utf8')
+);
 
-test('Vercel ne fait plus partie de la configuration du dépôt', async () => {
-  await assert.rejects(
-    access(new URL('../../vercel.json', import.meta.url), constants.F_OK),
-    error => error?.code === 'ENOENT'
-  );
+test('Vercel publie le frontend statique généré', () => {
+  assert.equal(vercel.buildCommand, 'npm run build');
+  assert.equal(vercel.outputDirectory, 'dist');
+  assert.equal(packageJson.scripts?.build, 'node scripts/build-static-site.js');
 });
 
-test('Railway est la plateforme unique de production', () => {
-  assert.match(strategy, /Railway comme plateforme unique de production/i);
-  assert.match(strategy, /branche de production : `main`/i);
-  assert.match(strategy, /frontend et API issus du même commit/i);
+test('Railway reste le backend persistant de production', () => {
+  assert.match(strategy, /Vercel publie le frontend/i);
+  assert.match(strategy, /Railway conserve le serveur Node\.js/i);
+  assert.match(strategy, /branche de production `main`|branche : `main`/i);
 });
 
 test('la production Railway utilise le Dockerfile et un healthcheck explicite', () => {
@@ -31,7 +35,8 @@ test('la production Railway utilise le Dockerfile et un healthcheck explicite', 
   assert.equal(railway.deploy?.restartPolicyType, 'ON_FAILURE');
 });
 
-test('les règles de fusion ne dépendent d’aucun hébergeur externe', () => {
-  assert.match(strategy, /contrôles GitHub Actions requis sont au vert/i);
-  assert.match(strategy, /Aucun contrôle Vercel, Netlify ou Railway de preview n'est obligatoire/i);
+test('le proxy sécurisé conserve le jeton hors du navigateur', () => {
+  assert.match(strategy, /LEYNOR_BACKEND_URL/);
+  assert.match(strategy, /LEYNOR_BACKEND_TOKEN/);
+  assert.match(strategy, /n’est pas exposé au navigateur/i);
 });
