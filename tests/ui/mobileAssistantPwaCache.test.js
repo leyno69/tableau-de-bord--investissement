@@ -13,6 +13,13 @@ test('le service worker migre le cache et précharge le panneau mobile', () => {
   assert.match(worker, /'\/pwa\.css'/);
 });
 
+test('les diagnostics indispensables au démarrage restent disponibles hors ligne', () => {
+  assert.match(worker, /'\/boot-diagnostics\.js'/);
+  assert.match(worker, /'\/interaction-audit\.js'/);
+  assert.match(worker, /'\/diagnostics-panel\.js'/);
+  assert.match(worker, /'\/diagnostics-panel\.css'/);
+});
+
 test('une ressource manquante ne fait plus échouer toute l’installation PWA', () => {
   assert.doesNotMatch(worker, /cache\.addAll\(APP_SHELL\)/);
   assert.match(worker, /Promise\.allSettled\(APP_SHELL\.map/);
