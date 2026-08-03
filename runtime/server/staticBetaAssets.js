@@ -20,6 +20,13 @@ export const STATIC_BETA_ASSETS = Object.freeze([
   ['leynor-premium-lab.js', 'text/javascript; charset=utf-8'],
   ['leynor-premium-lab-advanced.js', 'text/javascript; charset=utf-8'],
   ['leynor-lab-regimes.js', 'text/javascript; charset=utf-8'],
+  ['mobile-ui.js', 'text/javascript; charset=utf-8'],
+  ['storage-schema.js', 'text/javascript; charset=utf-8'],
+  ['storage-bootstrap.js', 'text/javascript; charset=utf-8'],
+  ['boot-diagnostics.js', 'text/javascript; charset=utf-8'],
+  ['interaction-audit.js', 'text/javascript; charset=utf-8'],
+  ['diagnostics-panel.js', 'text/javascript; charset=utf-8'],
+  ['diagnostics-panel.css', 'text/css; charset=utf-8'],
   ['icons/leynor-icon.svg', 'image/svg+xml'],
   ['icons/leynor-maskable.svg', 'image/svg+xml']
 ]);
