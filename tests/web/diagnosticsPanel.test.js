@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CURRENT_STORAGE_SCHEMA, STORAGE_KEYS } from '../../storage-bootstrap.js';
+import { CURRENT_STORAGE_SCHEMA, STORAGE_KEYS } from '../../storage-schema.js';
 import {
   EXPECTED_STORAGE_SCHEMA,
   STORAGE_SCHEMA_KEY,
