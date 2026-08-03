@@ -1,0 +1,56 @@
+name: Twelve Data smoke import
+
+on:
+  pull_request:
+    paths:
+      - 'market-data/**'
+      - 'scripts/run-twelve-data-smoke-import.js'
+      - '.github/workflows/twelve-data-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'market-data/**'
+      - 'scripts/run-twelve-data-smoke-import.js'
+      - '.github/workflows/twelve-data-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node --test market-data/TwelveDataProvider.test.js market-data/TwelveDataSmokeImport.test.js
+
+  smoke-import:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      TWELVEDATA_API_KEY: ${{ secrets.TWELVEDATA_API_KEY }}
+      TWELVEDATA_SMOKE_SYMBOL: AAPL
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Verify secret is configured
+        shell: bash
+        run: |
+          if [ -z "$TWELVEDATA_API_KEY" ]; then
+            echo 'TWELVEDATA_API_KEY is not configured' >&2
+            exit 1
+          fi
+      - name: Run bounded smoke import
+        run: node scripts/run-twelve-data-smoke-import.js
+      - name: Upload non-secret acquisition report
+        uses: actions/upload-artifact@v4
+        with:
+          name: twelve-data-smoke-report
+          path: artifacts/twelve-data-smoke-report.json
+          if-no-files-found: error
+          retention-days: 7
