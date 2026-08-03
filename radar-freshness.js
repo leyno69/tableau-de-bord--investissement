@@ -36,6 +36,17 @@ function createMeta(className) {
   return node;
 }
 
+function syncMeta(meta, values) {
+  const current = [...meta.children].map(child => child.textContent);
+  if (current.length === values.length && current.every((value, index) => value === values[index])) return false;
+  meta.replaceChildren(...values.map(value => {
+    const span = document.createElement('span');
+    span.textContent = value;
+    return span;
+  }));
+  return true;
+}
+
 function renderRadarFreshness() {
   const radar = document.querySelector('#radar');
   if (!radar) return false;
@@ -48,7 +59,7 @@ function renderRadarFreshness() {
       summary = createMeta('radar-freshness-summary');
       heading.append(summary);
     }
-    summary.innerHTML = `<span>${formatTimestamp(latest)}</span><span>${REFRESH_LABEL}</span>`;
+    syncMeta(summary, [formatTimestamp(latest), REFRESH_LABEL]);
   }
 
   radar.querySelectorAll('.watch-card').forEach(card => {
@@ -60,7 +71,7 @@ function renderRadarFreshness() {
       card.append(meta);
     }
     const quality = item?.marketError ? 'Source indisponible — valeur de secours' : item?.marketUpdatedAt ? 'Donnée de marché horodatée' : 'Valeur enregistrée localement';
-    meta.innerHTML = `<span>${formatTimestamp(item?.marketUpdatedAt)}</span><span>${quality}</span>`;
+    syncMeta(meta, [formatTimestamp(item?.marketUpdatedAt), quality]);
   });
   return true;
 }
@@ -81,11 +92,17 @@ function mount() {
   injectStyles();
   renderRadarFreshness();
   const watchlist = document.querySelector('#watchlist');
-  if (watchlist) new MutationObserver(renderRadarFreshness).observe(watchlist, { childList: true, subtree: true });
+  if (watchlist) {
+    const observer = new MutationObserver(mutations => {
+      const externalChange = mutations.some(mutation => !mutation.target.closest?.('.radar-card-freshness'));
+      if (externalChange) renderRadarFreshness();
+    });
+    observer.observe(watchlist, { childList: true, subtree: true });
+  }
   document.querySelector('#refreshBtn')?.addEventListener('click', () => window.setTimeout(renderRadarFreshness, 700));
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, { once: true });
 else mount();
 
-export { REFRESH_LABEL, formatTimestamp, latestTimestamp, renderRadarFreshness };
+export { REFRESH_LABEL, formatTimestamp, latestTimestamp, renderRadarFreshness, syncMeta };
