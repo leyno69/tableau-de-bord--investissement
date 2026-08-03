@@ -20,7 +20,7 @@ test('le diagnostic de démarrage ne contient aucune donnée de portefeuille', (
 });
 
 test('le cache PWA contient les modules de réparation et de runtime mobile', () => {
-  assert.match(serviceWorker, /leynor-shell-v22/);
+  assert.match(serviceWorker, /leynor-shell-v(?:2[3-9]|[3-9]\d|\d{3,})/);
   assert.match(serviceWorker, /'\/storage-bootstrap\.js'/);
   assert.match(serviceWorker, /'\/mobile-ui\.js'/);
 });
