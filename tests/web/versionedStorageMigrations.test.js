@@ -16,7 +16,7 @@ function memoryStorage(initial = {}) {
   };
 }
 
-test('migre un stockage sans version jusqu'au schéma courant', () => {
+test("migre un stockage sans version jusqu'au schéma courant", () => {
   const storage = memoryStorage({
     [STORAGE_KEYS.portfolio]: '[{"ticker":"WPEA"}]',
     [STORAGE_KEYS.watchlist]: '{"items":[{"ticker":"NVDA"}]}'
