@@ -1,4 +1,4 @@
-import { CURRENT_STORAGE_SCHEMA, STORAGE_KEYS } from './storage-bootstrap.js';
+import { CURRENT_STORAGE_SCHEMA, STORAGE_KEYS } from './storage-schema.js';
 
 const STORAGE_SCHEMA_KEY = STORAGE_KEYS.schema;
 const EXPECTED_STORAGE_SCHEMA = CURRENT_STORAGE_SCHEMA;
