@@ -1,5 +1,6 @@
 import { recordBootError, setBootPhase } from './boot-diagnostics.js';
 import './interaction-audit.js';
+import './diagnostics-panel.js';
 
 const CURRENT_STORAGE_SCHEMA = 2;
 const STORAGE_KEYS = Object.freeze({
