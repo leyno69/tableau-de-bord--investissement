@@ -1,13 +1,3 @@
-import { repairBrowserStorage } from './storage-bootstrap.js';
-
-const storageRepair = repairBrowserStorage(globalThis.localStorage);
-globalThis.__LEYNOR_BOOT__ = Object.freeze({
-  phase: 'storage-repaired',
-  repaired: storageRepair.repaired,
-  repairedKeys: storageRepair.keys,
-  startedAt: new Date().toISOString()
-});
-
 const ICONS = Object.freeze({
   overview: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5v8a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
   portfolio: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM9 5v14M4 10h16"/></svg>',
