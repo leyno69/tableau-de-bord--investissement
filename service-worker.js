@@ -1,7 +1,7 @@
-const CACHE_VERSION = 'leynor-shell-v20';
+const CACHE_VERSION = 'leynor-shell-v21';
 const OFFLINE_URL = '/offline.html';
 const APP_SHELL = [
-  '/', '/index.html', '/offline.html', '/style.css', '/app.js',
+  '/', '/index.html', '/offline.html', '/style.css', '/app.js', '/storage-bootstrap.js',
   '/assistant-ui.js', '/assistant-memory.js', '/portfolio-assistant.js',
   '/server-sync.js', '/api-connection.js', '/api-fetch-router.js',
   '/profile-menu.js', '/profile-menu.css', '/radar-freshness.js', '/resolver-ui.js',

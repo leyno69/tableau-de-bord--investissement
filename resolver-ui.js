@@ -1,4 +1,7 @@
+import { repairBrowserStorage } from './storage-bootstrap.js';
 import { searchInstruments, verifyMarketSymbol, instrumentType, regionFromCandidate } from './instrument-resolver.js';
+
+repairBrowserStorage(window.localStorage);
 
 const PORTFOLIO_KEY = 'invest-dashboard-portfolio';
 const WATCHLIST_KEY = 'invest-dashboard-watchlist';
