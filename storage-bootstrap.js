@@ -1,14 +1,7 @@
 import { recordBootError, setBootPhase } from './boot-diagnostics.js';
+import { CURRENT_STORAGE_SCHEMA, STORAGE_KEYS } from './storage-schema.js';
 import './interaction-audit.js';
 import './diagnostics-panel.js';
-
-const CURRENT_STORAGE_SCHEMA = 2;
-const STORAGE_KEYS = Object.freeze({
-  portfolio: 'invest-dashboard-portfolio',
-  watchlist: 'invest-dashboard-watchlist',
-  broker: 'invest-dashboard-active-broker',
-  schema: 'leynor-storage-schema-version'
-});
 
 function readJson(storage, key) {
   let raw;
