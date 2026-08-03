@@ -1,28 +1,26 @@
 # Stratégie de déploiement
 
-## Objectif
+## Décision
 
-- Netlify fournit les aperçus de pull request.
-- Vercel ne construit que la branche de production `main`.
+LEYNOR AI utilise Netlify comme plateforme unique de déploiement pour les aperçus de pull request et la production.
 
-## Vercel
-
-Le fichier `vercel.json` applique deux barrières :
-
-1. `git.deploymentEnabled` désactive les déploiements Git sur toutes les branches sauf `main`.
-2. `ignoreCommand` annule tout build dont `VERCEL_ENV` n’est pas `production`.
-
-Configuration attendue dans le tableau de bord Vercel :
-
-1. Production Branch : `main`.
-2. Settings > Build and Deployment > Ignored Build Step : `Only build production`, ou laisser le dépôt imposer `ignoreCommand`.
-3. Vérifier qu’un seul projet Vercel est connecté à ce dépôt.
-4. Ne pas utiliser Vercel comme contrôle obligatoire des pull requests.
+Vercel n'est plus requis par le dépôt, les tests, la CI ni la mise en production.
 
 ## Netlify
 
-Netlify reste le fournisseur de Deploy Previews pour les pull requests et le contrôle de déploiement obligatoire avant fusion.
+- Deploy Previews pour chaque pull request.
+- Déploiement de production depuis `main`.
+- Contrôle de déploiement obligatoire avant fusion.
+- Source de vérité pour vérifier l'interface mobile et les changements fonctionnels.
 
-## Limite
+## Vercel
 
-Une requête de déploiement peut encore apparaître brièvement dans GitHub avant que Vercel ne l’ignore. Elle ne doit pas lancer de compilation de preview ni consommer un build complet.
+Le fichier `vercel.json` a été supprimé du dépôt.
+
+Pour arrêter complètement les checks et les consommations de quota, le projet Vercel relié à ce dépôt doit être déconnecté ou supprimé depuis le tableau de bord Vercel. Cette opération est un réglage externe au dépôt et ne peut pas être imposée par un commit GitHub.
+
+Après déconnexion, vérifier que le contexte de statut `Vercel` n'est plus requis dans les règles de protection de `main`.
+
+## Règle de fusion
+
+Une pull request peut être fusionnée lorsque la CI, les tests métier et Netlify sont au vert. Aucun contrôle Vercel ne fait partie des critères de fusion.
