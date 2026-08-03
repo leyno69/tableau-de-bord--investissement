@@ -2,50 +2,58 @@
 
 ## Décision
 
-LEYNOR AI utilise Railway comme plateforme unique de production.
+LEYNOR AI sépare désormais le frontend statique de l’API.
 
-Le frontend statique et le serveur Node.js sont livrés ensemble depuis le même commit et la même image Docker. Vercel et Netlify restent éventuellement connectés comme solutions de secours, mais ne sont requis ni par le dépôt, ni par les tests, ni par les règles de fusion.
+- Vercel publie le frontend généré dans `dist/` et fournit le proxy sécurisé `/api/leynor/*`.
+- Railway conserve le serveur Node.js, les données persistantes, les traitements métier et les fournisseurs externes.
+- Les deux services sont construits depuis la branche de production `main`.
 
-## Pull requests
+Cette séparation supprime la liste manuelle de fichiers statiques du chemin critique de production : un nouveau module navigateur est copié automatiquement par `npm run build` lorsqu’il appartient aux ressources frontend du dépôt.
 
-Les pull requests exécutent uniquement les contrôles GitHub Actions :
+## Données et sécurité
 
-- tests Node.js ;
-- tests métier ;
-- validation syntaxique ;
-- smoke test Docker ;
-- contrôles de sécurité et de non-régression.
+Le changement d’hébergement du frontend ne modifie ni le moteur LEYNOR, ni les dépôts persistants Railway, ni les simulations.
 
-Aucun déploiement externe de preview n'est requis pour fusionner une pull request. Une preview visuelle peut être déclenchée ponctuellement lorsque cela apporte une valeur réelle.
+Le proxy Vercel utilise les variables suivantes :
 
-## Production Railway
+- `LEYNOR_BACKEND_URL` : URL HTTPS publique du backend Railway ;
+- `LEYNOR_BACKEND_TOKEN` : valeur de `APP_AUTH_TOKEN` configurée sur Railway.
 
-- branche de production : `main` ;
+Le jeton reste côté serveur dans la fonction Vercel et n’est pas exposé au navigateur.
+
+Les données uniquement présentes dans `localStorage` ou `IndexedDB` restent attachées à leur domaine d’origine. L’ancien frontend Railway doit donc rester accessible pendant la validation et une éventuelle migration des données locales.
+
+## Production
+
+### Frontend Vercel
+
+- branche : `main` ;
+- commande de construction : `npm run build` ;
+- dossier publié : `dist` ;
+- proxy API : `/api/leynor/*` ;
+- cache désactivé pour éviter qu’un ancien shell PWA masque un déploiement récent.
+
+### Backend Railway
+
+- branche : `main` ;
 - construction : `Dockerfile` ;
 - configuration : `railway.json` ;
 - contrôle de disponibilité : `/ready` ;
-- redémarrage automatique en cas d'échec ;
-- frontend et API issus du même commit.
+- redémarrage automatique en cas d’échec.
 
-Railway doit être configuré pour suivre uniquement `main`. Les branches de pull request ne doivent pas déclencher de déploiement automatique.
+Railway ne doit pas être supprimé : il reste la source de vérité pour les données et l’API.
 
-## Vercel et Netlify
+## Pull requests et fusion
 
-Les deux services peuvent rester connectés comme solutions de secours. Leurs statuts, quotas, previews et déploiements ne font pas partie des critères de fusion ou de publication de LEYNOR AI.
+Les contrôles GitHub Actions requis doivent être au vert avant fusion. Les previews Vercel peuvent aider à valider l’interface, mais ne remplacent pas les tests.
 
-Ils peuvent être déconnectés ultérieurement sans modifier l'architecture de production.
+Après fusion, la publication est considérée comme valide lorsque :
 
-## Règle de fusion
+1. Railway répond sur `/ready` ;
+2. Vercel sert `index.html` et les modules navigateur ;
+3. `/api/leynor/health` répond via le proxy sécurisé ;
+4. le portefeuille quitte l’état « Chargement… » sur un navigateur sans cache.
 
-Une pull request peut être fusionnée lorsque les contrôles GitHub Actions requis sont au vert. Aucun contrôle Vercel, Netlify ou Railway de preview n'est obligatoire avant fusion.
+## Retour arrière
 
-Après fusion dans `main`, le déploiement Railway de production doit réussir et répondre sur `/ready` avant de considérer la nouvelle version comme publiée.
-
-## Maîtrise des coûts
-
-Le tableau de bord Railway doit définir :
-
-- une alerte budgétaire ;
-- une limite dure de dépenses ;
-- un seul service de production actif pour l'application complète ;
-- aucun environnement de preview automatique par pull request.
+Le frontend Railway actuel reste temporairement disponible comme solution de repli. En cas d’échec du nouveau frontend, il suffit de réassigner le domaine public à la dernière version fonctionnelle sans toucher aux données Railway.
