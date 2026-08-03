@@ -3,6 +3,8 @@ import { brokers } from './brokers.js';
 import { defaultPortfolio, summarizePortfolio, allocationByRegion } from './portfolio.js';
 import { defaultWatchlist, refreshMarketItems } from './market.js';
 import { buildAlerts } from './alerts.js';
+import { repairBrowserStorage, normalizePortfolio, normalizeWatchlist } from './storage-bootstrap.js';
+import { recordBootError, setBootPhase } from './boot-diagnostics.js';
 
 const STORAGE_KEYS = {
   portfolio: 'invest-dashboard-portfolio',
@@ -18,22 +20,60 @@ const VERIFIED_ETFS_BY_ISIN = {
 const money = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
 const pct = new Intl.NumberFormat('fr-FR', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-const state = {
-  portfolio: load(STORAGE_KEYS.portfolio, defaultPortfolio),
-  watchlist: load(STORAGE_KEYS.watchlist, defaultWatchlist),
-  activeBroker: localStorage.getItem(STORAGE_KEYS.broker) || 'all'
-};
-
-migrateVerifiedEtfs();
-
-function load(key, fallback) {
+function browserStorage() {
   try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : structuredClone(fallback);
-  } catch {
-    return structuredClone(fallback);
+    return globalThis.localStorage;
+  } catch (error) {
+    recordBootError(error, 'app.storage.access');
+    return null;
   }
 }
+
+const storage = browserStorage();
+repairBrowserStorage(storage);
+
+function safeGet(key) {
+  try {
+    return storage?.getItem(key) ?? null;
+  } catch (error) {
+    recordBootError(error, `app.storage.read.${key}`);
+    return null;
+  }
+}
+
+function safeSet(key, value) {
+  try {
+    storage?.setItem(key, value);
+    return Boolean(storage);
+  } catch (error) {
+    recordBootError(error, `app.storage.write.${key}`);
+    return false;
+  }
+}
+
+function cloneFallback(fallback) {
+  try {
+    return structuredClone(fallback);
+  } catch {
+    return JSON.parse(JSON.stringify(fallback));
+  }
+}
+
+function load(key, fallback, normalizer = value => value) {
+  try {
+    const raw = safeGet(key);
+    return normalizer(raw ? JSON.parse(raw) : cloneFallback(fallback));
+  } catch (error) {
+    recordBootError(error, `app.storage.parse.${key}`);
+    return normalizer(cloneFallback(fallback));
+  }
+}
+
+const state = {
+  portfolio: load(STORAGE_KEYS.portfolio, defaultPortfolio, normalizePortfolio),
+  watchlist: load(STORAGE_KEYS.watchlist, defaultWatchlist, normalizeWatchlist),
+  activeBroker: safeGet(STORAGE_KEYS.broker) || 'all'
+};
 
 function migrateVerifiedEtfs() {
   let changed = false;
@@ -48,9 +88,9 @@ function migrateVerifiedEtfs() {
 }
 
 function persist() {
-  localStorage.setItem(STORAGE_KEYS.portfolio, JSON.stringify(state.portfolio));
-  localStorage.setItem(STORAGE_KEYS.watchlist, JSON.stringify(state.watchlist));
-  localStorage.setItem(STORAGE_KEYS.broker, state.activeBroker);
+  safeSet(STORAGE_KEYS.portfolio, JSON.stringify(state.portfolio));
+  safeSet(STORAGE_KEYS.watchlist, JSON.stringify(state.watchlist));
+  safeSet(STORAGE_KEYS.broker, state.activeBroker);
 }
 
 function brokerName(id) {
@@ -241,15 +281,15 @@ async function refreshMarketData() {
       refreshMarketItems(state.portfolio.positions)
     ]);
 
-    state.watchlist = watchlist;
-    state.portfolio.positions = positions;
+    state.watchlist = normalizeWatchlist(watchlist);
+    state.portfolio = normalizePortfolio({ ...state.portfolio, positions });
     persist();
     renderAll();
 
     const failures = [...watchlist, ...positions].filter(item => item.marketError).length;
     button.textContent = failures ? `Actualisé • ${failures} erreur${failures > 1 ? 's' : ''}` : 'Actualisé';
   } catch (error) {
-    console.error('Market refresh error:', error);
+    recordBootError(error, 'app.market.refresh');
     button.textContent = 'Erreur marché';
   } finally {
     button.disabled = false;
@@ -259,14 +299,31 @@ async function refreshMarketData() {
   }
 }
 
-renderBrokerControls();
-renderAll();
-setupDialogs();
+function initializeApplication() {
+  try {
+    setBootPhase('initializing-application');
+    migrateVerifiedEtfs();
+    renderBrokerControls();
+    renderAll();
+    setupDialogs();
 
-document.querySelector('#brokerSelect')?.addEventListener('change', (event) => {
-  state.activeBroker = event.target.value;
-  persist();
-  renderAll();
-});
+    document.querySelector('#brokerSelect')?.addEventListener('change', (event) => {
+      state.activeBroker = event.target.value;
+      persist();
+      renderAll();
+    });
 
-document.querySelector('#refreshBtn')?.addEventListener('click', refreshMarketData);
+    document.querySelector('#refreshBtn')?.addEventListener('click', refreshMarketData);
+    setBootPhase('ready');
+  } catch (error) {
+    recordBootError(error, 'app.initialize');
+    setBootPhase('degraded');
+    console.error('LEYNOR application initialization failed:', error);
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeApplication, { once: true });
+} else {
+  initializeApplication();
+}
