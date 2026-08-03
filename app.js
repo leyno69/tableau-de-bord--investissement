@@ -1,3 +1,4 @@
+import './mobile-ui.js';
 import { brokers } from './brokers.js';
 import { defaultPortfolio, summarizePortfolio, allocationByRegion } from './portfolio.js';
 import { defaultWatchlist, refreshMarketItems } from './market.js';
@@ -69,13 +70,16 @@ function marketStatus(item) {
 function renderBrokerControls() {
   const selects = [document.querySelector('#brokerSelect'), document.querySelector('#positionBroker')];
   for (const [index, select] of selects.entries()) {
+    if (!select) continue;
     select.innerHTML = '';
     if (index === 0) select.add(new Option('Tous les courtiers', 'all'));
     brokers.forEach(b => select.add(new Option(b.name, b.id)));
   }
-  document.querySelector('#brokerSelect').value = state.activeBroker;
+  const brokerSelect = document.querySelector('#brokerSelect');
+  if (brokerSelect) brokerSelect.value = state.activeBroker;
 
-  document.querySelector('#brokersPanel').innerHTML = brokers.map(b => `
+  const brokersPanel = document.querySelector('#brokersPanel');
+  if (brokersPanel) brokersPanel.innerHTML = brokers.map(b => `
     <div class="broker-row">
       <div><strong>${b.name}</strong><small>${b.fractional}</small></div>
       <span class="badge">${b.status}</span>
@@ -85,18 +89,24 @@ function renderBrokerControls() {
 function renderMetrics() {
   const filtered = { ...state.portfolio, positions: visiblePositions() };
   const summary = summarizePortfolio(filtered);
-  document.querySelector('#portfolioValue').textContent = money.format(summary.totalValue);
-  document.querySelector('#investedValue').textContent = money.format(summary.invested);
-  document.querySelector('#pnlValue').textContent = money.format(summary.pnl);
-  document.querySelector('#pnlValue').className = summary.pnl >= 0 ? 'positive' : 'negative';
-  document.querySelector('#pnlPercent').textContent = pct.format(summary.pnlPct / 100);
-  document.querySelector('#cashValue').textContent = money.format(state.portfolio.cash);
-  document.querySelector('#portfolioMove').textContent = `${summary.pnl >= 0 ? '+' : ''}${money.format(summary.pnl)} latent`;
+  const setText = (selector, value) => {
+    const element = document.querySelector(selector);
+    if (element) element.textContent = value;
+  };
+  setText('#portfolioValue', money.format(summary.totalValue));
+  setText('#investedValue', money.format(summary.invested));
+  setText('#pnlValue', money.format(summary.pnl));
+  const pnlValue = document.querySelector('#pnlValue');
+  if (pnlValue) pnlValue.className = summary.pnl >= 0 ? 'positive' : 'negative';
+  setText('#pnlPercent', pct.format(summary.pnlPct / 100));
+  setText('#cashValue', money.format(state.portfolio.cash));
+  setText('#portfolioMove', `${summary.pnl >= 0 ? '+' : ''}${money.format(summary.pnl)} latent`);
 }
 
 function renderPortfolio() {
   const rows = visiblePositions();
   const table = document.querySelector('#portfolioTable');
+  if (!table) return;
   if (!rows.length) {
     table.innerHTML = '<tr><td colspan="7" class="empty">Aucune position pour ce courtier.</td></tr>';
     return;
@@ -120,10 +130,12 @@ function renderPortfolio() {
 function renderAllocation() {
   const filtered = { ...state.portfolio, positions: visiblePositions() };
   const allocations = allocationByRegion(filtered);
-  document.querySelector('#allocationBars').innerHTML = allocations.length ? allocations.map(a => `
+  const allocationBars = document.querySelector('#allocationBars');
+  if (!allocationBars) return;
+  allocationBars.innerHTML = allocations.length ? allocations.map(a => `
     <div class="allocation-row">
       <div class="allocation-meta"><span>${a.label}</span><strong>${a.percent.toFixed(1)} %</strong></div>
-      <div class="bar"><span style="width:${Math.max(2, a.percent)}%"></span></div>
+      <div class="allocation-bar"><span style="width:${Math.max(2, a.percent)}%"></span></div>
     </div>`).join('') : '<p class="empty">Aucune donnée.</p>';
 }
 
@@ -134,7 +146,9 @@ function signalClass(signal) {
 }
 
 function renderWatchlist() {
-  document.querySelector('#watchlist').innerHTML = state.watchlist.map(item => `
+  const watchlist = document.querySelector('#watchlist');
+  if (!watchlist) return;
+  watchlist.innerHTML = state.watchlist.map(item => `
     <article class="watch-card" title="${marketStatus(item)}">
       <div class="watch-card-top">
         <div><h3>${item.name}</h3><span class="ticker">${item.ticker}${item.marketError ? ' • ⚠' : ''}</span></div>
@@ -147,8 +161,10 @@ function renderWatchlist() {
 }
 
 function renderAlerts() {
+  const alertsList = document.querySelector('#alertsList');
+  if (!alertsList) return;
   const alerts = buildAlerts(state.watchlist);
-  document.querySelector('#alertsList').innerHTML = alerts.map(a => `
+  alertsList.innerHTML = alerts.map(a => `
     <div class="alert"><strong>${a.title}</strong><small>${a.text}</small></div>`).join('');
 }
 
@@ -166,12 +182,12 @@ function setupDialogs() {
   const positionForm = document.querySelector('#positionForm');
   const watchForm = document.querySelector('#watchForm');
 
-  document.querySelector('#addPositionBtn').addEventListener('click', () => positionDialog.showModal());
-  document.querySelector('#addWatchBtn').addEventListener('click', () => watchDialog.showModal());
+  document.querySelector('#addPositionBtn')?.addEventListener('click', () => positionDialog?.showModal());
+  document.querySelector('#addWatchBtn')?.addEventListener('click', () => watchDialog?.showModal());
 
-  document.querySelector('#savePositionBtn').addEventListener('click', (event) => {
+  document.querySelector('#savePositionBtn')?.addEventListener('click', (event) => {
     event.preventDefault();
-    if (!positionForm.reportValidity()) return;
+    if (!positionForm?.reportValidity()) return;
     const data = new FormData(positionForm);
     state.portfolio.positions.push({
       id: Date.now(),
@@ -188,12 +204,12 @@ function setupDialogs() {
     persist();
     renderAll();
     positionForm.reset();
-    positionDialog.close();
+    positionDialog?.close();
   });
 
-  document.querySelector('#saveWatchBtn').addEventListener('click', (event) => {
+  document.querySelector('#saveWatchBtn')?.addEventListener('click', (event) => {
     event.preventDefault();
-    if (!watchForm.reportValidity()) return;
+    if (!watchForm?.reportValidity()) return;
     const data = new FormData(watchForm);
     state.watchlist.push({
       id: Date.now(),
@@ -208,12 +224,13 @@ function setupDialogs() {
     persist();
     renderAll();
     watchForm.reset();
-    watchDialog.close();
+    watchDialog?.close();
   });
 }
 
 async function refreshMarketData() {
   const button = document.querySelector('#refreshBtn');
+  if (!button) return;
   const originalLabel = button.textContent;
   button.disabled = true;
   button.textContent = 'Actualisation…';
@@ -246,10 +263,10 @@ renderBrokerControls();
 renderAll();
 setupDialogs();
 
-document.querySelector('#brokerSelect').addEventListener('change', (event) => {
+document.querySelector('#brokerSelect')?.addEventListener('change', (event) => {
   state.activeBroker = event.target.value;
   persist();
   renderAll();
 });
 
-document.querySelector('#refreshBtn').addEventListener('click', refreshMarketData);
+document.querySelector('#refreshBtn')?.addEventListener('click', refreshMarketData);
