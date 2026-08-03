@@ -6,6 +6,7 @@ export const STATIC_BETA_ASSETS = Object.freeze([
   ['pwa.css', 'text/css; charset=utf-8'],
   ['manifest.webmanifest', 'application/manifest+json; charset=utf-8'],
   ['service-worker.js', 'text/javascript; charset=utf-8'],
+  ['home-recovery.js', 'text/javascript; charset=utf-8'],
   ['api-fetch-router.js', 'text/javascript; charset=utf-8'],
   ['api-connection.js', 'text/javascript; charset=utf-8'],
   ['leynor-assistant.js', 'text/javascript; charset=utf-8'],
