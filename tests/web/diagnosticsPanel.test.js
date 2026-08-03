@@ -4,6 +4,8 @@ import {
   EXPECTED_STORAGE_SCHEMA,
   STORAGE_SCHEMA_KEY,
   buildDiagnosticsSnapshot,
+  buildSupportReport,
+  diagnosticsHealth,
   readStorageVersion
 } from '../../diagnostics-panel.js';
 
@@ -32,4 +34,31 @@ test('agrège le démarrage, les interactions et le schéma local sans données 
 test('signale un stockage absent ou non versionné', () => {
   assert.equal(readStorageVersion(null), null);
   assert.equal(readStorageVersion(memoryStorage()), 0);
+});
+
+test('classe un diagnostic entièrement sain comme opérationnel', () => {
+  const snapshot = buildDiagnosticsSnapshot({
+    storage: memoryStorage({ [STORAGE_SCHEMA_KEY]: String(EXPECTED_STORAGE_SCHEMA) }),
+    version: 'test',
+    boot: { phase: 'ready', errors: [] },
+    interaction: { status: 'ok', issues: [] }
+  });
+
+  assert.equal(diagnosticsHealth(snapshot), 'ok');
+  assert.match(buildSupportReport(snapshot), /État global : ok/);
+});
+
+test('produit un rapport minimal sans données de portefeuille ni secrets', () => {
+  const snapshot = buildDiagnosticsSnapshot({
+    storage: memoryStorage({ [STORAGE_SCHEMA_KEY]: '1' }),
+    version: 'test',
+    boot: { phase: 'storage-ready', errors: [] },
+    interaction: { status: 'degraded', issues: ['missing-control'] }
+  });
+  const report = buildSupportReport(snapshot);
+
+  assert.equal(diagnosticsHealth(snapshot), 'attention');
+  assert.match(report, /Stockage : 1\/2/);
+  assert.match(report, /Anomalies d’interaction : 1/);
+  assert.doesNotMatch(report, /portfolio|token|secret|api[_-]?key/i);
 });
