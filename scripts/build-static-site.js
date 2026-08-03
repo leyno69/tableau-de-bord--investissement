@@ -6,6 +6,13 @@ const DIST = new URL('../dist/', import.meta.url);
 const ROOT_EXTENSIONS = new Set(['.html', '.css', '.js', '.json', '.svg', '.png', '.jpg', '.jpeg', '.webp', '.ico', '.webmanifest']);
 const BROWSER_DIRECTORIES = ['application', 'domain', 'infrastructure', 'ui', 'assets', 'icons'];
 const EXCLUDED_ROOT_FILES = new Set(['package-lock.json', 'package.json', 'railway.json', 'vercel.json']);
+const DISABLED_SECONDARY_SCRIPTS = [
+  'resolver-ui.js',
+  'assistant-ui.js',
+  'server-sync.js',
+  'broker-import.js',
+  'home-recovery.js'
+];
 
 await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
@@ -33,13 +40,17 @@ for (const directory of BROWSER_DIRECTORIES) {
 }
 
 const indexUrl = new URL('index.html', DIST);
-const indexHtml = await readFile(indexUrl, 'utf8');
+let indexHtml = await readFile(indexUrl, 'utf8');
+
 if (!indexHtml.includes('browser-recovery.js')) {
-  await writeFile(
-    indexUrl,
-    indexHtml.replace('</head>', '  <script src="browser-recovery.js" defer></script>\n</head>'),
-    'utf8'
-  );
+  indexHtml = indexHtml.replace('</head>', '  <script src="browser-recovery.js" defer></script>\n</head>');
 }
 
-console.info(`Frontend statique généré dans ${join(new URL('.', DIST).pathname)}`);
+for (const script of DISABLED_SECONDARY_SCRIPTS) {
+  const pattern = new RegExp(`\\s*<script\\s+type=["']module["']\\s+src=["']${script.replace('.', '\\.') }["']><\\/script>`, 'g');
+  indexHtml = indexHtml.replace(pattern, '');
+}
+
+await writeFile(indexUrl, indexHtml, 'utf8');
+
+console.info(`Frontend statique minimal généré dans ${join(new URL('.', DIST).pathname)}`);
