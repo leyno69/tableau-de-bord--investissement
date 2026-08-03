@@ -1,3 +1,5 @@
+import { recordBootError, setBootPhase } from './boot-diagnostics.js';
+
 const STORAGE_KEYS = Object.freeze({
   portfolio: 'invest-dashboard-portfolio',
   watchlist: 'invest-dashboard-watchlist',
@@ -5,7 +7,13 @@ const STORAGE_KEYS = Object.freeze({
 });
 
 function readJson(storage, key) {
-  const raw = storage.getItem(key);
+  let raw;
+  try {
+    raw = storage.getItem(key);
+  } catch (error) {
+    recordBootError(error, `storage.read.${key}`);
+    return undefined;
+  }
   if (raw == null || raw === '') return null;
   try {
     return JSON.parse(raw);
@@ -15,26 +23,15 @@ function readJson(storage, key) {
 }
 
 function normalizePortfolio(value) {
-  if (Array.isArray(value)) {
-    return { cash: 0, positions: value };
-  }
-
-  if (!value || typeof value !== 'object') {
-    return { cash: 0, positions: [] };
-  }
-
+  if (Array.isArray(value)) return { cash: 0, positions: value };
+  if (!value || typeof value !== 'object') return { cash: 0, positions: [] };
   const positions = Array.isArray(value.positions)
     ? value.positions
     : Array.isArray(value.holdings)
       ? value.holdings
       : [];
-
   const cash = Number(value.cash);
-  return {
-    ...value,
-    cash: Number.isFinite(cash) ? cash : 0,
-    positions
-  };
+  return { ...value, cash: Number.isFinite(cash) ? cash : 0, positions };
 }
 
 function normalizeWatchlist(value) {
@@ -43,8 +40,19 @@ function normalizeWatchlist(value) {
   return [];
 }
 
+function safeSet(storage, key, value, repairedKeys) {
+  try {
+    storage.setItem(key, JSON.stringify(value));
+    repairedKeys.push(key);
+  } catch (error) {
+    recordBootError(error, `storage.write.${key}`);
+  }
+}
+
 function repairBrowserStorage(storage = globalThis.localStorage) {
+  setBootPhase('repairing-storage');
   if (!storage || typeof storage.getItem !== 'function' || typeof storage.setItem !== 'function') {
+    setBootPhase('storage-unavailable');
     return Object.freeze({ repaired: false, keys: Object.freeze([]) });
   }
 
@@ -53,8 +61,7 @@ function repairBrowserStorage(storage = globalThis.localStorage) {
   if (portfolio !== null) {
     const normalized = normalizePortfolio(portfolio);
     if (portfolio === undefined || JSON.stringify(portfolio) !== JSON.stringify(normalized)) {
-      storage.setItem(STORAGE_KEYS.portfolio, JSON.stringify(normalized));
-      repairedKeys.push(STORAGE_KEYS.portfolio);
+      safeSet(storage, STORAGE_KEYS.portfolio, normalized, repairedKeys);
     }
   }
 
@@ -62,21 +69,22 @@ function repairBrowserStorage(storage = globalThis.localStorage) {
   if (watchlist !== null) {
     const normalized = normalizeWatchlist(watchlist);
     if (watchlist === undefined || JSON.stringify(watchlist) !== JSON.stringify(normalized)) {
-      storage.setItem(STORAGE_KEYS.watchlist, JSON.stringify(normalized));
-      repairedKeys.push(STORAGE_KEYS.watchlist);
+      safeSet(storage, STORAGE_KEYS.watchlist, normalized, repairedKeys);
     }
   }
 
-  const broker = storage.getItem(STORAGE_KEYS.broker);
-  if (broker != null && typeof broker !== 'string') {
-    storage.removeItem?.(STORAGE_KEYS.broker);
-    repairedKeys.push(STORAGE_KEYS.broker);
+  try {
+    const broker = storage.getItem(STORAGE_KEYS.broker);
+    if (broker != null && typeof broker !== 'string') {
+      storage.removeItem?.(STORAGE_KEYS.broker);
+      repairedKeys.push(STORAGE_KEYS.broker);
+    }
+  } catch (error) {
+    recordBootError(error, `storage.read.${STORAGE_KEYS.broker}`);
   }
 
-  return Object.freeze({
-    repaired: repairedKeys.length > 0,
-    keys: Object.freeze([...repairedKeys])
-  });
+  setBootPhase('storage-ready');
+  return Object.freeze({ repaired: repairedKeys.length > 0, keys: Object.freeze([...repairedKeys]) });
 }
 
 export { STORAGE_KEYS, normalizePortfolio, normalizeWatchlist, repairBrowserStorage };
