@@ -12,8 +12,28 @@ function list(values, field) {
 
 function probability(value) {
   const number = Number(value);
-  if (!Number.isFinite(number) || number < 0 || number > 1) throw new RangeError('confidence doit être comprise entre 0 et 1.');
+  if (!Number.isFinite(number) || number < 0 || number > 1) throw new RangeError('probability doit être comprise entre 0 et 1.');
   return number;
+}
+
+export function createRadarAssessment(input = {}) {
+  const status = input.status === 'validated' ? 'validated' : 'unavailable';
+  if (status === 'unavailable') {
+    return Object.freeze({
+      status,
+      label: text(input.label ?? 'Non calibré', 'assessment.label'),
+      reason: text(input.reason ?? 'Aucune calibration empirique validée hors échantillon.', 'assessment.reason')
+    });
+  }
+
+  return Object.freeze({
+    status,
+    probability: probability(input.probability),
+    calibrationId: text(input.calibrationId, 'assessment.calibrationId'),
+    methodologyVersion: text(input.methodologyVersion, 'assessment.methodologyVersion'),
+    observedAt: text(input.observedAt, 'assessment.observedAt'),
+    label: text(input.label ?? 'Probabilité empirique calibrée', 'assessment.label')
+  });
 }
 
 export function createOpportunityCard({
@@ -22,7 +42,7 @@ export function createOpportunityCard({
   category,
   kind = 'theme',
   thesis,
-  confidence,
+  assessment,
   horizon,
   favorableEvidence,
   counterEvidence,
@@ -38,7 +58,7 @@ export function createOpportunityCard({
     category: text(category, 'category'),
     kind: kind === 'asset' ? 'asset' : 'theme',
     thesis: text(thesis, 'thesis'),
-    confidence: probability(confidence),
+    assessment: createRadarAssessment(assessment),
     horizon: text(horizon, 'horizon'),
     favorableEvidence: list(favorableEvidence, 'favorableEvidence'),
     counterEvidence: list(counterEvidence, 'counterEvidence'),
@@ -60,7 +80,10 @@ export function opportunityFromTrend(signal, overrides = {}) {
     category: overrides.category ?? signal.category ?? 'Marché',
     kind: overrides.kind ?? 'theme',
     thesis: overrides.thesis ?? `${signal.asset} présente une ${direction} sur l’horizon ${signal.horizon}. Ce signal invite à approfondir, pas à acheter ou vendre automatiquement.`,
-    confidence: signal.probability,
+    assessment: overrides.assessment ?? {
+      status: 'unavailable',
+      reason: 'Signal de démonstration non relié à une calibration validée.'
+    },
     horizon: signal.horizon,
     favorableEvidence: signal.forecast.evidence,
     counterEvidence: signal.forecast.counterEvidence,
@@ -73,7 +96,11 @@ export function opportunityFromTrend(signal, overrides = {}) {
 }
 
 export function rankOpportunities(cards = []) {
-  return Object.freeze([...cards].sort((left, right) => right.confidence - left.confidence));
+  return Object.freeze([...cards].sort((left, right) => {
+    const leftProbability = left.assessment?.status === 'validated' ? left.assessment.probability : -1;
+    const rightProbability = right.assessment?.status === 'validated' ? right.assessment.probability : -1;
+    return rightProbability - leftProbability;
+  }));
 }
 
 export const demoOpportunityCards = rankOpportunities(demoTrendSignals.map(signal => opportunityFromTrend(signal, {
