@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { runHistoricalReplay } from '../../validation/portfolioHistoricalReplayEngine.js';
-import { calculateReplayHistoricalMetrics } from '../../validation/portfolioHistoricalMetrics.js';
+import { calculateReplayHistoricalMetrics, calculateReplayMonthlyMatchedMetrics } from '../../validation/portfolioHistoricalMetrics.js';
 
 const WINDOWS = Object.freeze([
   Object.freeze({ id: '2024q2', requestedStart: '2024-04-01', requestedEnd: '2025-03-31', period1: 1711929600, period2: 1743465600 }),
@@ -40,6 +40,7 @@ function commonDates(a, b) {
 
 function summarize(replay) {
   const metrics = calculateReplayHistoricalMetrics(replay);
+  const monthlyMatched = calculateReplayMonthlyMatchedMetrics(replay);
   return Object.freeze({
     finalValue: replay.finalValue,
     totalCosts: replay.totalCosts,
@@ -47,8 +48,11 @@ function summarize(replay) {
     annualizedReturn: metrics.annualizedReturn,
     annualizedVolatility: metrics.annualizedVolatility,
     maxDrawdown: metrics.maxDrawdown,
+    maxDrawdownDaily: metrics.maxDrawdown,
+    maxDrawdownMonthlyMatched: monthlyMatched.maxDrawdown,
     recovered: metrics.recovery.recovered,
-    recoveryDaysFromTrough: metrics.recovery.recoveryDaysFromTrough
+    recoveryDaysFromTrough: metrics.recovery.recoveryDaysFromTrough,
+    monthlyMatchedRecovery: monthlyMatched.recovery
   });
 }
 
@@ -90,27 +94,32 @@ export async function runRollingCostHistoricalDevelopmentPilot() {
   const windows = [];
   for (const window of WINDOWS) windows.push(await runWindow(window));
   const zeroCostReturns = windows.map(window => window.zeroCost.cumulativeReturn);
-  const zeroCostDrawdowns = windows.map(window => window.zeroCost.maxDrawdown);
+  const zeroCostDailyDrawdowns = windows.map(window => window.zeroCost.maxDrawdownDaily);
+  const zeroCostMonthlyDrawdowns = windows.map(window => window.zeroCost.maxDrawdownMonthlyMatched);
   return Object.freeze({
-    schemaVersion: 1,
+    schemaVersion: 2,
     experimentId: 'beginner-historical-rolling-costs-dev-v1',
     status: 'development-historical-replay',
     source: { providerId: 'yahoo-finance-chart-dev', usage: 'development', validationEligibleSource: false },
     allocation: ALLOCATION,
     costPolicy: { testedTransactionCostBps: COST_LEVELS_BPS, exemptTickers: ['CASH'] },
+    drawdownComparisonFrequency: 'monthly',
     windows: Object.freeze(windows),
     crossWindowSummary: Object.freeze({
       windowCount: windows.length,
       minZeroCostReturn: Math.min(...zeroCostReturns),
       maxZeroCostReturn: Math.max(...zeroCostReturns),
-      minZeroCostDrawdown: Math.min(...zeroCostDrawdowns),
-      maxZeroCostDrawdown: Math.max(...zeroCostDrawdowns)
+      minZeroCostDailyDrawdown: Math.min(...zeroCostDailyDrawdowns),
+      maxZeroCostDailyDrawdown: Math.max(...zeroCostDailyDrawdowns),
+      minZeroCostMonthlyMatchedDrawdown: Math.min(...zeroCostMonthlyDrawdowns),
+      maxZeroCostMonthlyMatchedDrawdown: Math.max(...zeroCostMonthlyDrawdowns)
     }),
     limitations: Object.freeze([
       'Les fenêtres glissantes se chevauchent et ne sont donc pas statistiquement indépendantes.',
       'Yahoo Finance reste une source de développement et non une source de validation scientifique finale.',
       'Les frais testés sont des coûts de transaction à l’entrée uniquement dans ces scénarios sans rééquilibrage.',
       'CASH est explicitement exempt de coûts de transaction.',
+      'Le drawdown quotidien est conservé séparément ; seul le drawdown mensuel apparié est comparable aux percentiles du moteur mensuel.',
       'Aucun impôt, spread dynamique ou slippage n’est modélisé.'
     ])
   });
