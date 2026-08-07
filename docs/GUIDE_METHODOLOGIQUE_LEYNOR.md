@@ -139,6 +139,30 @@ Les résultats consolidés doivent distinguer :
 - impact des comportements ;
 - scénarios non récupérés.
 
+### 5.1 Validation historique préenregistrée des portefeuilles
+
+Toute confrontation d’une simulation de portefeuille à l’histoire réelle doit partir d’une spécification expérimentale scellée avant l’examen des résultats de validation complets.
+
+Cette spécification doit fixer au minimum :
+
+- le preset ou portefeuille source ;
+- la version méthodologique ;
+- le commit exact du moteur ;
+- la date historique de référence ;
+- l’horizon ;
+- l’allocation ;
+- la politique de rééquilibrage ;
+- la politique de coûts ;
+- l’identifiant de campagne ;
+- le plan de graines ;
+- l’instantané de résultats simulés à confronter.
+
+Une empreinte déterministe doit changer si l’un de ces éléments change. Une spécification déjà utilisée ne doit jamais être modifiée silencieusement : toute évolution nécessite une nouvelle version ou un nouvel identifiant.
+
+Les périodes de calibration, de validation et de test verrouillé doivent être définies avant lecture des résultats correspondants. Une règle modifiée après observation doit être traitée comme une nouvelle expérience et ne peut pas réutiliser le statut de validation précédent.
+
+La confrontation historique peut confirmer, fragiliser, réfuter ou laisser inconclusive une conclusion ; elle ne transforme jamais une performance passée en garantie future.
+
 ---
 
 ## 6. Sensibilité et stabilité
@@ -335,3 +359,10 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - interdiction des écrasements silencieux et des empreintes divergentes ;
 - validation conditionnée à des critères satisfaits et contrôlés hors échantillon ;
 - conservation explicite des versions remplacées, des justifications et des limites.
+
+### Validation historique préenregistrée
+
+- obligation de sceller les paramètres d’une expérience historique avant lecture des résultats de validation ;
+- traçabilité du commit moteur, des politiques de coûts et de rééquilibrage, de la campagne, des graines et du snapshot simulé ;
+- changement d’empreinte obligatoire en cas d’évolution méthodologique ;
+- toute modification postérieure aux résultats constitue une nouvelle expérience.
