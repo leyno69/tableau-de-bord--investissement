@@ -288,6 +288,28 @@ Le diagnostic v1 a montré que le drawdown quotidien 2020 du proxy `beginner` é
 
 Le protocole détaillé est défini dans `docs/methodology/DRAWDOWN_RISK_DIAGNOSTICS_V1.md`.
 
+### 5.11 Diagnostic de risque modèle et validation croisée
+
+Le rejet diagnostique de la normalité mensuelle ne suffit pas à autoriser une complexification du moteur. Toute alternative doit démontrer une amélioration hors période d’estimation selon un protocole préenregistré.
+
+La validation temporelle Student-t v1 utilise les degrés de liberté `[4, 6, 8, 12, 20]`, sélectionnés sur l’entraînement uniquement. Student-t gagne un fold sur trois et dégrade le score de log-vraisemblance négative agrégé ; les queues épaisses seules ne justifient donc pas une modification du moteur.
+
+La validation EWMA v1 utilise les paramètres `[0.90, 0.94, 0.97]`, également sélectionnés sur l’entraînement uniquement. EWMA gagne deux folds sur trois mais dégrade le score agrégé en raison du premier fold. Le signal est donc mitigé et insuffisant pour promouvoir une volatilité conditionnelle dans le moteur de production.
+
+Le moteur `beginner` reste inchangé. Toute nouvelle mécanique doit être développée dans un prototype séparé puis démontrer une amélioration reproductible et, ensuite, une validation hors échantillon distincte.
+
+Les protocoles détaillés sont définis dans `docs/methodology/HEAVY_TAIL_CROSS_VALIDATION_V1.md`, `docs/methodology/CONDITIONAL_VOLATILITY_CROSS_VALIDATION_V1.md` et `docs/methodology/MODEL_RISK_DECISION_V1.md`.
+
+### 5.12 Validation empirique du calculateur DCA
+
+Le calculateur DCA est une projection déterministe distincte du portefeuille complet. Sa validation ne doit donc pas intégrer silencieusement le cash résiduel du preset ni lui attribuer une distribution de probabilité inexistante.
+
+Le protocole v1 confronte exactement 3 000 € initiaux, 150 € mensuels pendant 60 mois et un rendement constant de 7 % à trois séquences historiques de cinq ans utilisant `IWDA.AS` comme proxy ETF Monde : 2010–2014, 2015–2019 et 2020–2024.
+
+Les trois fenêtres observées terminent au-dessus de la projection déterministe de 14 887,03 €, mais ce constat constitue uniquement une preuve empirique de soutien. Il ne permet pas de calibrer une probabilité de réussite, de garantir 7 %, ni d’assimiler IWDA à WPEA avant son lancement.
+
+Le protocole détaillé est défini dans `docs/methodology/DCA_EMPIRICAL_VALIDATION_V1.md`.
+
 ---
 
 ## 6. Sensibilité et stabilité
@@ -562,3 +584,18 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - interdiction de comparer directement un drawdown quotidien à des percentiles simulés mensuels ;
 - reclassement des anciennes preuves issues d’une fréquence non appariée en `non-comparable-frequency`, sans suppression de leur trace ;
 - diagnostic 2020 : 21,68 % en quotidien contre 11,51 % en mensuel, supprimant le dépassement du p95 mensuel sans recalibrer le moteur.
+
+### Diagnostic de risque modèle
+
+- rejet diagnostique de la normalité mensuelle conservé comme limite du modèle ;
+- Student-t : victoire sur un fold sur trois seulement et score de validation agrégé inférieur à l’hypothèse gaussienne ;
+- EWMA : deux folds gagnés sur trois mais score agrégé inférieur à la volatilité constante ;
+- décision explicite de ne pas modifier le moteur `beginner` faute de gain suffisamment robuste ;
+- toute alternative future doit démontrer une amélioration reproductible puis passer un test hors échantillon distinct.
+
+### Validation empirique DCA
+
+- validation séparée du calculateur DCA, sans inclure silencieusement le cash résiduel du preset portefeuille ;
+- trois fenêtres de cinq ans préenregistrées avec `IWDA.AS` comme proxy Monde ;
+- projection déterministe de 14 887,03 € dépassée sur les trois fenêtres testées ;
+- résultat conservé comme preuve empirique de soutien, sans probabilité calibrée ni garantie de rendement.
