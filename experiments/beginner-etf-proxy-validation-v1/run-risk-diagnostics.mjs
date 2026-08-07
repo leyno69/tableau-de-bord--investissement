@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from 'node:fs/promises';
-import { classifyDrawdownAgainstSimulation, describeReturnTailRisk, pearsonCorrelation } from '../../validation/historicalRiskDiagnostics.js';
+import { classifyDrawdownAgainstSimulation, describeReturnTailRisk, maxDrawdownFromValues, pearsonCorrelation } from '../../validation/historicalRiskDiagnostics.js';
 import proxyResults from './results.json' with { type: 'json' };
 import pilotResults from '../beginner-historical-pilot-v1/results.json' with { type: 'json' };
 
@@ -73,15 +73,26 @@ async function analyzeWindow(window) {
   if (rows.length < 200) throw new Error(`${window.id}: couverture insuffisante`);
   const worldReturns = simpleReturns(rows.map(row => row.worldPrice));
   const asiaReturns = simpleReturns(rows.map(row => row.asiaPrice));
-  const monthly = monthlyReturns(portfolioPath(rows));
+  const path = portfolioPath(rows);
+  const monthlyPath = monthEnds(path);
+  const monthly = monthlyReturns(path);
   const historical = proxyResults.windows.find(item => item.id === window.id);
   if (!historical) throw new Error(`${window.id}: résultat proxy absent`);
+  const dailyDrawdown = maxDrawdownFromValues(path.map(point => point.value));
+  const monthlySampledDrawdown = maxDrawdownFromValues(monthlyPath.map(point => point.value));
   return Object.freeze({
     id: window.id,
     observationCount: rows.length,
     monthlyReturns: monthly,
     assetDailyCorrelation: pearsonCorrelation(worldReturns, asiaReturns),
-    drawdownComparison: classifyDrawdownAgainstSimulation(Math.abs(historical.metrics.maxDrawdown), pilotResults.summary.drawdown)
+    samplingFrequency: Object.freeze({
+      dailyDrawdown,
+      monthlySampledDrawdown,
+      intramonthDrawdownGap: dailyDrawdown - monthlySampledDrawdown,
+      dailyComparison: classifyDrawdownAgainstSimulation(dailyDrawdown, pilotResults.summary.drawdown),
+      monthlyMatchedComparison: classifyDrawdownAgainstSimulation(monthlySampledDrawdown, pilotResults.summary.drawdown)
+    }),
+    recordedReplayDrawdown: Math.abs(historical.metrics.maxDrawdown)
   });
 }
 
@@ -93,38 +104,43 @@ export async function runBeginnerRiskDiagnosticsV1() {
   const referenceMonthlyVolatility = pilotResults.definition.annualVolatility / Math.sqrt(12);
   const tailRisk = describeReturnTailRisk(combinedMonthlyReturns, { referenceMonthlyMean, referenceMonthlyVolatility });
   const correlations = windows.map(window => window.assetDailyCorrelation).filter(Number.isFinite);
-  const adverseWindows = windows.filter(window => window.drawdownComparison.adverseEvidence).map(window => window.id);
+  const dailyAdverse = windows.filter(window => window.samplingFrequency.dailyComparison.adverseEvidence).map(window => window.id);
+  const monthlyMatchedAdverse = windows.filter(window => window.samplingFrequency.monthlyMatchedComparison.adverseEvidence).map(window => window.id);
   return Object.freeze({
-    schemaVersion: 1,
+    schemaVersion: 2,
     experimentId: 'beginner-drawdown-risk-diagnostics-v1',
     status: 'descriptive-diagnostics',
     modelUnderTest: Object.freeze({
       annualReturn: pilotResults.definition.annualReturn,
       annualVolatility: pilotResults.definition.annualVolatility,
       distribution: 'monthly-gaussian-aggregate',
+      drawdownSampling: 'monthly',
       explicitAssetCorrelation: false
     }),
     windows: Object.freeze(windows.map(window => Object.freeze({
       id: window.id,
       observationCount: window.observationCount,
       assetDailyCorrelation: window.assetDailyCorrelation,
-      drawdownComparison: window.drawdownComparison
+      samplingFrequency: window.samplingFrequency,
+      recordedReplayDrawdown: window.recordedReplayDrawdown
     }))),
     aggregateDiagnostics: Object.freeze({
       monthlyTailRisk: tailRisk,
       assetCorrelationRange: Object.freeze({ min: Math.min(...correlations), max: Math.max(...correlations), mean: correlations.reduce((sum, value) => sum + value, 0) / correlations.length }),
-      adverseDrawdownWindows: Object.freeze(adverseWindows),
-      adverseDrawdownWindowCount: adverseWindows.length,
+      dailyAdverseDrawdownWindows: Object.freeze(dailyAdverse),
+      monthlyMatchedAdverseDrawdownWindows: Object.freeze(monthlyMatchedAdverse),
+      maxIntramonthDrawdownGap: Math.max(...windows.map(window => window.samplingFrequency.intramonthDrawdownGap)),
       windowCount: windows.length
     }),
     interpretation: Object.freeze({
       verdict: null,
-      statement: 'Le diagnostic recherche des mécanismes plausibles de sous-estimation du drawdown sans modifier le moteur après observation des résultats.'
+      statement: 'La fréquence d’observation du drawdown est testée séparément des hypothèses de distribution afin de ne pas attribuer au modèle un écart causé par une métrique non appariée.'
     }),
     limitations: Object.freeze([
       'La source Yahoo reste une source publique de validation empirique par proxy, pas une série MSCI licenciée.',
       'Cinq fenêtres annuelles restent un petit échantillon et ne permettent pas de qualifier une fréquence calibrée.',
       'La corrélation IWDA/PAEJ est mesurée à titre diagnostique ; le pilote beginner actuel utilise une hypothèse agrégée, donc cette corrélation ne constitue pas à elle seule une explication causale.',
+      'La comparaison de drawdown doit utiliser la même fréquence d’observation avant toute conclusion sur une sous-estimation du risque.',
       'Les diagnostics de queues et de volatilité décrivent les observations préenregistrées ; ils ne justifient pas automatiquement une nouvelle paramétrisation.'
     ])
   });
