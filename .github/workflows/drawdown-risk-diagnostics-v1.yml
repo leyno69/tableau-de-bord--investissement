@@ -1,0 +1,26 @@
+name: Drawdown risk diagnostics v1
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/drawdown-risk-diagnostics-v1/**'
+      - '.github/workflows/drawdown-risk-diagnostics-v1.yml'
+  workflow_dispatch:
+
+jobs:
+  diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run diagnostics
+        run: node experiments/drawdown-risk-diagnostics-v1/run.mjs
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: drawdown-risk-diagnostics-v1
+          path: artifacts/drawdown-risk-diagnostics-v1.json
+          if-no-files-found: error
