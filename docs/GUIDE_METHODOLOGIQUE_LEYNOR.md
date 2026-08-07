@@ -201,6 +201,25 @@ Les métriques d’une piste proxy restent celles du proxy. Elles ne doivent jam
 
 Toute modification de ces conventions exige une nouvelle version méthodologique et ne doit pas être décidée après lecture des résultats qu’elle servirait à évaluer.
 
+### 5.4 Comparaison simulation / historique
+
+La confrontation simulation / historique v1 est strictement descriptive. Elle compare un instantané de simulation préenregistré à une trajectoire historique calculée selon les conventions LEYNOR.
+
+La comparaison porte au minimum sur :
+
+- le rendement ajusté des flux externes ;
+- la volatilité annualisée ;
+- le drawdown maximal ;
+- la durée de récupération lorsqu’une récupération est observée.
+
+Pour chaque métrique, LEYNOR doit conserver la valeur simulée, la valeur historique, l’écart signé et, lorsque le dénominateur le permet, l’erreur relative. Les définitions comparées doivent être économiquement compatibles ; une ressemblance de nom ne suffit pas.
+
+Aucun seuil de réussite, score de conformité, note ou verdict « simulation correcte / incorrecte » ne doit être dérivé de ces écarts sans calibration préenregistrée, plusieurs fenêtres indépendantes, validation hors échantillon et analyse de sensibilité. Une réalisation historique unique n’est pas une distribution.
+
+Une comparaison utilisant un proxy doit rester explicitement identifiée comme telle et ne peut jamais être présentée comme une validation historique de l’instrument réel avant sa date d’existence.
+
+Le protocole détaillé est défini dans `docs/methodology/COMPARAISON_SIMULATION_HISTORIQUE.md`.
+
 ---
 
 ## 6. Sensibilité et stabilité
@@ -420,3 +439,11 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - volatilité quotidienne annualisée avec estimateur échantillonnal et facteur 252 ;
 - drawdown et récupération calculés sur un indice de richesse ajusté des flux ;
 - conservation explicite des périodes non récupérées.
+
+### Comparaison simulation / historique
+
+- comparaison descriptive entre instantané simulé préenregistré et replay historique ;
+- conservation des valeurs sources, écarts signés et erreurs relatives lorsqu’elles sont définies ;
+- interdiction de tout verdict, score ou seuil arbitraire sans calibration et validation hors échantillon ;
+- compatibilité économique des métriques obligatoire avant interprétation ;
+- distinction explicite entre instrument réel et proxy.
