@@ -220,6 +220,16 @@ Une comparaison utilisant un proxy doit rester explicitement identifiée comme t
 
 Le protocole détaillé est défini dans `docs/methodology/COMPARAISON_SIMULATION_HISTORIQUE.md`.
 
+### 5.5 Sensibilité historique aux coûts
+
+Toute étude de coûts doit préciser avant exécution quels instruments supportent réellement les coûts modélisés. Une poche de liquidités ne doit pas supporter artificiellement des frais de transaction simplement parce qu’elle est représentée par un ticker technique tel que `CASH`.
+
+Le moteur peut donc déclarer explicitement des tickers exempts de coûts. Cette exemption fait partie de la politique de coûts versionnée et doit être visible dans les résultats.
+
+Les fenêtres glissantes peuvent être utilisées pour étudier la sensibilité temporelle, mais leur chevauchement doit être documenté et elles ne doivent pas être traitées comme observations indépendantes. Les niveaux de coûts testés doivent être préenregistrés avant lecture des résultats.
+
+Le protocole détaillé est défini dans `docs/methodology/PORTFOLIO_HISTORICAL_COST_SENSITIVITY_V1.md`.
+
 ---
 
 ## 6. Sensibilité et stabilité
@@ -447,3 +457,11 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - interdiction de tout verdict, score ou seuil arbitraire sans calibration et validation hors échantillon ;
 - compatibilité économique des métriques obligatoire avant interprétation ;
 - distinction explicite entre instrument réel et proxy.
+
+### Sensibilité historique aux coûts
+
+- définition explicite des instruments auxquels les coûts sont appliqués ;
+- possibilité d’exempter une poche de liquidités technique telle que `CASH` ;
+- préenregistrement des niveaux de coûts ;
+- fenêtres glissantes reconnues comme dépendantes lorsqu’elles se chevauchent ;
+- conservation de la sensibilité des résultats sans produire de verdict scientifique prématuré.
