@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "beginner-historical-multiwindow-dev-v1",
+  "status": "development-historical-replay",
+  "source": {
+    "providerId": "yahoo-finance-chart-dev",
+    "usage": "development",
+    "validationEligibleSource": false
+  },
+  "symbols": {
+    "WPEA": "WPEA.PA",
+    "PAEJ": "PAEJ.PA"
+  },
+  "windows": [
+    {
+      "id": "window-a",
+      "requestedWindow": { "requestedStart": "2024-04-01", "requestedEnd": "2025-03-31" },
+      "effectiveWindow": { "startDate": "2024-04-02", "endDate": "2025-03-31", "commonObservationCount": 256 },
+      "finalValue": 10464.22424581062,
+      "cumulativeReturn": 0.04642242458106316,
+      "annualizedReturn": 0.04671580476640469,
+      "annualizedVolatility": 0.08676473168146379,
+      "maxDrawdown": -0.07234178690156412,
+      "recovery": {
+        "maxDrawdown": -0.07234178690156412,
+        "peakDate": "2025-02-19",
+        "troughDate": "2025-03-11",
+        "recovered": false,
+        "recoveryDate": null,
+        "recoveryDaysFromTrough": null,
+        "underwaterDays": null
+      },
+      "durationDays": 363
+    },
+    {
+      "id": "window-b",
+      "requestedWindow": { "requestedStart": "2025-04-01", "requestedEnd": "2026-03-31" },
+      "effectiveWindow": { "startDate": "2025-04-01", "endDate": "2026-03-31", "commonObservationCount": 250 },
+      "finalValue": 10777.68691003637,
+      "cumulativeReturn": 0.0777686910036377,
+      "annualizedReturn": 0.07804425127609949,
+      "annualizedVolatility": 0.10413965914575857,
+      "maxDrawdown": -0.08678871282363232,
+      "recovery": {
+        "maxDrawdown": -0.08678871282363232,
+        "peakDate": "2025-04-02",
+        "troughDate": "2025-04-09",
+        "recovered": true,
+        "recoveryDate": "2025-05-12",
+        "recoveryDaysFromTrough": 33,
+        "underwaterDays": 40
+      },
+      "durationDays": 364
+    }
+  ],
+  "workflowEvidence": {
+    "runId": 31179088087,
+    "artifactId": 8994006772,
+    "artifactDigest": "sha256:819b5a7580d504597b81961e78ccc643e6dfd811912dc915035e6d5712d08fb4"
+  },
+  "limitations": [
+    "Les deux fenêtres sont non chevauchantes au niveau des dates demandées mais utilisent la même source de développement.",
+    "Yahoo Finance n’est pas déclaré validation-eligible.",
+    "Zéro frais et aucun rééquilibrage dans ce pilote.",
+    "Deux fenêtres ne suffisent pas à valider scientifiquement le modèle."
+  ]
+}
