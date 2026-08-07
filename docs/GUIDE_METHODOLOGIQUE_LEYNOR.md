@@ -264,6 +264,18 @@ Le runner de validation stricte doit refuser tout fallback vers une source `deve
 
 Le protocole détaillé est défini dans `docs/methodology/LICENSED_BENCHMARK_VALIDATION_TRACK_V1.md`.
 
+### 5.9 Validation empirique par proxy ETF
+
+Lorsqu’une série de benchmark officielle sous licence n’est pas disponible, LEYNOR peut exécuter une piste empirique secondaire sur un proxy ETF réel, à condition que le proxy soit choisi et documenté avant lecture des résultats.
+
+Pour le preset `beginner`, le proxy WPEA pré-2024 est `IWDA.AS`, iShares Core MSCI World UCITS ETF, ISIN `IE00B4L5Y983`. Il est retenu en raison de son historique depuis 2009 et de son benchmark déclaré MSCI World Index (Net), et non en fonction de ses performances observées. PAEJ reste l’instrument réel `PAEJ.PA` sur les fenêtres retenues.
+
+Cette piste porte le niveau de preuve `supporting-empirical-evidence`. Elle peut soutenir une conclusion de robustesse empirique, révéler des contradictions et positionner les observations dans des distributions simulées appariées. Elle ne peut jamais être qualifiée de validation officielle du MSCI World, d’équivalence historique entre IWDA et WPEA, de preuve prédictive ou de garantie de rendement futur.
+
+Les fenêtres annuelles 2015, 2018, 2020, 2022 et 2023 sont figées avant lecture des résultats. Tout dépassement d’une borne simulée, notamment d’un p95 de risque, doit être conservé comme preuve adverse et ne doit entraîner aucune recalibration rétroactive.
+
+Le protocole détaillé est défini dans `docs/methodology/ETF_PROXY_VALIDATION_TRACK_V1.md`.
+
 ---
 
 ## 6. Sensibilité et stabilité
@@ -522,3 +534,11 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - refus des fallbacks silencieux vers une source de développement ;
 - cinq fenêtres non chevauchantes figées avant lecture des données licenciées ;
 - résultats Yahoo existants maintenus au statut exploratoire.
+
+### Validation empirique par proxy ETF
+
+- proxy IWDA.AS préenregistré pour prolonger la composante World avant l’existence de WPEA ;
+- PAEJ conservé comme instrument réel sur les fenêtres compatibles ;
+- niveau de preuve séparé `supporting-empirical-evidence` ;
+- interdiction d’assimiler cette piste à une validation MSCI officielle ;
+- conservation obligatoire des preuves adverses, notamment tout dépassement de p95, sans recalibration rétroactive.
