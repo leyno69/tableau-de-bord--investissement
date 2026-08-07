@@ -240,6 +240,16 @@ Les comptages de fenêtres par bande ne doivent pas être convertis en fréquenc
 
 Le protocole détaillé est défini dans `docs/methodology/HISTORICAL_COVERAGE_DIAGNOSTICS_V1.md`.
 
+### 5.7 Appariement obligatoire des horizons
+
+Toute confrontation descriptive entre une observation historique et une distribution simulée doit utiliser des horizons économiquement compatibles. Un trimestre historique ne doit jamais être positionné dans les percentiles d’une simulation annuelle simplement parce que les métriques portent le même nom.
+
+Le moteur peut exprimer une durée de simulation en mois lorsque l’horizon étudié n’est pas un nombre entier d’années. Cette durée conserve les mêmes conventions mensuelles de rendement, volatilité, frais et contributions que l’API annuelle. Une durée de 12 mois avec mêmes paramètres et même graine doit reproduire exactement le résumé de la simulation annuelle équivalente.
+
+Lorsqu’une observation historique dépasse le p95 d’une distribution appariée, ce dépassement doit être conservé comme preuve adverse descriptive. Il ne constitue pas à lui seul une réfutation du modèle, mais il doit déclencher une investigation et ne peut jamais être utilisé pour déplacer rétroactivement les percentiles ou modifier l’expérience initiale.
+
+Le protocole détaillé est défini dans `docs/methodology/MATCHED_HORIZON_SIMULATION_V1.md`.
+
 ---
 
 ## 6. Sensibilité et stabilité
@@ -482,3 +492,10 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - interdiction de transformer ces bandes en score ou verdict ;
 - conservation obligatoire des observations extrêmes ;
 - interdiction d’interpréter des fenêtres chevauchantes comme fréquences de couverture calibrées.
+
+### Appariement des horizons
+
+- possibilité d'exprimer une durée de simulation en mois sans modifier l'API annuelle existante ;
+- équivalence obligatoire entre 12 mois et 1 an à paramètres et graine identiques ;
+- interdiction de confronter directement des observations historiques à une distribution simulée d'un horizon différent ;
+- conservation des dépassements de p95 comme preuves adverses descriptives sans recalibration rétroactive.
