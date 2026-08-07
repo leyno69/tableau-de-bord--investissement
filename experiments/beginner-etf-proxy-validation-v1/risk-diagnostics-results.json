@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 2,
+  "experimentId": "beginner-drawdown-risk-diagnostics-v1",
+  "status": "descriptive-diagnostics",
+  "artifactEvidence": {
+    "workflowRunId": 31191350399,
+    "artifactId": 8998929082,
+    "artifactSha256": "96c4093fc2b93dcee2b7d72cb222730d3fcefeeecb361c0835efd97bbb0cdb67"
+  },
+  "modelUnderTest": {
+    "annualReturn": 0.045,
+    "annualVolatility": 0.1,
+    "distribution": "monthly-gaussian-aggregate",
+    "drawdownSampling": "monthly"
+  },
+  "aggregateDiagnostics": {
+    "monthlyTailRisk": {
+      "observationCount": 55,
+      "mean": 0.0006683284443982201,
+      "sampleVolatility": 0.02884419402429205,
+      "skewness": -0.1487935497970942,
+      "excessKurtosis": -0.02916188385016749,
+      "worstReturn": -0.06994345065880692,
+      "bestReturn": 0.060540940952765965,
+      "beyond2SigmaCount": 2,
+      "beyond3SigmaCount": 0,
+      "negativeBeyond2SigmaCount": 2,
+      "absoluteReturnLag1Correlation": 0.13271612959057597
+    },
+    "assetCorrelationRange": {
+      "min": 0.5843371925337744,
+      "max": 0.8860656471155696,
+      "mean": 0.7686390284036613
+    },
+    "dailyAdverseDrawdownWindows": ["2020"],
+    "monthlyMatchedAdverseDrawdownWindows": [],
+    "maxIntramonthDrawdownGap": 0.1016762241628596,
+    "windowCount": 5
+  },
+  "windows": [
+    {"id":"2015","dailyDrawdown":0.14844922746452463,"monthlySampledDrawdown":0.09642522897988795,"intramonthDrawdownGap":0.05202399848463668,"monthlyMatchedBand":"median-p95"},
+    {"id":"2018","dailyDrawdown":0.09691651251854752,"monthlySampledDrawdown":0.07273871342850585,"intramonthDrawdownGap":0.02417779909004167,"monthlyMatchedBand":"median-p95"},
+    {"id":"2020","dailyDrawdown":0.21675901697391714,"monthlySampledDrawdown":0.11508279281105754,"intramonthDrawdownGap":0.1016762241628596,"monthlyMatchedBand":"median-p95"},
+    {"id":"2022","dailyDrawdown":0.10067138145868672,"monthlySampledDrawdown":0.07008752470667258,"intramonthDrawdownGap":0.030583856752014138,"monthlyMatchedBand":"median-p95"},
+    {"id":"2023","dailyDrawdown":0.04722811361283878,"monthlySampledDrawdown":0.042482404798569066,"intramonthDrawdownGap":0.004745708814269715,"monthlyMatchedBand":"at-or-below-median"}
+  ],
+  "interpretation": {
+    "verdict": "frequency-mismatch-found",
+    "statement": "Le dépassement annuel 2020 du p95 disparaît lorsque le drawdown historique est échantillonné mensuellement comme le moteur. L'ancienne comparaison quotidienne/mensuelle reste conservée mais ne peut plus être interprétée comme une preuve adverse appariée."
+  },
+  "limitations": [
+    "Cinq fenêtres annuelles restent un petit échantillon.",
+    "Le diagnostic ne valide pas la distribution gaussienne ; il montre seulement que les queues mensuelles observées ici ne suffisent pas à expliquer l'écart précédemment attribué au moteur.",
+    "La corrélation IWDA/PAEJ reste informative pour une future modélisation instrument par instrument, mais n'explique pas causalement le pilote agrégé actuel."
+  ]
+}
