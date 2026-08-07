@@ -23,7 +23,7 @@ function requiredText(value, name) {
 }
 
 function createSeededRandom(seed = 1) {
-  let state = (Number(seed) >>> 0) || 1;
+  let state = Number(seed) >>> 0;
   return () => {
     state = (state * 1664525 + 1013904223) >>> 0;
     return state / 4294967296;

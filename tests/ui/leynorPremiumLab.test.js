@@ -34,6 +34,13 @@ test('une même graine produit exactement le même rapport', () => {
   assert.deepEqual(runMassSimulation(input), runMassSimulation(input));
 });
 
+test('la graine 0 est distincte de la graine 1, pas repliée dessus', () => {
+  const base = { portfolioCount: 250, years: 15, initialAmount: 5000, monthlyContribution: 150, annualInflation: 0.02, annualFees: 0.003, goal: 80000, allocation };
+  const reportWithSeedZero = runMassSimulation({ ...base, seed: 0 });
+  const reportWithSeedOne = runMassSimulation({ ...base, seed: 1 });
+  assert.notDeepEqual(reportWithSeedZero, reportWithSeedOne);
+});
+
 test('le rapport agrège les percentiles, le risque et la probabilité d’objectif', () => {
   const report = runMassSimulation({ portfolioCount: 500, years: 20, initialAmount: 3000, monthlyContribution: 100, annualInflation: 0.02, annualFees: 0.0025, goal: 100000, seed: 42, allocation });
   assert.equal(report.summary.portfolioCount, 500);
