@@ -1,0 +1,29 @@
+name: Beginner exact quarterly
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    name: Exact quarterly historical development replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run exact quarterly historical pilot
+        run: node experiments/beginner-historical-pilot-v1/run-exact-quarterly-dev.mjs
+      - name: Upload exact quarterly result
+        uses: actions/upload-artifact@v4
+        with:
+          name: beginner-exact-quarterly-dev
+          path: artifacts/beginner-exact-quarterly-dev.json
