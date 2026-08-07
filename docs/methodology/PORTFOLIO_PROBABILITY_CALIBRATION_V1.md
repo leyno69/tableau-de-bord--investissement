@@ -16,15 +16,21 @@ Campagne rétrospective point-in-time par proxies. Elle ne donne aucune autorit�
 - comparaison du Brier score à un taux de base calculé exclusivement dans l'historique antérieur ;
 - intervalles de Wilson à 95 % pour chaque fréquence de couverture.
 
+Le rapport doit publier séparément la référence fixe à 50 % et la référence dynamique point-in-time. Une amélioration contre la référence fixe ne peut pas masquer une dégradation contre la référence dynamique.
+
 ## Règle de décision
 
 La campagne reste `proxy-inconclusive` si les intervalles de Wilson ne sont pas compatibles avec les niveaux annoncés, si le modèle ne bat pas le taux de base, si l'effectif est inférieur à 100 prévisions effectivement indépendantes, ou si les données exactes/licenciées manquent.
 
 Les prévisions partagent des actifs et des fenêtres chevauchantes : l'effectif brut ne doit jamais être assimilé à un nombre d'observations indépendantes.
 
+Dans ce cas, les intervalles de Wilson standards sont conservés comme descriptifs mais ne possèdent aucune valeur inférentielle, car leur hypothèse d’essais indépendants n’est pas satisfaite.
+
 ## Validation prospective
 
 Chaque future prévision doit enregistrer le commit moteur, l'empreinte des hypothèses, la date de maturité et `createdWithoutOutcomeAccess: true`. Le résultat ne peut être associé avant la maturité.
+
+Les intervalles d’une prévision sont normalisés et figés profondément avant empreinte. `binaryOutcome` doit être strictement booléen et une observation datée dans le futur par rapport à l’horloge de règlement est refusée.
 
 ## Données exactes
 

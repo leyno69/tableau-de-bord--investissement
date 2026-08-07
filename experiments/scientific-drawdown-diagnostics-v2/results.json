@@ -9,7 +9,8 @@
       "asia": "PAEJ.PA"
     },
     "adjustedClose": true,
-    "licensedBenchmark": false
+    "licensedBenchmark": false,
+    "alignedInputSha256": "3ff80fb4f9c16b21dca2d35efc6ecb4996031de44406204fb386a15c7dda838f"
   },
   "period": {
     "requested": {
@@ -6409,6 +6410,7 @@
   },
   "limitations": [
     "IWDA.AS et PAEJ.PA sont des proxies ETF publics, pas une série officielle MSCI licenciée.",
+    "Les cours Yahoo sont interrogés en direct et peuvent être révisés ; leur empreinte détecte une dérive mais ne permet pas de reconstruire une version historique non archivée.",
     "Une trajectoire historique unique ne fournit pas une fréquence populationnelle des drawdowns.",
     "Les corrélations conditionnelles sont descriptives et les sous-échantillons baissiers ne sont pas iid.",
     "Le comparateur gaussien quotidien est expérimental et ne remplace pas le moteur mensuel de production."

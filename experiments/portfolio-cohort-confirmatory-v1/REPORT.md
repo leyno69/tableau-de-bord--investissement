@@ -2,7 +2,7 @@
 
 ## Résultat
 
-Empreinte du résultat intégral : `5477f00d0b8b28e113a9ab328fcf2f0a81a1f07e359f79694a5088c5607cce33`.
+Empreinte du résultat intégral : `931ac5f3eb60b5d72e194d29d3f0f7681f06b164c61939e60712af9515870880`. Empreinte des entrées Yahoo alignées : `3ff80fb4f9c16b21dca2d35efc6ecb4996031de44406204fb386a15c7dda838f`.
 
 Sur les douze cellules formées par quatre allocations et trois folds temporels :
 
@@ -26,7 +26,9 @@ Les quatre observations sont supérieures à la médiane, mais aucune ne dépass
 
 - Les douze cellules ne sont pas indépendantes : elles partagent les mêmes actifs et périodes.
 - Les données Yahoo sont des proxies publics non licenciés.
+- Les cours Yahoo sont interrogés en direct : leur empreinte détecte une dérive, mais la version source n’est pas archivée dans le dépôt.
 - Les périodes avaient déjà été observées ; la campagne est confirmatoire par ordre temporel, mais pas un holdout vierge.
+- Le protocole et les résultats sont publiés dans la même PR ; le qualificatif « préenregistré » décrit l’ordre d’exécution déclaré, pas un horodatage indépendant vérifiable.
 - La non-normalité, la volatilité persistante et la corrélation variable démontrées par le diagnostic v2 restent des limites du moteur.
 
 ## Conclusion

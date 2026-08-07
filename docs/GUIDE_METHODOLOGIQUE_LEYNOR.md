@@ -627,6 +627,10 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - couverture 50 % observée : 46,43 %, Wilson 95 % [36,15 % ; 57,02 %] ;
 - couverture 90 % observée : 86,90 %, Wilson 95 % [78,05 % ; 92,53 %] ;
 - Brier score 0,1966 contre 0,2500 pour la référence fixe 50 % ;
+- Brier score 0,1966 contre 0,1894 pour la référence dynamique point-in-time : preuve défavorable agrégée ;
+- défaite contre la référence dynamique pour trois portefeuilles sur quatre ;
 - surconfiance adverse conservée dans la tranche annoncée 80–90 % ;
 - effectif indépendant volontairement non déclaré en raison des fenêtres et actifs partagés ;
+- intervalles de Wilson conservés comme descriptifs mais non inférentiels sous dépendance ;
+- empreinte obligatoire des entrées de source en direct, avec limite explicite lorsqu’aucun instantané reconstructible n’est archivé ;
 - exposition de probabilités réelles interdite tant que données exactes, holdout vierge et validation prospective manquent.

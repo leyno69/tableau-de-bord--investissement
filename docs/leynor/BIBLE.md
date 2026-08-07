@@ -89,3 +89,5 @@ Les queues épaisses, la persistance de volatilité et les corrélations variabl
 La généralisation à plusieurs allocations ne constitue une réplication indépendante que si les données, périodes ou sous-jacents le sont réellement. Des portefeuilles partageant les mêmes séries forment une cohorte de sensibilité, pas quatre expériences indépendantes.
 
 Une fréquence simulée ne devient une probabilité empirique qu'après vérification de sa couverture, de son score probabiliste, de son incertitude et de sa stabilité hors échantillon. LEYNOR bloque l'exposition de probabilités réelles lorsque l'effectif indépendant est inconnu, qu'un groupe est surconfiant ou que les données exactes et la validation prospective manquent.
+
+Une référence fixe favorable ne doit jamais masquer une référence dynamique point-in-time défavorable. Un intervalle de confiance standard fondé sur l’indépendance reste descriptif lorsque les fenêtres ou les actifs sont dépendants. Toute donnée interrogée en direct doit porter une empreinte d’entrée et signaler explicitement si sa version historique ne peut pas être reconstruite.

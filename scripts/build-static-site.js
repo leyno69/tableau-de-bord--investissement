@@ -20,6 +20,7 @@ await mkdir(DIST, { recursive: true });
 for (const entry of await readdir(ROOT, { withFileTypes: true })) {
   if (!entry.isFile()) continue;
   if (EXCLUDED_ROOT_FILES.has(entry.name)) continue;
+  if (entry.name.endsWith('.test.js') || entry.name.endsWith('.test.mjs')) continue;
   if (!ROOT_EXTENSIONS.has(extname(entry.name))) continue;
   await cp(new URL(entry.name, ROOT), new URL(entry.name, DIST));
 }

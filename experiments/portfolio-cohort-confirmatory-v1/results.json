@@ -2,6 +2,15 @@
   "schemaVersion": 1,
   "experimentId": "portfolio-cohort-confirmatory-v1",
   "status": "confirmatory-proxy-generalization",
+  "source": {
+    "provider": "Yahoo Finance chart API",
+    "symbols": [
+      "IWDA.AS",
+      "PAEJ.PA"
+    ],
+    "adjustedClose": true,
+    "alignedInputSha256": "3ff80fb4f9c16b21dca2d35efc6ecb4996031de44406204fb386a15c7dda838f"
+  },
   "cohort": [
     {
       "id": "defensive",
@@ -297,7 +306,9 @@
   "engineModified": false,
   "limitations": [
     "Proxies Yahoo non licenciés.",
+    "Les cours Yahoo sont interrogés en direct et peuvent être révisés ; leur empreinte détecte une dérive sans archiver la version source.",
     "Périodes déjà observées.",
-    "Allocations dépendantes car elles partagent les mêmes sous-jacents."
+    "Allocations dépendantes car elles partagent les mêmes sous-jacents.",
+    "Le protocole et les résultats sont publiés dans la même PR : le préenregistrement n’est pas horodaté indépendamment."
   ]
 }

@@ -16,6 +16,8 @@ Ce bloc est descriptif. Il ne possède aucune autorité pour recalibrer ou modif
 
 La trajectoire proxy conserve l’allocation déjà utilisée par la campagne `beginner` : 50 % IWDA.AS, 15 % PAEJ.PA et 35 % cash. Les cours ajustés publics Yahoo restent une preuve proxy exploratoire, non une série MSCI licenciée.
 
+Chaque exécution empreinte les lignes alignées reçues. Cette empreinte détecte une révision de la source en direct, mais ne remplace pas un instantané autorisé et ne permet pas à elle seule de reconstruire une version historique disparue.
+
 Le comparateur de drawdown quotidien réutilise `runDailyGaussianDrawdownExperiment` sans changement de paramètres : rendement annuel 4,5 %, volatilité annuelle 10 %, 10 000 trajectoires et graine 20260807. Les validations Student-t et EWMA restent des expériences indépendantes ; leurs résultats ne sont ni combinés ni sélectionnés après observation.
 
 ## Règle de décision

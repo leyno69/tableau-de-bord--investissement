@@ -1,8 +1,10 @@
 # Campagne confirmatoire multi-portefeuilles proxy — v1
 
-## Préenregistrement
+## Protocole figé avant l’exécution déclarée
 
 La cohorte, les périodes, les modèles candidats, les paramètres candidats et la règle de décision sont figés avant exécution. Cette campagne ne modifie ni le moteur ni ses paramètres.
+
+Le protocole et les résultats étant publiés dans la même PR, le dépôt ne fournit pas d’horodatage indépendant prouvant cet ordre. La campagne reste donc confirmatoire par construction temporelle déclarée, mais ne constitue pas un préenregistrement externe vérifiable.
 
 ## Cohorte figée
 
@@ -26,6 +28,7 @@ Le drawdown historique mensuel de chaque portefeuille est comparé à un compara
 ## Limites préenregistrées
 
 - IWDA.AS et PAEJ.PA sont des proxies publics Yahoo, non des séries MSCI licenciées ;
+- les lignes alignées reçues de Yahoo doivent être empreintées ; une dérive est détectable mais la source en direct n’est pas reconstructible sans archive autorisée ;
 - les périodes ont déjà été observées dans le projet et ne sont pas un holdout vierge ;
 - les quatre allocations partagent les mêmes sous-jacents et ne sont pas des réplications indépendantes ;
 - un succès autorise uniquement une expérimentation séparée, jamais une modification automatique du moteur.

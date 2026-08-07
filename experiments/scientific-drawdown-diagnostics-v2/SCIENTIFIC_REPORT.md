@@ -2,7 +2,7 @@
 
 ## Périmètre et preuve
 
-Diagnostic exécuté sur 2 455 observations communes du 2 juin 2014 au 29 décembre 2023, allocation proxy figée à 50 % IWDA.AS, 15 % PAEJ.PA et 35 % cash. Résultat intégral : `results.json`, SHA-256 `c62ac9b8ca62b54ec8571da5501fce4c62eee63ca15453836b7704ba7341646c`.
+Diagnostic exécuté sur 2 455 observations communes du 2 juin 2014 au 29 décembre 2023, allocation proxy figée à 50 % IWDA.AS, 15 % PAEJ.PA et 35 % cash. Résultat intégral : `results.json`, SHA-256 `8d0508bb95f817847d43ac01e17f81c881f700087250f0ac027e9a3d1e6c4dc6`. Empreinte des 2 455 lignes alignées reçues de Yahoo : `3ff80fb4f9c16b21dca2d35efc6ecb4996031de44406204fb386a15c7dda838f`.
 
 Le moteur de production et ses paramètres n’ont pas été modifiés.
 
@@ -14,7 +14,7 @@ Le moteur de production et ses paramètres n’ont pas été modifiés.
 
 **Contre-preuve.** Le comparateur gaussien quotidien sur le même horizon place 25,61 % entre sa médiane de 21,56 % et son p95 de 36,53 %. Le drawdown quotidien historique n’est donc pas hors de l’enveloppe quotidienne simulée.
 
-**Limites.** Une trajectoire historique ne fournit pas une distribution populationnelle des épisodes.
+**Limites.** Une trajectoire historique ne fournit pas une distribution populationnelle des épisodes. Les cours Yahoo sont interrogés en direct : l’empreinte détecte une révision future, mais le dépôt ne permet pas de reconstruire une version source non archivée.
 
 **Conclusion.** Cause démontrée pour les anciens dépassements obtenus par comparaison quotidien/mensuel. Elle justifie l’appariement méthodologique, pas un recalibrage.
 

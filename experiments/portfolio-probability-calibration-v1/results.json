@@ -2,6 +2,15 @@
   "schemaVersion": 1,
   "experimentId": "portfolio-probability-calibration-v1",
   "status": "proxy-inconclusive",
+  "source": {
+    "provider": "Yahoo Finance chart API",
+    "symbols": [
+      "IWDA.AS",
+      "PAEJ.PA"
+    ],
+    "adjustedClose": true,
+    "alignedInputSha256": "f32f0d60b89942f2ce51bfcf1f71c4d97f6e4b35e88cee0ff4c5bc805eb21855"
+  },
   "origins": [
     "2018-01",
     "2018-04",
@@ -1943,7 +1952,11 @@
         "brierImprovement": 0.0534326061904761
       }
     },
+    "dynamicBaseRateBrierScore": 0.18941789902480066,
+    "beatsDynamicBaseRate": false,
     "independentForecastCount": null,
+    "independenceAssumptionMet": false,
+    "wilsonIntervalsInferentiallyValid": false,
     "mayExposeRealWorldProbability": false
   },
   "engineModified": false,
@@ -1951,6 +1964,8 @@
     "Données exactes/licenciées absentes.",
     "Holdout vierge absent.",
     "Fenêtres et portefeuilles dépendants.",
-    "Moins de 100 prévisions indépendantes démontrées."
+    "Intervalles de Wilson non inférentiels tant que la dépendance n’est pas modélisée.",
+    "Moins de 100 prévisions indépendantes démontrées.",
+    "Le protocole et les résultats sont publiés dans la même PR : le préenregistrement n’est pas horodaté indépendamment."
   ]
 }

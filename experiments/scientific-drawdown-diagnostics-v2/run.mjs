@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { analyzeDependence, analyzeDrawdownEpisodes, analyzeVolatilityPersistence, describeDistribution } from '../../validation/scientificDrawdownDiagnostics.js';
 import { runDailyGaussianDrawdownExperiment } from '../../validation/dailyGaussianDrawdownExperiment.js';
 
@@ -20,6 +21,7 @@ function returns(values) { return values.slice(1).map((value, index) => value / 
 function portfolioPath(rows) { const first = rows[0]; const ws = WEIGHTS.world / first.world; const as = WEIGHTS.asia / first.asia; return rows.map(row => ({ date: row.date, value: ws * row.world + as * row.asia + WEIGHTS.cash })); }
 function monthEnds(path) { const map = new Map(); path.forEach(point => map.set(point.date.slice(0, 7), point)); return [...map.values()].sort((a, b) => a.date.localeCompare(b.date)); }
 function enrichEpisodes(analysis, path) { return analysis.episodes.map(episode => Object.freeze({ ...episode, peakDate: path[episode.peakIndex].date, troughDate: path[episode.troughIndex].date, recoveryDate: episode.recoveryIndex == null ? null : path[episode.recoveryIndex].date })); }
+function inputFingerprint(rows) { return createHash('sha256').update(JSON.stringify(rows)).digest('hex'); }
 
 export async function runScientificDrawdownDiagnosticsV2() {
   const [worldRaw, asiaRaw] = await Promise.all([fetchAdjustedDaily(SYMBOLS.world), fetchAdjustedDaily(SYMBOLS.asia)]); const rows = aligned(worldRaw, asiaRaw);
@@ -29,11 +31,11 @@ export async function runScientificDrawdownDiagnosticsV2() {
   const gaussianComparator = runDailyGaussianDrawdownExperiment({ pathCount: 10000, tradingDays: dailyReturns.length, annualReturn: 0.045, annualVolatility: 0.10, seed: 20260807 });
   const normalTailExpectation = Object.freeze({ beyond2SigmaExpected: dailyReturns.length * 0.04550026389635842, beyond3SigmaExpected: dailyReturns.length * 0.002699796063260207 });
   return Object.freeze({
-    schemaVersion: 2, experimentId: 'scientific-drawdown-diagnostics-v2', status: 'descriptive-no-engine-change-authority', source: Object.freeze({ provider: 'Yahoo Finance chart API', symbols: SYMBOLS, adjustedClose: true, licensedBenchmark: false }), period: Object.freeze({ requested: PERIOD, effectiveStart: rows[0].date, effectiveEnd: rows.at(-1).date, dailyObservationCount: rows.length }),
+    schemaVersion: 2, experimentId: 'scientific-drawdown-diagnostics-v2', status: 'descriptive-no-engine-change-authority', source: Object.freeze({ provider: 'Yahoo Finance chart API', symbols: SYMBOLS, adjustedClose: true, licensedBenchmark: false, alignedInputSha256: inputFingerprint(rows) }), period: Object.freeze({ requested: PERIOD, effectiveStart: rows[0].date, effectiveEnd: rows.at(-1).date, dailyObservationCount: rows.length }),
     historical: Object.freeze({ dailyReturns: describeDistribution(dailyReturns), monthlyReturns: describeDistribution(monthlyReturns), dailyDrawdowns: Object.freeze({ ...dailyDrawdowns, episodes: Object.freeze(enrichEpisodes(dailyDrawdowns, path)) }), monthlyDrawdowns: Object.freeze({ ...monthlyDrawdowns, episodes: Object.freeze(enrichEpisodes(monthlyDrawdowns, monthlyPath)) }), dependence: analyzeDependence(worldReturns, asiaReturns, dailyReturns, 63), volatilityPersistence: analyzeVolatilityPersistence(dailyReturns, 21) }),
     comparators: Object.freeze({ gaussianDailyMaximumDrawdown: gaussianComparator.drawdown, normalTailExpectation, heavyTailCrossValidationId: 'heavy-tail-cross-validation-v1', conditionalVolatilityCrossValidationId: 'conditional-volatility-cross-validation-v1' }),
     governance: Object.freeze({ engineModified: false, calibrationModified: false, decision: 'diagnostic-only', rule: 'Aucun résultat de ce diagnostic descriptif ne peut modifier le moteur sans validation confirmatoire indépendante préenregistrée.' }),
-    limitations: Object.freeze(['IWDA.AS et PAEJ.PA sont des proxies ETF publics, pas une série officielle MSCI licenciée.', 'Une trajectoire historique unique ne fournit pas une fréquence populationnelle des drawdowns.', 'Les corrélations conditionnelles sont descriptives et les sous-échantillons baissiers ne sont pas iid.', 'Le comparateur gaussien quotidien est expérimental et ne remplace pas le moteur mensuel de production.'])
+    limitations: Object.freeze(['IWDA.AS et PAEJ.PA sont des proxies ETF publics, pas une série officielle MSCI licenciée.', 'Les cours Yahoo sont interrogés en direct et peuvent être révisés ; leur empreinte détecte une dérive mais ne permet pas de reconstruire une version historique non archivée.', 'Une trajectoire historique unique ne fournit pas une fréquence populationnelle des drawdowns.', 'Les corrélations conditionnelles sont descriptives et les sous-échantillons baissiers ne sont pas iid.', 'Le comparateur gaussien quotidien est expérimental et ne remplace pas le moteur mensuel de production.'])
   });
 }
 
