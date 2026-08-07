@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "beginner-historical-pilot-v1",
+  "status": "development-historical-replay",
+  "source": {
+    "providerId": "yahoo-finance-chart-dev",
+    "usage": "development",
+    "validationEligibleSource": false
+  },
+  "symbols": {
+    "WPEA": "WPEA.PA",
+    "PAEJ": "PAEJ.PA"
+  },
+  "requestedWindow": {
+    "requestedStart": "2025-01-02",
+    "requestedEnd": "2026-01-02"
+  },
+  "effectiveWindow": {
+    "startDate": "2025-01-02",
+    "endDate": "2025-12-24",
+    "commonObservationCount": 251
+  },
+  "replay": {
+    "finalValue": 10484.198709995038,
+    "totalCosts": 0,
+    "pnlVsContributions": 484.19870999503837
+  },
+  "metrics": {
+    "cumulativeReturn": 0.048419870999502956,
+    "annualizedReturn": 0.04970769599475444,
+    "annualizedVolatility": 0.10420591646963472,
+    "maxDrawdown": -0.13850824801321238,
+    "recovery": {
+      "maxDrawdown": -0.13850824801321238,
+      "peakDate": "2025-02-19",
+      "troughDate": "2025-04-09",
+      "recovered": true,
+      "recoveryDate": "2025-09-22",
+      "recoveryDaysFromTrough": 166,
+      "underwaterDays": 215
+    },
+    "observationCount": 251,
+    "durationDays": 356
+  },
+  "workflowEvidence": {
+    "runId": 31178690645,
+    "artifactId": 8993853657,
+    "artifactDigest": "sha256:e09802a294570eb7a74d59bcaff03b44add62de7f686e06ba09a06d98c72fda3"
+  },
+  "limitations": [
+    "Yahoo Finance est utilisé uniquement comme source de développement et n’est pas déclaré validation-eligible.",
+    "Le replay utilise des clôtures ajustées et zéro coût de transaction pour ce pilote.",
+    "Aucun rééquilibrage n’est appliqué sur la fenêtre.",
+    "Ce résultat ne constitue pas une validation scientifique finale."
+  ]
+}
