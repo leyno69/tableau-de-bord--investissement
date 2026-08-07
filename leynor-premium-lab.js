@@ -1,5 +1,6 @@
 const MAX_PORTFOLIOS = 10000;
 const MAX_YEARS = 50;
+const MAX_MONTHS = MAX_YEARS * 12;
 const MAX_SCENARIOS = 12;
 
 function finite(value, name, { min = -Infinity, max = Infinity } = {}) {
@@ -59,9 +60,8 @@ function normalizeAllocation(allocation = []) {
   return Object.freeze(normalized);
 }
 
-export function createMassSimulationDefinition({
+function normalizeSharedSimulationFields({
   portfolioCount = 1000,
-  years = 20,
   initialAmount = 10000,
   monthlyContribution = 100,
   annualInflation = 0.02,
@@ -70,9 +70,8 @@ export function createMassSimulationDefinition({
   seed = 42,
   allocation
 } = {}) {
-  const definition = {
+  return {
     portfolioCount: integer(portfolioCount, 'portfolioCount', { min: 1, max: MAX_PORTFOLIOS }),
-    years: integer(years, 'years', { min: 1, max: MAX_YEARS }),
     initialAmount: finite(initialAmount, 'initialAmount', { min: 0 }),
     monthlyContribution: finite(monthlyContribution, 'monthlyContribution', { min: 0 }),
     annualInflation: finite(annualInflation, 'annualInflation', { min: -0.2, max: 0.5 }),
@@ -81,11 +80,25 @@ export function createMassSimulationDefinition({
     seed: integer(seed, 'seed', { min: 0, max: 4294967295 }),
     allocation: normalizeAllocation(allocation)
   };
-  return Object.freeze(definition);
 }
 
-function simulateOne(definition, random) {
-  const months = definition.years * 12;
+export function createMassSimulationDefinition({ years = 20, ...rest } = {}) {
+  return Object.freeze({
+    ...normalizeSharedSimulationFields(rest),
+    years: integer(years, 'years', { min: 1, max: MAX_YEARS })
+  });
+}
+
+export function createMassSimulationDurationDefinition({ months = 3, ...rest } = {}) {
+  const durationMonths = integer(months, 'months', { min: 1, max: MAX_MONTHS });
+  return Object.freeze({
+    ...normalizeSharedSimulationFields(rest),
+    durationMonths,
+    durationYears: durationMonths / 12
+  });
+}
+
+function simulateOneForMonths(definition, random, months, durationYears) {
   let nominalValue = definition.initialAmount;
   let peak = nominalValue;
   let maxDrawdown = 0;
@@ -103,7 +116,7 @@ function simulateOne(definition, random) {
     if (peak > 0) maxDrawdown = Math.max(maxDrawdown, (peak - nominalValue) / peak);
   }
 
-  const inflationFactor = Math.pow(1 + definition.annualInflation, definition.years);
+  const inflationFactor = Math.pow(1 + definition.annualInflation, durationYears);
   return Object.freeze({
     finalValue: nominalValue,
     realFinalValue: nominalValue / inflationFactor,
@@ -112,16 +125,13 @@ function simulateOne(definition, random) {
   });
 }
 
-export function runMassSimulation(input) {
-  const definition = input?.allocation ? createMassSimulationDefinition(input) : input;
-  if (!definition || !Object.isFrozen(definition)) throw new TypeError('Une définition de simulation valide est requise.');
-
+function buildMassSimulationReport(definition, months, durationYears) {
   const random = createSeededRandom(definition.seed);
-  const results = Array.from({ length: definition.portfolioCount }, () => simulateOne(definition, random));
+  const results = Array.from({ length: definition.portfolioCount }, () => simulateOneForMonths(definition, random, months, durationYears));
   const finalValues = results.map(result => result.finalValue).sort((a, b) => a - b);
   const realValues = results.map(result => result.realFinalValue).sort((a, b) => a - b);
   const drawdowns = results.map(result => result.maxDrawdown).sort((a, b) => a - b);
-  const contributed = definition.initialAmount + definition.monthlyContribution * definition.years * 12;
+  const contributed = definition.initialAmount + definition.monthlyContribution * months;
   const goalHits = definition.goal == null ? null : results.filter(result => result.reachedGoal).length;
 
   return Object.freeze({
@@ -148,10 +158,23 @@ export function runMassSimulation(input) {
     }),
     methodology: Object.freeze({
       model: 'Monte-Carlo mensuel gaussien à graine reproductible',
+      durationMonths: months,
       independenceWarning: 'Les actifs sont simulés sans matrice de corrélation dans cette première version.',
       interpretationWarning: 'Les résultats décrivent les hypothèses saisies et ne prédisent pas les marchés.'
     })
   });
+}
+
+export function runMassSimulation(input) {
+  const definition = input?.allocation ? createMassSimulationDefinition(input) : input;
+  if (!definition || !Object.isFrozen(definition) || !Number.isInteger(definition.years)) throw new TypeError('Une définition de simulation annuelle valide est requise.');
+  return buildMassSimulationReport(definition, definition.years * 12, definition.years);
+}
+
+export function runMassSimulationDuration(input) {
+  const definition = input?.allocation ? createMassSimulationDurationDefinition(input) : input;
+  if (!definition || !Object.isFrozen(definition) || !Number.isInteger(definition.durationMonths)) throw new TypeError('Une définition de simulation par durée valide est requise.');
+  return buildMassSimulationReport(definition, definition.durationMonths, definition.durationYears);
 }
 
 export function createSimulationCampaign({ name = 'Campagne LEYNOR', shared, scenarios } = {}) {
@@ -220,8 +243,9 @@ export function buildLeynorLabInterpretation(report) {
   const { summary, definition } = report;
   const probability = summary.goalProbability == null ? null : Math.round(summary.goalProbability * 100);
   const riskLabel = summary.drawdown.p95 >= 0.5 ? 'très élevé' : summary.drawdown.p95 >= 0.3 ? 'élevé' : summary.drawdown.p95 >= 0.15 ? 'modéré' : 'contenu';
+  const durationLabel = Number.isInteger(definition.years) ? `${definition.years} ans` : `${definition.durationMonths} mois`;
   const observations = [
-    `La médiane nominale atteint ${Math.round(summary.nominal.median)} après ${definition.years} ans.`,
+    `La médiane nominale atteint ${Math.round(summary.nominal.median)} après ${durationLabel}.`,
     `Le scénario défavorable à 5 % termine autour de ${Math.round(summary.nominal.p05)}.`,
     `Le drawdown observé au 95e percentile est de ${Math.round(summary.drawdown.p95 * 100)} %, soit un risque ${riskLabel}.`,
     `La médiane corrigée de l’inflation est de ${Math.round(summary.realMedian)}.`
@@ -244,4 +268,4 @@ export function buildLeynorLabInterpretation(report) {
   });
 }
 
-export { MAX_PORTFOLIOS, MAX_SCENARIOS, MAX_YEARS };
+export { MAX_MONTHS, MAX_PORTFOLIOS, MAX_SCENARIOS, MAX_YEARS };
