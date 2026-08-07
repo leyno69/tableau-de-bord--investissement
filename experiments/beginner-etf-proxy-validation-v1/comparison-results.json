@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "beginner-etf-proxy-vs-simulation-v1",
+  "simulationReference": {
+    "experimentId": "beginner-historical-pilot-v1",
+    "portfolioCount": 10000,
+    "seed": 20260807,
+    "nominal": {
+      "p05": 8786.99982376641,
+      "p25": 9708.727912008506,
+      "median": 10407.214491469946,
+      "p75": 11132.322339668372,
+      "p95": 12200.967380225184
+    },
+    "drawdown": {
+      "median": 0.06736171952236952,
+      "p95": 0.15821575203984034,
+      "maximum": 0.2798064160067218
+    }
+  },
+  "windows": [
+    { "id": "2015", "finalValueBand": "median-p75", "drawdownBand": "median-p95", "finalValue": 10546.082639334789, "drawdownMagnitude": 0.14844922746452383 },
+    { "id": "2018", "finalValueBand": "p05-p25", "drawdownBand": "median-p95", "finalValue": 9633.405072055659, "drawdownMagnitude": 0.09691651251854771 },
+    { "id": "2020", "finalValueBand": "p25-median", "drawdownBand": "p95-maximum", "finalValue": 10401.326510840569, "drawdownMagnitude": 0.21675901697391753 },
+    { "id": "2022", "finalValueBand": "p05-p25", "drawdownBand": "median-p95", "finalValue": 9110.70733915588, "drawdownMagnitude": 0.10067138145868615 },
+    { "id": "2023", "finalValueBand": "median-p75", "drawdownBand": "below-median", "finalValue": 10885.239137511053, "drawdownMagnitude": 0.04722811361283796 }
+  ],
+  "adverseEvidence": [
+    {
+      "windowId": "2020",
+      "metric": "drawdown",
+      "observed": 0.21675901697391753,
+      "simulationP95": 0.15821575203984034,
+      "simulationMaximum": 0.2798064160067218,
+      "band": "p95-maximum",
+      "statement": "Le drawdown historique proxy 2020 dépasse le p95 simulé annuel mais reste sous le maximum simulé."
+    }
+  ],
+  "interpretation": {
+    "verdict": null,
+    "statement": "Les cinq valeurs finales restent dans la bande p05-p95 simulée. Une preuve adverse de risque apparaît en 2020 : le drawdown observé dépasse p95. Cette contradiction est conservée sans recalibration rétroactive."
+  },
+  "limitations": [
+    "IWDA.AS est un proxy ETF explicite de WPEA avant 2024.",
+    "Les données historiques proviennent de Yahoo Finance et non d'une série MSCI licenciée.",
+    "Cinq fenêtres distinctes restent un petit échantillon et ne sont pas des tirages iid.",
+    "Le modèle simulé utilise encore une hypothèse agrégée sans matrice de corrélation instrument par instrument."
+  ]
+}

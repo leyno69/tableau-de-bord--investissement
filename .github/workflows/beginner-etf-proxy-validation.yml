@@ -1,0 +1,28 @@
+name: Beginner ETF proxy validation
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/beginner-etf-proxy-validation-v1/**'
+      - 'validation/etfProxyValidationPolicy.js'
+      - 'validation/etfProxyValidationPolicy.test.js'
+      - '.github/workflows/beginner-etf-proxy-validation.yml'
+  workflow_dispatch:
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run policy tests
+        run: node --test validation/etfProxyValidationPolicy.test.js
+      - name: Run ETF proxy validation replay
+        run: node experiments/beginner-etf-proxy-validation-v1/run.mjs
+      - name: Upload result artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: beginner-etf-proxy-validation-v1
+          path: artifacts/beginner-etf-proxy-validation-v1.json
