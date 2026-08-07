@@ -1,12 +1,18 @@
 const MS_PER_DAY = 86400000;
 
 export const HISTORICAL_METRIC_CONVENTIONS = Object.freeze({
-  schemaVersion: 1,
+  schemaVersion: 2,
   returnMethod: 'time-weighted-flow-adjusted',
   annualizationCalendarDays: 365.2425,
-  volatilityPeriodsPerYear: 252,
+  // v1 utilisait une constante fixe de 252 périodes/an, fausse dès que
+  // valuePath a des trous (ex. intersection de deux calendriers de bourse
+  // distincts). v2 dérive le nombre de périodes/an de la durée réelle
+  // observée. Pour une série vraiment quotidienne sans trou, le résultat
+  // reste proche de l'ancienne convention.
+  volatilityAnnualizationMethod: 'implied-periods-per-year-from-observed-duration',
   volatilityEstimator: 'sample-standard-deviation',
   drawdownBasis: 'flow-adjusted-wealth-index',
+  drawdownSign: 'negative-or-zero',
   recoveryBasis: 'calendar-days'
 });
 
