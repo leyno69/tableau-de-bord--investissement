@@ -230,6 +230,16 @@ Les fenêtres glissantes peuvent être utilisées pour étudier la sensibilité 
 
 Le protocole détaillé est défini dans `docs/methodology/PORTFOLIO_HISTORICAL_COST_SENSITIVITY_V1.md`.
 
+### 5.6 Diagnostic descriptif de couverture historique
+
+Une observation historique peut être positionnée dans des bandes déjà produites par une simulation préenregistrée afin de rendre la confrontation reproductible. Pour la valeur finale, les bandes v1 utilisent p05, p25, médiane, p75 et p95. Pour le drawdown, elles utilisent la médiane, le p95 et le maximum simulé sur la magnitude de la baisse.
+
+Ces bandes ne sont jamais des seuils de réussite ou d’échec. Une observation au-delà de p95 ou du maximum simulé doit rester visible et déclencher une investigation ; elle ne doit pas être supprimée, reclassée ou utilisée pour ajuster rétroactivement les bornes de l’expérience.
+
+Les comptages de fenêtres par bande ne doivent pas être convertis en fréquence de couverture ou probabilité calibrée lorsque les fenêtres se chevauchent ou que la source de données n’est pas admissible à la validation scientifique.
+
+Le protocole détaillé est défini dans `docs/methodology/HISTORICAL_COVERAGE_DIAGNOSTICS_V1.md`.
+
 ---
 
 ## 6. Sensibilité et stabilité
@@ -465,3 +475,10 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - préenregistrement des niveaux de coûts ;
 - fenêtres glissantes reconnues comme dépendantes lorsqu’elles se chevauchent ;
 - conservation de la sensibilité des résultats sans produire de verdict scientifique prématuré.
+
+### Diagnostic descriptif de couverture historique
+
+- positionnement reproductible des observations historiques dans les bandes préexistantes de la simulation ;
+- interdiction de transformer ces bandes en score ou verdict ;
+- conservation obligatoire des observations extrêmes ;
+- interdiction d’interpréter des fenêtres chevauchantes comme fréquences de couverture calibrées.

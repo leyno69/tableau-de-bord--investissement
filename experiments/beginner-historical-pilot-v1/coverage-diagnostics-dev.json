@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "beginner-historical-coverage-diagnostics-v1",
+  "status": "descriptive-development-diagnostic",
+  "diagnostics": [
+    { "id": "2024q2", "finalValueBand": "median-p75", "drawdownBand": "median-p95" },
+    { "id": "2024q3", "finalValueBand": "p25-median", "drawdownBand": "median-p95" },
+    { "id": "2024q4", "finalValueBand": "median-p75", "drawdownBand": "median-p95" },
+    { "id": "2025q1", "finalValueBand": "median-p75", "drawdownBand": "median-p95" },
+    { "id": "2025q2", "finalValueBand": "median-p75", "drawdownBand": "median-p95" },
+    { "id": "2025q3", "finalValueBand": "p75-p95", "drawdownBand": "below-median" }
+  ],
+  "counts": {
+    "finalValueBands": { "p25-median": 1, "median-p75": 4, "p75-p95": 1 },
+    "drawdownBands": { "below-median": 1, "median-p95": 5 }
+  },
+  "verdict": null,
+  "limitations": [
+    "Les fenêtres se chevauchent et ne constituent pas six observations indépendantes.",
+    "La source historique est development-only.",
+    "Les bandes décrivent une position dans la distribution simulée et ne sont pas des seuils de réussite.",
+    "Aucun taux de couverture n’est calibré à ce stade."
+  ]
+}
