@@ -58,7 +58,7 @@ test('une allocation dont la somme diffère de 100 % est refusée', () => {
 });
 
 test('startDate et endDate doivent être des dates communes, sans interpolation', () => {
-  assert.throws(() => runHistoricalReplay(baseInput({ startDate: '2020-01-01' })), /date commune/);
+  assert.throws(() => runHistoricalReplay(baseInput({ startDate: '2020-01-01' })), /date de marché commune/);
 });
 
 test('les coûts diminuent la valeur par rapport au même chemin sans coûts', () => {
