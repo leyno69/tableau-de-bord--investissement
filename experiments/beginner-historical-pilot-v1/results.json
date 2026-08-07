@@ -1,0 +1,39 @@
+{
+  "experimentId": "beginner-historical-pilot-v1",
+  "generatedFromCommit": "bc3e346aabe21c2a4f99c5477f82cb39fc945d98",
+  "definition": {
+    "portfolioCount": 10000,
+    "years": 1,
+    "initialAmount": 10000,
+    "monthlyContribution": 0,
+    "annualInflation": 0,
+    "annualFees": 0,
+    "seed": 20260807,
+    "annualReturn": 0.045,
+    "annualVolatility": 0.1
+  },
+  "summary": {
+    "nominal": {
+      "p05": 8786.99982376641,
+      "p25": 9708.727912008506,
+      "median": 10407.214491469946,
+      "p75": 11132.322339668372,
+      "p95": 12200.967380225184,
+      "minimum": 7204.228648847062,
+      "maximum": 15509.361742922729
+    },
+    "drawdown": {
+      "median": 0.06736171952236952,
+      "p95": 0.15821575203984034,
+      "maximum": 0.2798064160067218
+    },
+    "medianReturnVsInitial": 0.0407214491469946
+  },
+  "status": "simulation-pilot-only",
+  "limitations": [
+    "Le pilote utilise l'hypothèse agrégée du preset beginner, pas une modélisation instrument par instrument.",
+    "La dépendance entre actifs n'est pas modélisée dans cette version du moteur.",
+    "Aucune donnée de marché réelle n'intervient dans ce fichier.",
+    "Ces résultats ne constituent pas encore une validation historique."
+  ]
+}
