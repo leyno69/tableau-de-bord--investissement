@@ -163,6 +163,28 @@ Les périodes de calibration, de validation et de test verrouillé doivent être
 
 La confrontation historique peut confirmer, fragiliser, réfuter ou laisser inconclusive une conclusion ; elle ne transforme jamais une performance passée en garantie future.
 
+### 5.2 Proxies historiques
+
+Lorsqu’un horizon précède la date d’existence réelle d’un instrument, LEYNOR ne doit jamais prolonger silencieusement son historique.
+
+Un proxy historique ne peut être retenu que s’il est relié à l’instrument par une référence officielle de l’émetteur ou de l’administrateur d’indice, de préférence l’indice de référence déclaré du fonds. Il doit être sélectionné et enregistré avant accès aux résultats de validation concernés.
+
+Chaque proxy doit conserver :
+
+- l’instrument source ;
+- l’identifiant du proxy ;
+- le benchmark officiel ;
+- la base de rendement ;
+- la devise ;
+- la source officielle ;
+- le protocole qui l’autorise ;
+- la justification ;
+- toutes les limites connues.
+
+L’utilisation d’un indice comme proxy ne doit jamais faire croire que l’indice est le fonds. Les frais, coûts de réplication, spreads de swap, tracking error, fiscalité ou effets de change non reconstitués doivent rester explicitement visibles comme limites.
+
+Un changement de proxy après lecture des résultats constitue une nouvelle expérience et invalide toute prétention de préenregistrement pour l’expérience précédente.
+
 ---
 
 ## 6. Sensibilité et stabilité
@@ -366,3 +388,10 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - traçabilité du commit moteur, des politiques de coûts et de rééquilibrage, de la campagne, des graines et du snapshot simulé ;
 - changement d’empreinte obligatoire en cas d’évolution méthodologique ;
 - toute modification postérieure aux résultats constitue une nouvelle expérience.
+
+### Proxies historiques
+
+- interdiction de prolonger silencieusement l’histoire d’un instrument avant sa date d’existence ;
+- proxy ancré sur une référence officielle et choisi avant lecture des résultats ;
+- conservation obligatoire des différences entre indice proxy et fonds réel ;
+- toute substitution postérieure aux résultats constitue une nouvelle expérience.
