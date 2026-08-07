@@ -1,0 +1,37 @@
+name: Beginner historical multiwindow
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'experiments/beginner-historical-pilot-v1/run-historical-multiwindow-dev.mjs'
+      - '.github/workflows/beginner-historical-multiwindow.yml'
+      - 'validation/portfolioHistoricalReplayEngine.js'
+      - 'validation/portfolioHistoricalMetrics.js'
+
+permissions:
+  contents: read
+
+jobs:
+  multiwindow:
+    name: Two-window historical development replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run two-window historical pilot
+        run: node experiments/beginner-historical-pilot-v1/run-historical-multiwindow-dev.mjs
+
+      - name: Upload multiwindow result
+        uses: actions/upload-artifact@v4
+        with:
+          name: beginner-historical-multiwindow-dev
+          path: artifacts/beginner-historical-multiwindow-dev.json
+          if-no-files-found: error
