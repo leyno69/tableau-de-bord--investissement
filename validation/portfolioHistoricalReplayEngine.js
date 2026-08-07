@@ -52,6 +52,14 @@ function normalizeSeries(seriesByTicker, tickers) {
   return result;
 }
 
+function normalizeCostPolicy(costPolicy = {}) {
+  const transactionCostBps = finite(costPolicy.transactionCostBps ?? 0, 'transactionCostBps');
+  const rawExempt = costPolicy.exemptTickers ?? [];
+  if (!Array.isArray(rawExempt)) throw new TypeError('costPolicy.exemptTickers doit être un tableau.');
+  const exemptTickers = new Set(rawExempt.map((ticker, index) => nonEmpty(ticker, `costPolicy.exemptTickers[${index}]`).toUpperCase()));
+  return Object.freeze({ transactionCostBps, exemptTickers });
+}
+
 function commonTradingDates(seriesMap, tickers) {
   const sets = tickers.map(ticker => new Set(seriesMap.get(ticker).map(point => point.date)));
   const firstDates = [...sets[0]];
@@ -89,14 +97,19 @@ function transactionCost(notional, costBps) {
   return notional * costBps / 10000;
 }
 
+function effectiveCostBps(ticker, costPolicy) {
+  return costPolicy.exemptTickers.has(ticker) ? 0 : costPolicy.transactionCostBps;
+}
+
 function portfolioValue(holdings, cash, prices) {
   let value = cash;
   for (const [ticker, quantity] of holdings) value += quantity * prices.get(ticker);
   return value;
 }
 
-function buyToTarget({ ticker, targetNotional, price, cash, holdings, costBps, events, date, reason }) {
+function buyToTarget({ ticker, targetNotional, price, cash, holdings, costPolicy, events, date, reason }) {
   if (targetNotional <= 0) return cash;
+  const costBps = effectiveCostBps(ticker, costPolicy);
   const cost = transactionCost(targetNotional, costBps);
   const required = targetNotional + cost;
   if (required > cash + 1e-9) throw new RangeError(`liquidités insuffisantes pour ${ticker} au ${date}.`);
@@ -106,11 +119,12 @@ function buyToTarget({ ticker, targetNotional, price, cash, holdings, costBps, e
   return cash - required;
 }
 
-function sellNotional({ ticker, notional, price, cash, holdings, costBps, events, date, reason }) {
+function sellNotional({ ticker, notional, price, cash, holdings, costPolicy, events, date, reason }) {
   if (notional <= 0) return cash;
   const held = holdings.get(ticker) ?? 0;
   const quantity = notional / price;
   if (quantity > held + 1e-9) throw new RangeError(`quantité insuffisante pour ${ticker} au ${date}.`);
+  const costBps = effectiveCostBps(ticker, costPolicy);
   const cost = transactionCost(notional, costBps);
   const remaining = held - quantity;
   holdings.set(ticker, remaining < 1e-12 ? 0 : remaining);
@@ -118,17 +132,17 @@ function sellNotional({ ticker, notional, price, cash, holdings, costBps, events
   return cash + notional - cost;
 }
 
-function investCashByWeights({ amount, allocation, prices, cash, holdings, costBps, events, date, reason }) {
-  const totalCostRate = costBps / 10000;
-  const investable = amount / (1 + totalCostRate);
+function investCashByWeights({ amount, allocation, prices, cash, holdings, costPolicy, events, date, reason }) {
+  const weightedCostRate = allocation.reduce((sum, item) => sum + item.weight * effectiveCostBps(item.ticker, costPolicy) / 10000, 0);
+  const investable = amount / (1 + weightedCostRate);
   let remainingCash = cash;
   for (const item of allocation) {
-    remainingCash = buyToTarget({ ticker: item.ticker, targetNotional: investable * item.weight, price: prices.get(item.ticker), cash: remainingCash, holdings, costBps, events, date, reason });
+    remainingCash = buyToTarget({ ticker: item.ticker, targetNotional: investable * item.weight, price: prices.get(item.ticker), cash: remainingCash, holdings, costPolicy, events, date, reason });
   }
   return remainingCash;
 }
 
-function rebalance({ allocation, prices, cash, holdings, costBps, events, date }) {
+function rebalance({ allocation, prices, cash, holdings, costPolicy, events, date }) {
   const valueBefore = portfolioValue(holdings, cash, prices);
   const targets = new Map(allocation.map(item => [item.ticker, valueBefore * item.weight]));
   let nextCash = cash;
@@ -136,7 +150,7 @@ function rebalance({ allocation, prices, cash, holdings, costBps, events, date }
     const ticker = item.ticker;
     const current = (holdings.get(ticker) ?? 0) * prices.get(ticker);
     const target = targets.get(ticker);
-    if (current > target + 1e-9) nextCash = sellNotional({ ticker, notional: current - target, price: prices.get(ticker), cash: nextCash, holdings, costBps, events, date, reason: 'REBALANCE' });
+    if (current > target + 1e-9) nextCash = sellNotional({ ticker, notional: current - target, price: prices.get(ticker), cash: nextCash, holdings, costPolicy, events, date, reason: 'REBALANCE' });
   }
   for (const item of allocation) {
     const ticker = item.ticker;
@@ -144,9 +158,10 @@ function rebalance({ allocation, prices, cash, holdings, costBps, events, date }
     const target = targets.get(ticker);
     if (current < target - 1e-9) {
       const desired = target - current;
-      const maxNotional = nextCash / (1 + costBps / 10000);
+      const rate = effectiveCostBps(ticker, costPolicy) / 10000;
+      const maxNotional = nextCash / (1 + rate);
       const notional = Math.min(desired, maxNotional);
-      nextCash = buyToTarget({ ticker, targetNotional: notional, price: prices.get(ticker), cash: nextCash, holdings, costBps, events, date, reason: 'REBALANCE' });
+      nextCash = buyToTarget({ ticker, targetNotional: notional, price: prices.get(ticker), cash: nextCash, holdings, costPolicy, events, date, reason: 'REBALANCE' });
     }
   }
   return nextCash;
@@ -158,7 +173,7 @@ export function runHistoricalReplay(input) {
   const allocation = normalizeWeights(input.allocation);
   const tickers = allocation.map(item => item.ticker);
   const initialCash = finite(input.initialCash, 'initialCash', { min: 0.01 });
-  const costBps = finite(input.costPolicy?.transactionCostBps ?? 0, 'transactionCostBps');
+  const costPolicy = normalizeCostPolicy(input.costPolicy);
   const seriesMap = normalizeSeries(input.seriesByTicker, tickers);
   const pricesByTicker = buildPriceMap(seriesMap);
   const dates = commonTradingDates(seriesMap, tickers);
@@ -189,7 +204,7 @@ export function runHistoricalReplay(input) {
   const firstDate = replayDates[0];
   const initialPrices = pricesAt(firstDate);
   const beforeInitialEvents = events.length;
-  cash = investCashByWeights({ amount: cash, allocation, prices: initialPrices, cash, holdings, costBps, events, date: firstDate, reason: 'INITIAL_ALLOCATION' });
+  cash = investCashByWeights({ amount: cash, allocation, prices: initialPrices, cash, holdings, costPolicy, events, date: firstDate, reason: 'INITIAL_ALLOCATION' });
   totalCosts += events.slice(beforeInitialEvents).reduce((sum, event) => sum + event.cost, 0);
 
   const contributionsByDate = new Map();
@@ -204,12 +219,12 @@ export function runHistoricalReplay(input) {
       totalContributed += externalFlow;
       events.push(Object.freeze({ type: 'CONTRIBUTION', date, amount: externalFlow }));
       const before = events.length;
-      cash = investCashByWeights({ amount: externalFlow, allocation, prices, cash, holdings, costBps, events, date, reason: 'CONTRIBUTION' });
+      cash = investCashByWeights({ amount: externalFlow, allocation, prices, cash, holdings, costPolicy, events, date, reason: 'CONTRIBUTION' });
       totalCosts += events.slice(before).reduce((sum, event) => sum + event.cost, 0);
     }
     if (rebalanceSet.has(date) && date !== firstDate) {
       const before = events.length;
-      cash = rebalance({ allocation, prices, cash, holdings, costBps, events, date });
+      cash = rebalance({ allocation, prices, cash, holdings, costPolicy, events, date });
       totalCosts += events.slice(before).reduce((sum, event) => sum + event.cost, 0);
     }
     valuePath.push(Object.freeze({ date, value: portfolioValue(holdings, cash, prices), externalFlow }));
