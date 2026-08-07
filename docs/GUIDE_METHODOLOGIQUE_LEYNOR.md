@@ -250,6 +250,20 @@ Lorsqu’une observation historique dépasse le p95 d’une distribution appari�
 
 Le protocole détaillé est défini dans `docs/methodology/MATCHED_HORIZON_SIMULATION_V1.md`.
 
+### 5.8 Piste de validation historique sous licence
+
+Une confrontation ne peut être promue au statut de validation scientifique que si chaque série utilisée dispose d’un droit d’usage explicite, d’une référence de licence ou de contrat traçable, d’une devise compatible avec le protocole et d’un statut `validationEligible: true`.
+
+Le benchmark officiel candidat pour prolonger WPEA avant son lancement est le MSCI World Index, code `990100`, variante `NETR`. L’identité officielle du benchmark ne vaut pas autorisation d’utiliser ou redistribuer sa série historique. Sans licence adaptée, les données MSCI restent bloquées pour la piste scientifique.
+
+La piste `beginner` est définie en EUR. Une série USD ne doit jamais être utilisée silencieusement comme équivalent du proxy EUR. La conversion éventuelle doit elle-même être documentée et préenregistrée.
+
+Le plan v1 fixe avant lecture des données licenciées cinq fenêtres annuelles non chevauchantes : 2015, 2018, 2020, 2022 et 2023. Elles sont stratifiées par régime mais ne doivent pas être qualifiées de tirages iid ni de preuve d’indépendance statistique.
+
+Le runner de validation stricte doit refuser tout fallback vers une source `development-only`. Les résultats Yahoo déjà produits restent exploratoires et ne peuvent pas être promus rétroactivement.
+
+Le protocole détaillé est défini dans `docs/methodology/LICENSED_BENCHMARK_VALIDATION_TRACK_V1.md`.
+
 ---
 
 ## 6. Sensibilité et stabilité
@@ -499,3 +513,12 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - équivalence obligatoire entre 12 mois et 1 an à paramètres et graine identiques ;
 - interdiction de confronter directement des observations historiques à une distribution simulée d'un horizon différent ;
 - conservation des dépassements de p95 comme preuves adverses descriptives sans recalibration rétroactive.
+
+### Validation historique sous licence
+
+- distinction explicite entre identité officielle d’un benchmark et droit d’usage de sa série ;
+- licence ou contrat traçable obligatoire avant promotion au statut scientifique ;
+- devise EUR obligatoire pour la piste `beginner` sauf conversion préenregistrée ;
+- refus des fallbacks silencieux vers une source de développement ;
+- cinq fenêtres non chevauchantes figées avant lecture des données licenciées ;
+- résultats Yahoo existants maintenus au statut exploratoire.
