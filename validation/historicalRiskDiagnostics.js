@@ -55,6 +55,17 @@ export function pearsonCorrelation(leftInput, rightInput) {
   return numerator / (leftScale * rightScale);
 }
 
+export function maxDrawdownFromValues(inputValues) {
+  const values = finiteSeries(inputValues, 'values');
+  let peak = values[0];
+  let maxDrawdown = 0;
+  for (const value of values) {
+    peak = Math.max(peak, value);
+    if (peak > 0) maxDrawdown = Math.max(maxDrawdown, (peak - value) / peak);
+  }
+  return maxDrawdown;
+}
+
 export function describeReturnTailRisk(inputValues, { referenceMonthlyMean = 0, referenceMonthlyVolatility } = {}) {
   const values = finiteSeries(inputValues, 'returns');
   const average = mean(values);
