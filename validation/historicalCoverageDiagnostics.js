@@ -4,6 +4,11 @@ function finite(value, field) {
   return number;
 }
 
+function requiredText(value, field) {
+  if (typeof value !== 'string' || value.trim() === '') throw new TypeError(`${field} requis.`);
+  return value.trim();
+}
+
 function orderedThresholds(thresholds, field) {
   if (!Array.isArray(thresholds) || thresholds.length === 0) throw new TypeError(`${field} doit contenir des seuils.`);
   let previous = -Infinity;
@@ -35,6 +40,8 @@ export function diagnoseHistoricalCoverage({ simulation, historical }) {
 
   const finalValue = finite(historical.finalValue, 'historical.finalValue');
   const drawdownMagnitude = Math.abs(finite(historical.maxDrawdown, 'historical.maxDrawdown'));
+  const simulationSamplingFrequency = requiredText(simulation.drawdownSamplingFrequency, 'simulation.drawdownSamplingFrequency');
+  const historicalSamplingFrequency = requiredText(historical.drawdownSamplingFrequency, 'historical.drawdownSamplingFrequency');
 
   const finalValueBand = locateAgainstThresholds(finalValue, [
     { label: 'p05', value: simulation.nominal.p05 },
@@ -44,20 +51,32 @@ export function diagnoseHistoricalCoverage({ simulation, historical }) {
     { label: 'p95', value: simulation.nominal.p95 }
   ]);
 
-  const drawdownBand = locateAgainstThresholds(drawdownMagnitude, [
+  const comparableDrawdown = simulationSamplingFrequency === historicalSamplingFrequency;
+  const drawdownBand = comparableDrawdown ? locateAgainstThresholds(drawdownMagnitude, [
     { label: 'median', value: simulation.drawdown.median },
     { label: 'p95', value: simulation.drawdown.p95 },
     { label: 'maximum', value: simulation.drawdown.maximum }
-  ]);
+  ]) : null;
 
   return Object.freeze({
-    schemaVersion: 1,
+    schemaVersion: 2,
     finalValue: Object.freeze({ observed: finalValue, ...finalValueBand }),
-    drawdown: Object.freeze({ observedMagnitude: drawdownMagnitude, ...drawdownBand }),
+    drawdown: comparableDrawdown
+      ? Object.freeze({ observedMagnitude: drawdownMagnitude, comparable: true, samplingFrequency: historicalSamplingFrequency, ...drawdownBand })
+      : Object.freeze({
+          observedMagnitude: drawdownMagnitude,
+          comparable: false,
+          band: null,
+          historicalSamplingFrequency,
+          simulationSamplingFrequency,
+          reason: 'sampling-frequency-mismatch'
+        }),
     interpretation: Object.freeze({
       classification: 'descriptive-location-only',
       verdict: null,
-      statement: 'La position dans les bandes simulées est descriptive et ne constitue ni un test de conformité ni une preuve de calibration.'
+      statement: comparableDrawdown
+        ? 'La position dans les bandes simulées est descriptive et ne constitue ni un test de conformité ni une preuve de calibration.'
+        : 'Le drawdown n’est pas positionné dans les bandes simulées car sa fréquence d’observation n’est pas compatible avec celle de la simulation.'
     })
   });
 }
