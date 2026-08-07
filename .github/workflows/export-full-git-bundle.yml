@@ -1,0 +1,35 @@
+name: Export full Git bundle
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/export-full-git-bundle.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all refs
+        run: git fetch --all --tags --prune
+
+      - name: Create complete Git bundle
+        run: |
+          git bundle create tableau-de-bord-investissement.bundle --all
+          git bundle verify tableau-de-bord-investissement.bundle
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tableau-de-bord-investissement-full-git-bundle
+          path: tableau-de-bord-investissement.bundle
+          if-no-files-found: error
+          retention-days: 30
