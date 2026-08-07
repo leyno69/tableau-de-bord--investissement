@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { classifyDrawdownAgainstSimulation, describeReturnTailRisk, pearsonCorrelation } from './historicalRiskDiagnostics.js';
 
 test('corrélation de Pearson détecte une relation linéaire parfaite', () => {
-  assert.equal(pearsonCorrelation([1, 2, 3, 4], [2, 4, 6, 8]), 1);
+  assert.ok(Math.abs(pearsonCorrelation([1, 2, 3, 4], [2, 4, 6, 8]) - 1) < 1e-12);
 });
 
 test('diagnostic de queue conserve asymétrie et extrêmes', () => {
