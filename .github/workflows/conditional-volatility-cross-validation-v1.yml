@@ -1,0 +1,26 @@
+name: Conditional volatility cross-validation v1
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/conditional-volatility-cross-validation-v1/**'
+      - '.github/workflows/conditional-volatility-cross-validation-v1.yml'
+  workflow_dispatch:
+
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run EWMA temporal cross-validation
+        run: node experiments/conditional-volatility-cross-validation-v1/run.mjs
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: conditional-volatility-cross-validation-v1
+          path: artifacts/conditional-volatility-cross-validation-v1.json
+          if-no-files-found: error
