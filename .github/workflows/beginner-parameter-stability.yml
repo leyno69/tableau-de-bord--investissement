@@ -1,0 +1,30 @@
+name: Beginner parameter stability
+
+on:
+  pull_request:
+    paths:
+      - 'validation/parameterStabilityBootstrap.js'
+      - 'validation/parameterStabilityBootstrap.test.js'
+      - 'experiments/beginner-etf-proxy-validation-v1/run-parameter-stability.mjs'
+      - '.github/workflows/beginner-parameter-stability.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run bootstrap unit tests
+        run: node --test validation/parameterStabilityBootstrap.test.js
+      - name: Run parameter stability experiment
+        run: node experiments/beginner-etf-proxy-validation-v1/run-parameter-stability.mjs
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: beginner-parameter-stability-v1
+          path: artifacts/beginner-parameter-stability-v1.json
+          if-no-files-found: error
