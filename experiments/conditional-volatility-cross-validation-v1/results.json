@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "conditional-volatility-cross-validation-v1",
+  "status": "retrospective-temporal-cross-validation",
+  "artifactEvidence": {
+    "workflowRunId": 31196445387,
+    "artifactId": 9000973152,
+    "artifactSha256": "1803db1b0ada81fce35d7b851d412d374f0175a694f783b7fde5d20b5297db2d"
+  },
+  "folds": [
+    { "id": "fold-1", "selectedLambda": 0.90, "constantValidationNll": -54.08752816840612, "ewmaValidationNll": -51.64417059313287, "winner": "constant-volatility" },
+    { "id": "fold-2", "selectedLambda": 0.97, "constantValidationNll": -44.39046831572825, "ewmaValidationNll": -44.837831277311025, "winner": "ewma" },
+    { "id": "fold-3", "selectedLambda": 0.97, "constantValidationNll": -47.583532067871836, "ewmaValidationNll": -47.92824095809173, "winner": "ewma" }
+  ],
+  "aggregate": {
+    "ewmaWins": 2,
+    "constantWins": 1,
+    "totalValidationNllDeltaEwmaMinusConstant": 1.6512857234705862
+  },
+  "conclusion": {
+    "status": "mixed-evidence-no-engine-change",
+    "statement": "EWMA gagne deux folds sur trois mais dégrade le score agrégé. La preuve est insuffisante pour justifier une modification du moteur de production."
+  }
+}
