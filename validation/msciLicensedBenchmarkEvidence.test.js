@@ -11,6 +11,8 @@ test('MSCI World est identifié officiellement mais reste bloqué sans licence d
 });
 
 test('le registre ne promeut pas MSCI en source admissible tant que les exigences restent incomplètes', () => {
-  assert.equal(msciBenchmarkSourceRegistry.length, 1);
-  assert.notEqual(msciBenchmarkSourceRegistry[0].status, 'validation-eligible');
+  assert.equal(msciBenchmarkSourceRegistry.entries.length, 1);
+  assert.equal(msciBenchmarkSourceRegistry.entries[0].status, 'blocked');
+  assert.equal(msciBenchmarkSourceRegistry.entries[0].validationEligible, false);
+  assert.ok(msciBenchmarkSourceRegistry.entries[0].blockers.includes('researchUseAllowed'));
 });
