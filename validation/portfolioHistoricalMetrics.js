@@ -116,6 +116,25 @@ function analyzeDrawdown(wealthPath) {
   });
 }
 
+export function resampleValuePathMonthly(valuePath) {
+  const points = normalizeValuePath(valuePath);
+  const first = points[0];
+  const byMonth = new Map();
+  const flowByMonth = new Map();
+  for (const point of points.slice(1)) {
+    const month = point.date.slice(0, 7);
+    byMonth.set(month, point);
+    flowByMonth.set(month, (flowByMonth.get(month) ?? 0) + point.externalFlow);
+  }
+  const sampled = [Object.freeze({ ...first })];
+  for (const [month, point] of [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+    if (point.date === first.date) continue;
+    sampled.push(Object.freeze({ date: point.date, value: point.value, externalFlow: flowByMonth.get(month) ?? 0 }));
+  }
+  if (sampled.length < 2) throw new TypeError('la trajectoire mensuelle doit contenir au moins deux valorisations.');
+  return Object.freeze(sampled);
+}
+
 export function calculateHistoricalMetrics({ valuePath, openingCapital }) {
   const points = normalizeValuePath(valuePath);
   const initialCapital = positive(openingCapital, 'openingCapital');
@@ -152,4 +171,13 @@ export function calculateReplayHistoricalMetrics(replay) {
   const firstDateFlow = Number(replay.valuePath[0]?.externalFlow ?? 0);
   const openingCapital = positive(replay.initialCash, 'replay.initialCash') + finite(firstDateFlow, 'firstDateFlow');
   return calculateHistoricalMetrics({ valuePath: replay.valuePath, openingCapital });
+}
+
+export function calculateReplayMonthlyMatchedMetrics(replay) {
+  if (!replay || typeof replay !== 'object' || !Array.isArray(replay.valuePath)) throw new TypeError('replay doit exposer valuePath.');
+  const firstDateFlow = Number(replay.valuePath[0]?.externalFlow ?? 0);
+  const openingCapital = positive(replay.initialCash, 'replay.initialCash') + finite(firstDateFlow, 'firstDateFlow');
+  const monthlyValuePath = resampleValuePathMonthly(replay.valuePath);
+  const metrics = calculateHistoricalMetrics({ valuePath: monthlyValuePath, openingCapital });
+  return Object.freeze({ ...metrics, samplingFrequency: 'monthly', sourceObservationCount: replay.valuePath.length });
 }
