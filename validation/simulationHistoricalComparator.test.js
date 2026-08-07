@@ -6,7 +6,7 @@ function snapshot(overrides = {}) {
   return {
     snapshotId: 'snapshot-001', campaignId: 'campaign-001',
     returnMean: 0.08, volatilityMean: 0.12, maxDrawdownMean: -0.18,
-    recoveryDurationMean: 90,
+    recoveryDurationMeanDays: 90,
     ...overrides
   };
 }
@@ -46,4 +46,18 @@ test('le drawdown conserve son signe et son écart descriptif', () => {
 
 test('refuse une métrique historique non finie', () => {
   assert.throws(() => compareSimulationToHistorical({ snapshot: snapshot(), historicalMetrics: historical({ cumulativeReturn: NaN }) }), /nombre fini/);
+});
+
+test('refuse un maxDrawdown simulé exprimé en magnitude positive plutôt qu’en valeur négative', () => {
+  assert.throws(
+    () => compareSimulationToHistorical({ snapshot: snapshot({ maxDrawdownMean: 0.18 }), historicalMetrics: historical() }),
+    /valeur négative ou nulle/
+  );
+});
+
+test('refuse un maxDrawdown historique exprimé en magnitude positive plutôt qu’en valeur négative', () => {
+  assert.throws(
+    () => compareSimulationToHistorical({ snapshot: snapshot(), historicalMetrics: historical({ maxDrawdown: 0.22 }) }),
+    /valeur négative ou nulle/
+  );
 });
