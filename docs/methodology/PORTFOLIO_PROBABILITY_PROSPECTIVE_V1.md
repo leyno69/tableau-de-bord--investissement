@@ -49,6 +49,8 @@ La campagne ne peut devenir favorable que si toutes les conditions suivantes son
 
 Une réussite ne valide que le périmètre testé. Un échec reste publié et interdit l’exposition des probabilités réelles. Un effectif insuffisant produit `inconclusive`, jamais une validation implicite.
 
+La campagne de falsification historique accélérée `PORTFOLIO_PROBABILITY_ACCELERATED_HISTORICAL_V1.md` peut produire une décision négative avant cette maturité. Elle ne peut pas produire une validation positive et ne modifie ni le présent protocole ni son horizon.
+
 ## Blocage initial conservé
 
 Les séries `worldProxy` et `paej` exactes/licenciées ne sont pas présentes. Le dépôt ne scelle donc aucune prévision de validation et n’utilise aucun proxy de développement à leur place.

@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "portfolio-probability-accelerated-historical-v1",
+  "status": "blocked-before-locked-historical-run",
+  "registeredAt": "2026-08-07T21:12:47Z",
+  "protocol": {
+    "schemaVersion": 1,
+    "campaignId": "portfolio-probability-accelerated-historical-v1",
+    "protocolVersion": "1.0.0",
+    "registeredAt": "2026-08-07T21:12:47Z",
+    "engineCommit": "66d09ccf94bdec3b5c4e1e09fc406e6ccc5df6b9",
+    "assumptionsFingerprint": "5efd0ae53ff6e2704ef6787e233db103293481ee142e30cfcf95e59aa6a10dfa",
+    "horizonMonths": 12,
+    "simulationPathsPerForecast": 5000,
+    "score": "brier-score",
+    "benchmark": "dynamic-point-in-time-base-rate",
+    "sourceTrack": "exact-licensed-eur",
+    "windowSelectionRule": "metadata-only-oldest-first-non-overlapping-12-month",
+    "previouslyInspectedIntervals": [
+      {
+        "evidenceId": "scientific-drawdown-diagnostics-v2",
+        "startDate": "2014-06-02",
+        "endDate": "2023-12-29"
+      },
+      {
+        "evidenceId": "portfolio-probability-calibration-v1",
+        "startDate": "2018-01-01",
+        "endDate": "2024-01-01"
+      },
+      {
+        "evidenceId": "beginner-proxy-regime-windows-v1",
+        "startDate": "2015-01-02",
+        "endDate": "2023-12-29"
+      }
+    ],
+    "exactLicensedDataRequired": true,
+    "recalibrationBeforeDecisionForbidden": true,
+    "developmentFallbackForbidden": true,
+    "positiveDecisionAuthority": "retrospective-support-only",
+    "negativeDecisionAuthority": "may-reject-after-independent-audit",
+    "primaryFalsificationRule": "paired-brier-delta-ci95-lower-above-zero",
+    "uncertaintyRule": "dependence-aware-preregistered-method-required",
+    "fingerprint": "6d8a948448a63c6b341d7a01cf9566513ca091557eff4cb6e23807950874c6ba"
+  },
+  "assumptions": {
+    "targetClaim": "twelve-month-probability-final-value-greater-than-initial-value",
+    "returnFrequency": "monthly",
+    "estimationRule": "mean-and-variance-from-observations-available-before-origin",
+    "simulationDistribution": "unchanged-production-gaussian-monthly",
+    "simulationPathsPerForecast": 5000,
+    "benchmark": "dynamic-point-in-time-base-rate",
+    "primaryScore": "brier-score",
+    "comparisonUnit": "paired-origin-loss-difference",
+    "windowSelectionRule": "metadata-only-oldest-first-non-overlapping-12-month",
+    "uncertaintyRule": "dependence-aware-preregistered-method-required",
+    "historicalOutcomeNovelty": "must-be-audited-against-registered-evidence",
+    "positiveDecisionAuthority": "retrospective-support-only",
+    "negativeDecisionAuthority": "may-reject-after-independent-audit"
+  },
+  "previouslyInspectedIntervals": [
+    {
+      "evidenceId": "scientific-drawdown-diagnostics-v2",
+      "startDate": "2014-06-02",
+      "endDate": "2023-12-29"
+    },
+    {
+      "evidenceId": "portfolio-probability-calibration-v1",
+      "startDate": "2018-01-01",
+      "endDate": "2024-01-01"
+    },
+    {
+      "evidenceId": "beginner-proxy-regime-windows-v1",
+      "startDate": "2015-01-02",
+      "endDate": "2023-12-29"
+    }
+  ],
+  "sourceReadiness": {
+    "schemaVersion": 1,
+    "ready": false,
+    "blockers": [
+      "paej:missing",
+      "worldProxy:missing"
+    ],
+    "requiredTrack": "licensed-proxy-validation",
+    "fallbackToDevelopmentSourceAllowed": false
+  },
+  "windowRegistry": {
+    "schemaVersion": 1,
+    "campaignId": "portfolio-probability-accelerated-historical-v1",
+    "protocolFingerprint": "6d8a948448a63c6b341d7a01cf9566513ca091557eff4cb6e23807950874c6ba",
+    "selectionRule": "metadata-only-oldest-first-non-overlapping-12-month",
+    "windows": [],
+    "independentWindowCount": null,
+    "fingerprint": "3e11b33b04a3f8fb6f927f914fb343d3f4fd09dd88c7905e09d67ac62c09a6ab"
+  },
+  "dependenceAudit": null,
+  "launch": {
+    "schemaVersion": 1,
+    "campaignId": "portfolio-probability-accelerated-historical-v1",
+    "protocolFingerprint": "6d8a948448a63c6b341d7a01cf9566513ca091557eff4cb6e23807950874c6ba",
+    "windowRegistryFingerprint": "3e11b33b04a3f8fb6f927f914fb343d3f4fd09dd88c7905e09d67ac62c09a6ab",
+    "dependenceAuditFingerprint": null,
+    "blockers": [
+      "dependence-audit:method-not-locked",
+      "historical-window-registry:empty-before-source-metadata",
+      "licensed-data:paej:missing",
+      "licensed-data:worldProxy:missing"
+    ],
+    "readyToRun": false,
+    "status": "blocked-before-locked-historical-run",
+    "resultCount": 0,
+    "independentWindowCount": null,
+    "mayValidateProbabilityClaim": false,
+    "mayExposeRealWorldProbability": false,
+    "fingerprint": "e2dbc3ac5679326541bee0cb08e971ccd3059506543355959e3dcf8b7384d006"
+  },
+  "results": [],
+  "engineModified": false
+}

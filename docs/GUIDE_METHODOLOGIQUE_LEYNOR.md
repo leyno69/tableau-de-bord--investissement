@@ -645,3 +645,15 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - données exactes/licenciées et holdout prospectif obligatoires ; aucun fallback vers Yahoo ;
 - Brier strictement meilleur que le benchmark dynamique, couverture compatible et au moins 100 prévisions effectivement indépendantes avant toute conclusion favorable ;
 - statut initial `blocked-before-first-forecast` : aucune prévision fabriquée tant que les séries éligibles manquent.
+
+### Falsification historique accélérée des probabilités v1
+
+- horizon de douze mois et moteur inchangé afin de tester la même revendication que la campagne prospective ;
+- fenêtres historiques dérivées des métadonnées uniquement, de la plus ancienne à la plus récente et sans chevauchement temporel ;
+- registre obligatoire des périodes déjà inspectées, qu'une nouvelle source ne peut pas rendre vierges rétroactivement ;
+- Brier apparié au benchmark dynamique comme critère primaire ;
+- méthode d'incertitude tenant compte de la dépendance à verrouiller avant exécution ;
+- rejet possible uniquement si l'intervalle à 95 % de `Brier moteur − Brier benchmark` est entièrement supérieur à zéro après audit admissible ;
+- victoire historique limitée au statut `retrospective-support-only` ;
+- aucune autorité de validation positive et aucune exposition d'une probabilité réelle ;
+- statut initial bloqué : zéro fenêtre, audit de dépendance non verrouillé et zéro résultat tant que les métadonnées exactes/licenciées manquent.

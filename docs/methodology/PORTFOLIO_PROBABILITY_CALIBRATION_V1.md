@@ -34,6 +34,8 @@ Les intervalles d’une prévision sont normalisés et figés profondément avan
 
 La campagne prospective indépendante est préenregistrée dans `PORTFOLIO_PROBABILITY_PROSPECTIVE_V1.md`. Elle ajoute `sealedAt`, interdit tout champ de résultat lors du scellement, fixe le calendrier à `Europe/Paris` et bloque la première prévision tant que les données exactes/licenciées manquent.
 
+Une campagne historique accélérée séparée est préenregistrée dans `PORTFOLIO_PROBABILITY_ACCELERATED_HISTORICAL_V1.md`. Elle conserve l'horizon de douze mois et peut rejeter la revendication plus tôt si une défaite Brier tenant compte de la dépendance est démontrée. Une victoire rétrospective reste limitée à un soutien et ne remplace pas la validation prospective.
+
 ## Données exactes
 
 Le même pipeline acceptera un export CSV `date,level` seulement avec un manifeste indiquant fournisseur, référence de licence, indice, variante de rendement, devise et `validationEligible: true`. Aucune source proxy ne peut être requalifiée silencieusement en donnée exacte.
