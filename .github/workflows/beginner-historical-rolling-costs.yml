@@ -1,0 +1,30 @@
+name: Beginner historical rolling costs
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    name: Rolling historical cost sensitivity
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run rolling historical cost pilot
+        run: node experiments/beginner-historical-pilot-v1/run-historical-rolling-costs-dev.mjs
+      - name: Upload rolling result
+        uses: actions/upload-artifact@v4
+        with:
+          name: beginner-historical-rolling-costs-dev
+          path: artifacts/beginner-historical-rolling-costs-dev.json
+          if-no-files-found: error
