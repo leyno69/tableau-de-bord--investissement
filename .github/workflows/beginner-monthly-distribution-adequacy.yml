@@ -1,0 +1,35 @@
+name: Beginner monthly distribution adequacy
+
+on:
+  pull_request:
+    paths:
+      - 'validation/historicalRiskDiagnostics.js'
+      - 'experiments/beginner-etf-proxy-validation-v1/run-monthly-distribution-adequacy.mjs'
+      - 'experiments/beginner-etf-proxy-validation-v1/run-monthly-distribution-holdout.mjs'
+      - 'experiments/beginner-historical-pilot-v1/results.json'
+      - '.github/workflows/beginner-monthly-distribution-adequacy.yml'
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run historical diagnostic unit tests
+        run: node --test validation/historicalRiskDiagnostics.test.js
+      - name: Run monthly distribution adequacy diagnostic
+        run: node experiments/beginner-etf-proxy-validation-v1/run-monthly-distribution-adequacy.mjs
+      - name: Run preregistered monthly distribution holdout
+        run: node experiments/beginner-etf-proxy-validation-v1/run-monthly-distribution-holdout.mjs
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: beginner-monthly-distribution-adequacy-v1
+          path: |
+            artifacts/beginner-monthly-distribution-adequacy-v1.json
+            artifacts/beginner-monthly-distribution-holdout-v1.json
+          if-no-files-found: error
