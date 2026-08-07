@@ -1,34 +1,37 @@
 {
-  "observedAt": "2026-08-06T08:02:51.307Z",
+  "observedAt": "2026-08-07T05:08:19.352Z",
   "source": "FINNHUB",
   "portfolioCount": 45,
   "prices": {
-    "SPY": 769.79,
-    "MSFT": 487.46,
-    "GOOGL": 362.43,
-    "AMZN": 272.65,
-    "META": 588.77,
-    "AMD": 482.05,
-    "TSLA": 321.55
+    "SPY": 768.56,
+    "MSFT": 499.86,
+    "AAPL": 312.41,
+    "GOOGL": 357.75,
+    "AMZN": 272.26,
+    "META": 589.9,
+    "NVDA": 218.99,
+    "AMD": 489.28,
+    "TSLA": 319.53,
+    "BTCUSD": 64192.53
   },
   "byProfile": {
     "prudent": {
       "count": 15,
-      "averageReturnPct": -12.0602,
-      "bestReturnPct": -10.8838,
-      "worstReturnPct": -13.3815
+      "averageReturnPct": 0.7214,
+      "bestReturnPct": 0.7571,
+      "worstReturnPct": 0.6812
     },
     "modere": {
       "count": 15,
-      "averageReturnPct": -22.2228,
-      "bestReturnPct": -21.2228,
-      "worstReturnPct": -23.7205
+      "averageReturnPct": 0.844,
+      "bestReturnPct": 0.8798,
+      "worstReturnPct": 0.8038
     },
     "agressif": {
       "count": 15,
-      "averageReturnPct": -33.4813,
-      "bestReturnPct": -32.4813,
-      "worstReturnPct": -34.979
+      "averageReturnPct": 1.0516,
+      "bestReturnPct": 1.0873,
+      "worstReturnPct": 1.0114
     }
   },
   "portfolios": [
@@ -36,361 +39,361 @@
       "id": "prudent-2000-1",
       "profile": "prudent",
       "initialCapital": 2000,
-      "value": 1782.323,
-      "returnPct": -10.8838,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 2013.6235,
+      "returnPct": 0.6812,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "prudent-2000-2",
       "profile": "prudent",
       "initialCapital": 2000,
-      "value": 1732.3693,
-      "returnPct": -13.3815,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 2015.1429,
+      "returnPct": 0.7571,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "prudent-2000-3",
       "profile": "prudent",
       "initialCapital": 2000,
-      "value": 1762.5672,
-      "returnPct": -11.8716,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 2014.733,
+      "returnPct": 0.7366,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "prudent-2000-4",
       "profile": "prudent",
       "initialCapital": 2000,
-      "value": 1752.8797,
-      "returnPct": -12.356,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 2014.9688,
+      "returnPct": 0.7484,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "prudent-2000-5",
       "profile": "prudent",
       "initialCapital": 2000,
-      "value": 1763.8384,
-      "returnPct": -11.8081,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 2013.675,
+      "returnPct": 0.6838,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "modere-2000-1",
       "profile": "modere",
       "initialCapital": 2000,
-      "value": 1575.5441,
-      "returnPct": -21.2228,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 2016.0767,
+      "returnPct": 0.8038,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "modere-2000-2",
       "profile": "modere",
       "initialCapital": 2000,
-      "value": 1525.5904,
-      "returnPct": -23.7205,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 2017.596,
+      "returnPct": 0.8798,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "modere-2000-3",
       "profile": "modere",
       "initialCapital": 2000,
-      "value": 1555.7883,
-      "returnPct": -22.2106,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 2017.1861,
+      "returnPct": 0.8593,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "modere-2000-4",
       "profile": "modere",
       "initialCapital": 2000,
-      "value": 1546.1008,
-      "returnPct": -22.695,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 2017.4219,
+      "returnPct": 0.8711,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "modere-2000-5",
       "profile": "modere",
       "initialCapital": 2000,
-      "value": 1574.6979,
-      "returnPct": -21.2651,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 2016.1223,
+      "returnPct": 0.8061,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "agressif-2000-1",
       "profile": "agressif",
       "initialCapital": 2000,
-      "value": 1350.3742,
-      "returnPct": -32.4813,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 2020.2276,
+      "returnPct": 1.0114,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "agressif-2000-2",
       "profile": "agressif",
       "initialCapital": 2000,
-      "value": 1300.4205,
-      "returnPct": -34.979,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 2021.7469,
+      "returnPct": 1.0873,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "agressif-2000-3",
       "profile": "agressif",
       "initialCapital": 2000,
-      "value": 1330.6183,
-      "returnPct": -33.4691,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 2021.3371,
+      "returnPct": 1.0669,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "agressif-2000-4",
       "profile": "agressif",
       "initialCapital": 2000,
-      "value": 1320.9309,
-      "returnPct": -33.9535,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 2021.5729,
+      "returnPct": 1.0786,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "agressif-2000-5",
       "profile": "agressif",
       "initialCapital": 2000,
-      "value": 1349.528,
-      "returnPct": -32.5236,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 2020.2732,
+      "returnPct": 1.0137,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "prudent-5000-1",
       "profile": "prudent",
       "initialCapital": 5000,
-      "value": 4455.8076,
-      "returnPct": -10.8838,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 5034.0589,
+      "returnPct": 0.6812,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "prudent-5000-2",
       "profile": "prudent",
       "initialCapital": 5000,
-      "value": 4330.9233,
-      "returnPct": -13.3815,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 5037.8571,
+      "returnPct": 0.7571,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "prudent-5000-3",
       "profile": "prudent",
       "initialCapital": 5000,
-      "value": 4406.4179,
-      "returnPct": -11.8716,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 5036.8325,
+      "returnPct": 0.7366,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "prudent-5000-4",
       "profile": "prudent",
       "initialCapital": 5000,
-      "value": 4382.1993,
-      "returnPct": -12.356,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 5037.422,
+      "returnPct": 0.7484,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "prudent-5000-5",
       "profile": "prudent",
       "initialCapital": 5000,
-      "value": 4409.596,
-      "returnPct": -11.8081,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 5034.1875,
+      "returnPct": 0.6838,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "modere-5000-1",
       "profile": "modere",
       "initialCapital": 5000,
-      "value": 3938.8603,
-      "returnPct": -21.2228,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 5040.1918,
+      "returnPct": 0.8038,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "modere-5000-2",
       "profile": "modere",
       "initialCapital": 5000,
-      "value": 3813.976,
-      "returnPct": -23.7205,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 5043.99,
+      "returnPct": 0.8798,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "modere-5000-3",
       "profile": "modere",
       "initialCapital": 5000,
-      "value": 3889.4707,
-      "returnPct": -22.2106,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 5042.9653,
+      "returnPct": 0.8593,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "modere-5000-4",
       "profile": "modere",
       "initialCapital": 5000,
-      "value": 3865.252,
-      "returnPct": -22.695,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 5043.5549,
+      "returnPct": 0.8711,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "modere-5000-5",
       "profile": "modere",
       "initialCapital": 5000,
-      "value": 3936.7447,
-      "returnPct": -21.2651,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 5040.3057,
+      "returnPct": 0.8061,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "agressif-5000-1",
       "profile": "agressif",
       "initialCapital": 5000,
-      "value": 3375.9355,
-      "returnPct": -32.4813,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 5050.5691,
+      "returnPct": 1.0114,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "agressif-5000-2",
       "profile": "agressif",
       "initialCapital": 5000,
-      "value": 3251.0512,
-      "returnPct": -34.979,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 5054.3673,
+      "returnPct": 1.0873,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "agressif-5000-3",
       "profile": "agressif",
       "initialCapital": 5000,
-      "value": 3326.5459,
-      "returnPct": -33.4691,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 5053.3427,
+      "returnPct": 1.0669,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "agressif-5000-4",
       "profile": "agressif",
       "initialCapital": 5000,
-      "value": 3302.3272,
-      "returnPct": -33.9535,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 5053.9322,
+      "returnPct": 1.0786,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "agressif-5000-5",
       "profile": "agressif",
       "initialCapital": 5000,
-      "value": 3373.8199,
-      "returnPct": -32.5236,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 5050.6831,
+      "returnPct": 1.0137,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "prudent-10000-1",
       "profile": "prudent",
       "initialCapital": 10000,
-      "value": 8911.6152,
-      "returnPct": -10.8838,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 10068.1177,
+      "returnPct": 0.6812,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "prudent-10000-2",
       "profile": "prudent",
       "initialCapital": 10000,
-      "value": 8661.8466,
-      "returnPct": -13.3815,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 10075.7143,
+      "returnPct": 0.7571,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "prudent-10000-3",
       "profile": "prudent",
       "initialCapital": 10000,
-      "value": 8812.8359,
-      "returnPct": -11.8716,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 10073.6649,
+      "returnPct": 0.7366,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "prudent-10000-4",
       "profile": "prudent",
       "initialCapital": 10000,
-      "value": 8764.3986,
-      "returnPct": -12.356,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 10074.8439,
+      "returnPct": 0.7484,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "prudent-10000-5",
       "profile": "prudent",
       "initialCapital": 10000,
-      "value": 8819.1921,
-      "returnPct": -11.8081,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 10068.3751,
+      "returnPct": 0.6838,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "modere-10000-1",
       "profile": "modere",
       "initialCapital": 10000,
-      "value": 7877.7206,
-      "returnPct": -21.2228,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 10080.3835,
+      "returnPct": 0.8038,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "modere-10000-2",
       "profile": "modere",
       "initialCapital": 10000,
-      "value": 7627.952,
-      "returnPct": -23.7205,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 10087.9801,
+      "returnPct": 0.8798,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "modere-10000-3",
       "profile": "modere",
       "initialCapital": 10000,
-      "value": 7778.9413,
-      "returnPct": -22.2106,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 10085.9307,
+      "returnPct": 0.8593,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "modere-10000-4",
       "profile": "modere",
       "initialCapital": 10000,
-      "value": 7730.504,
-      "returnPct": -22.695,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 10087.1097,
+      "returnPct": 0.8711,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "modere-10000-5",
       "profile": "modere",
       "initialCapital": 10000,
-      "value": 7873.4894,
-      "returnPct": -21.2651,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 10080.6115,
+      "returnPct": 0.8061,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "agressif-10000-1",
       "profile": "agressif",
       "initialCapital": 10000,
-      "value": 6751.871,
-      "returnPct": -32.4813,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 10101.1381,
+      "returnPct": 1.0114,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "agressif-10000-2",
       "profile": "agressif",
       "initialCapital": 10000,
-      "value": 6502.1024,
-      "returnPct": -34.979,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 10108.7347,
+      "returnPct": 1.0873,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "agressif-10000-3",
       "profile": "agressif",
       "initialCapital": 10000,
-      "value": 6653.0917,
-      "returnPct": -33.4691,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 10106.6853,
+      "returnPct": 1.0669,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "agressif-10000-4",
       "profile": "agressif",
       "initialCapital": 10000,
-      "value": 6604.6544,
-      "returnPct": -33.9535,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 10107.8643,
+      "returnPct": 1.0786,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     },
     {
       "id": "agressif-10000-5",
       "profile": "agressif",
       "initialCapital": 10000,
-      "value": 6747.6398,
-      "returnPct": -32.5236,
-      "observedAt": "2026-08-06T08:02:51.307Z"
+      "value": 10101.3661,
+      "returnPct": 1.0137,
+      "observedAt": "2026-08-07T05:08:19.352Z"
     }
   ]
 }
