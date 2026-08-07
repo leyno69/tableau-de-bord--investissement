@@ -276,6 +276,18 @@ Les fenêtres annuelles 2015, 2018, 2020, 2022 et 2023 sont figées avant lectur
 
 Le protocole détaillé est défini dans `docs/methodology/ETF_PROXY_VALIDATION_TRACK_V1.md`.
 
+### 5.10 Appariement de la fréquence d’observation des métriques
+
+Une métrique dépendant du chemin, notamment le drawdown ou la durée de récupération, ne doit être confrontée à une distribution simulée que si sa fréquence d’observation est compatible avec celle du moteur.
+
+Le moteur `beginner` v1 évolue mensuellement et son drawdown est donc observé sur des états mensuels. Un drawdown historique calculé quotidiennement reste une information de risque légitime, mais ne doit pas être positionné directement dans les percentiles d’un drawdown simulé mensuel. Pour cette confrontation, la trajectoire historique doit être rééchantillonnée à la fréquence mensuelle correspondante ou la simulation doit produire une distribution à fréquence quotidienne équivalente.
+
+Une preuve adverse issue d’une comparaison de fréquence non appariée doit être conservée dans l’historique des résultats, mais son statut doit être corrigé en `non-comparable-frequency` et elle ne peut plus être utilisée comme preuve de sous-estimation du moteur.
+
+Le diagnostic v1 a montré que le drawdown quotidien 2020 du proxy `beginner` était de 21,68 %, contre 11,51 % après échantillonnage mensuel. Le dépassement du p95 annuel simulé de 15,82 % disparaît donc en fréquence appariée. Cette correction ne constitue pas une recalibration du moteur : elle corrige la comparabilité de la métrique.
+
+Le protocole détaillé est défini dans `docs/methodology/DRAWDOWN_RISK_DIAGNOSTICS_V1.md`.
+
 ---
 
 ## 6. Sensibilité et stabilité
@@ -542,3 +554,11 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - niveau de preuve séparé `supporting-empirical-evidence` ;
 - interdiction d’assimiler cette piste à une validation MSCI officielle ;
 - conservation obligatoire des preuves adverses, notamment tout dépassement de p95, sans recalibration rétroactive.
+
+### Appariement de fréquence du drawdown
+
+- obligation d’apparier la fréquence d’observation des métriques path-dependent avant confrontation ;
+- conservation séparée du drawdown quotidien comme information de risque haute fréquence ;
+- interdiction de comparer directement un drawdown quotidien à des percentiles simulés mensuels ;
+- reclassement des anciennes preuves issues d’une fréquence non appariée en `non-comparable-frequency`, sans suppression de leur trace ;
+- diagnostic 2020 : 21,68 % en quotidien contre 11,51 % en mensuel, supprimant le dépassement du p95 mensuel sans recalibrer le moteur.
