@@ -214,7 +214,7 @@ export function runHistoricalReplay(input) {
 
   for (const date of replayDates) {
     const prices = pricesAt(date);
-    if (date !== firstDate && contributionsByDate.has(date)) {
+    if (contributionsByDate.has(date)) {
       const amount = contributionsByDate.get(date);
       cash += amount;
       totalContributed += amount;
