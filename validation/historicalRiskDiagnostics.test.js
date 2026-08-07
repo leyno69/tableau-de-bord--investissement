@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyDrawdownAgainstSimulation, describeReturnTailRisk, pearsonCorrelation } from './historicalRiskDiagnostics.js';
+import { classifyDrawdownAgainstSimulation, describeReturnTailRisk, maxDrawdownFromValues, pearsonCorrelation } from './historicalRiskDiagnostics.js';
 
 test('corrélation de Pearson détecte une relation linéaire parfaite', () => {
   assert.ok(Math.abs(pearsonCorrelation([1, 2, 3, 4], [2, 4, 6, 8]) - 1) < 1e-12);
@@ -15,6 +15,16 @@ test('diagnostic de queue conserve asymétrie et extrêmes', () => {
   assert.equal(result.negativeBeyond2SigmaCount, 1);
   assert.equal(result.beyond3SigmaCount, 1);
   assert.ok(result.skewness < 0);
+});
+
+test('drawdown calcule le creux maximal de la trajectoire fournie', () => {
+  assert.ok(Math.abs(maxDrawdownFromValues([100, 110, 88, 95]) - 0.2) < 1e-12);
+});
+
+test('une fréquence plus grossière peut masquer un creux intra-période', () => {
+  const dailyLike = maxDrawdownFromValues([100, 110, 80, 108, 112]);
+  const sampled = maxDrawdownFromValues([100, 108, 112]);
+  assert.ok(dailyLike > sampled);
 });
 
 test('drawdown au-delà du p95 est conservé comme preuve adverse', () => {
