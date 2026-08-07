@@ -1,0 +1,33 @@
+{
+  "experimentId": "beginner-historical-rolling-costs-dev-v1",
+  "workflowRunId": 31182264953,
+  "artifactDigest": "sha256:381aa9f2280c7e93f677b45bde260c3c4217b82b5d83170e3b6824a171f55488",
+  "source": {
+    "providerId": "yahoo-finance-chart-dev",
+    "validationEligibleSource": false
+  },
+  "simulationReference": {
+    "portfolioCount": 10000,
+    "finalValueMedian": 10407.21,
+    "finalValueP05": 8787.00,
+    "finalValueP95": 12200.97,
+    "drawdownMedian": 0.0674,
+    "drawdownP95": 0.1582
+  },
+  "windows": [
+    { "id": "2024q2", "effectiveStart": "2024-04-02", "effectiveEnd": "2025-03-31", "returnZeroCost": 0.04642242458106316, "volatility": 0.08676473168146379, "maxDrawdown": 0.07234178690156412, "recovered": false, "returnAt50Bps": 0.04303256873267913, "returnDrag50Bps": 0.003389855848384027 },
+    { "id": "2024q3", "effectiveStart": "2024-07-01", "effectiveEnd": "2025-06-30", "returnZeroCost": 0.036377928647850055, "volatility": 0.11264288536820916, "maxDrawdown": 0.1429896969585419, "recovered": false, "returnAt50Bps": 0.03302061165995407, "returnDrag50Bps": 0.0033573169878959863 },
+    { "id": "2024q4", "effectiveStart": "2024-10-01", "effectiveEnd": "2025-09-30", "returnZeroCost": 0.06995550125289896, "volatility": 0.1035064035895948, "maxDrawdown": 0.1418606958324532, "recovered": true, "recoveryDays": 167, "returnAt50Bps": 0.06648941066822966, "returnDrag50Bps": 0.00346609058466929 },
+    { "id": "2025q1", "effectiveStart": "2025-01-02", "effectiveEnd": "2025-12-24", "returnZeroCost": 0.048419870999502956, "volatility": 0.10420591646963472, "maxDrawdown": 0.13850824801321238, "recovered": true, "recoveryDays": 166, "returnAt50Bps": 0.045023544479946054, "returnDrag50Bps": 0.0033963265195569026 },
+    { "id": "2025q2", "effectiveStart": "2025-04-01", "effectiveEnd": "2026-03-31", "returnZeroCost": 0.0777686910036377, "volatility": 0.10413965914575857, "maxDrawdown": 0.08678871282363232, "recovered": true, "recoveryDays": 33, "returnAt50Bps": 0.07427728981174808, "returnDrag50Bps": 0.0034914011918896204 },
+    { "id": "2025q3", "effectiveStart": "2025-07-01", "effectiveEnd": "2026-06-30", "returnZeroCost": 0.1941535952775817, "volatility": 0.08414560581782217, "maxDrawdown": 0.046100974941618356, "recovered": true, "recoveryDays": 16, "returnAt50Bps": 0.19028516848002464, "returnDrag50Bps": 0.0038684267975570563 }
+  ],
+  "summary": {
+    "minZeroCostReturn": 0.036377928647850055,
+    "maxZeroCostReturn": 0.1941535952775817,
+    "maxObservedDrawdown": 0.1429896969585419,
+    "allFinalValuesInsideSimulationP05P95": true,
+    "allObservedDrawdownsBelowSimulationP95": true,
+    "max50BpsReturnDrag": 0.0038684267975570563
+  }
+}
