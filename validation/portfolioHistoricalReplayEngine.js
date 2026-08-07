@@ -60,10 +60,7 @@ function commonTradingDates(seriesMap, tickers) {
 
 function buildPriceMap(seriesMap) {
   const result = new Map();
-  for (const [ticker, points] of seriesMap) {
-    const map = new Map(points.map(point => [point.date, point.price]));
-    result.set(ticker, map);
-  }
+  for (const [ticker, points] of seriesMap) result.set(ticker, new Map(points.map(point => [point.date, point.price])));
   return result;
 }
 
@@ -126,17 +123,7 @@ function investCashByWeights({ amount, allocation, prices, cash, holdings, costB
   const investable = amount / (1 + totalCostRate);
   let remainingCash = cash;
   for (const item of allocation) {
-    remainingCash = buyToTarget({
-      ticker: item.ticker,
-      targetNotional: investable * item.weight,
-      price: prices.get(item.ticker),
-      cash: remainingCash,
-      holdings,
-      costBps,
-      events,
-      date,
-      reason
-    });
+    remainingCash = buyToTarget({ ticker: item.ticker, targetNotional: investable * item.weight, price: prices.get(item.ticker), cash: remainingCash, holdings, costBps, events, date, reason });
   }
   return remainingCash;
 }
@@ -145,16 +132,12 @@ function rebalance({ allocation, prices, cash, holdings, costBps, events, date }
   const valueBefore = portfolioValue(holdings, cash, prices);
   const targets = new Map(allocation.map(item => [item.ticker, valueBefore * item.weight]));
   let nextCash = cash;
-
   for (const item of allocation) {
     const ticker = item.ticker;
     const current = (holdings.get(ticker) ?? 0) * prices.get(ticker);
     const target = targets.get(ticker);
-    if (current > target + 1e-9) {
-      nextCash = sellNotional({ ticker, notional: current - target, price: prices.get(ticker), cash: nextCash, holdings, costBps, events, date, reason: 'REBALANCE' });
-    }
+    if (current > target + 1e-9) nextCash = sellNotional({ ticker, notional: current - target, price: prices.get(ticker), cash: nextCash, holdings, costBps, events, date, reason: 'REBALANCE' });
   }
-
   for (const item of allocation) {
     const ticker = item.ticker;
     const current = (holdings.get(ticker) ?? 0) * prices.get(ticker);
@@ -197,6 +180,7 @@ export function runHistoricalReplay(input) {
 
   const holdings = new Map(tickers.map(ticker => [ticker, 0]));
   const events = [];
+  const valuePath = [];
   let cash = initialCash;
   let totalContributed = initialCash;
   let totalCosts = 0;
@@ -214,13 +198,13 @@ export function runHistoricalReplay(input) {
 
   for (const date of replayDates) {
     const prices = pricesAt(date);
-    if (contributionsByDate.has(date)) {
-      const amount = contributionsByDate.get(date);
-      cash += amount;
-      totalContributed += amount;
-      events.push(Object.freeze({ type: 'CONTRIBUTION', date, amount }));
+    const externalFlow = contributionsByDate.get(date) ?? 0;
+    if (externalFlow > 0) {
+      cash += externalFlow;
+      totalContributed += externalFlow;
+      events.push(Object.freeze({ type: 'CONTRIBUTION', date, amount: externalFlow }));
       const before = events.length;
-      cash = investCashByWeights({ amount, allocation, prices, cash, holdings, costBps, events, date, reason: 'CONTRIBUTION' });
+      cash = investCashByWeights({ amount: externalFlow, allocation, prices, cash, holdings, costBps, events, date, reason: 'CONTRIBUTION' });
       totalCosts += events.slice(before).reduce((sum, event) => sum + event.cost, 0);
     }
     if (rebalanceSet.has(date) && date !== firstDate) {
@@ -228,17 +212,13 @@ export function runHistoricalReplay(input) {
       cash = rebalance({ allocation, prices, cash, holdings, costBps, events, date });
       totalCosts += events.slice(before).reduce((sum, event) => sum + event.cost, 0);
     }
+    valuePath.push(Object.freeze({ date, value: portfolioValue(holdings, cash, prices), externalFlow }));
   }
 
   const finalDate = replayDates.at(-1);
   const finalPrices = pricesAt(finalDate);
   const finalValue = portfolioValue(holdings, cash, finalPrices);
-  const positions = Object.freeze(allocation.map(item => Object.freeze({
-    ticker: item.ticker,
-    quantity: holdings.get(item.ticker),
-    finalPrice: finalPrices.get(item.ticker),
-    finalValue: holdings.get(item.ticker) * finalPrices.get(item.ticker)
-  })));
+  const positions = Object.freeze(allocation.map(item => Object.freeze({ ticker: item.ticker, quantity: holdings.get(item.ticker), finalPrice: finalPrices.get(item.ticker), finalValue: holdings.get(item.ticker) * finalPrices.get(item.ticker) })));
 
   return Object.freeze({
     schemaVersion: 1,
@@ -253,6 +233,7 @@ export function runHistoricalReplay(input) {
     pnlVsContributions: finalValue - totalContributed,
     positions,
     eventLog: Object.freeze(events),
-    calendar: Object.freeze([...replayDates])
+    calendar: Object.freeze([...replayDates]),
+    valuePath: Object.freeze(valuePath)
   });
 }

@@ -185,6 +185,22 @@ L’utilisation d’un indice comme proxy ne doit jamais faire croire que l’in
 
 Un changement de proxy après lecture des résultats constitue une nouvelle expérience et invalide toute prétention de préenregistrement pour l’expérience précédente.
 
+### 5.3 Métriques de replay historique
+
+Les métriques historiques doivent être calculées sur une trajectoire de valeur qui conserve explicitement les flux externes. Un apport ou un retrait ne doit jamais être assimilé à une performance.
+
+Pour chaque période après la première valorisation, le rendement ajusté des flux est défini par `r_t = (V_t - F_t) / V_(t-1) - 1`, où `V_t` est la valeur après exécution des événements du jour et `F_t` le flux externe net du jour. Les coûts de transaction restent inclus dans la performance et ne sont pas neutralisés comme des flux externes.
+
+Le rendement cumulé est obtenu par chaînage géométrique des rendements ajustés. Le rendement annualisé utilise la durée calendaire réelle et une année conventionnelle de `365.2425` jours.
+
+Pour des observations quotidiennes de marché, la volatilité annualisée utilise l’écart-type échantillonnal des rendements de période et le facteur `sqrt(252)`. Cette convention ne suppose ni exactement 252 séances chaque année, ni indépendance ou normalité des rendements ; elle sert de convention de comparaison versionnée.
+
+Le drawdown maximal est mesuré sur l’indice de richesse ajusté des flux, afin qu’un apport ne puisse pas masquer artificiellement une baisse. La récupération conserve le sommet précédent, le creux, la date éventuelle de récupération, la durée du creux à la récupération et la durée totale sous le sommet. Une trajectoire non récupérée reste explicitement non récupérée.
+
+Les métriques d’une piste proxy restent celles du proxy. Elles ne doivent jamais être présentées comme l’historique de l’instrument réel avant son existence.
+
+Toute modification de ces conventions exige une nouvelle version méthodologique et ne doit pas être décidée après lecture des résultats qu’elle servirait à évaluer.
+
 ---
 
 ## 6. Sensibilité et stabilité
@@ -395,3 +411,12 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - proxy ancré sur une référence officielle et choisi avant lecture des résultats ;
 - conservation obligatoire des différences entre indice proxy et fonds réel ;
 - toute substitution postérieure aux résultats constitue une nouvelle expérience.
+
+### Métriques historiques ajustées des flux
+
+- séparation obligatoire entre performance et apports/retraits externes ;
+- rendement cumulé fondé sur un chaînage géométrique ajusté des flux ;
+- annualisation calendaire versionnée sur 365.2425 jours ;
+- volatilité quotidienne annualisée avec estimateur échantillonnal et facteur 252 ;
+- drawdown et récupération calculés sur un indice de richesse ajusté des flux ;
+- conservation explicite des périodes non récupérées.
