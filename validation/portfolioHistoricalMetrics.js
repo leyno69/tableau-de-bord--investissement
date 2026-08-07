@@ -125,8 +125,20 @@ export function calculateHistoricalMetrics({ valuePath, openingCapital }) {
   const annualizedReturn = durationDays > 0
     ? Math.pow(1 + cumulativeReturn, HISTORICAL_METRIC_CONVENTIONS.annualizationCalendarDays / durationDays) - 1
     : null;
-  const dailyStd = sampleStd(returns);
-  const annualizedVolatility = dailyStd == null ? null : dailyStd * Math.sqrt(HISTORICAL_METRIC_CONVENTIONS.volatilityPeriodsPerYear);
+  const periodStd = sampleStd(returns);
+  // Le nombre de rendements de période par an est dérivé de l'écart réel entre
+  // les dates observées, pas d'une constante fixe (252) : dès que valuePath
+  // mélange des calendriers de bourse différents (ex. deux places distinctes,
+  // via l'intersection des dates communes), l'écart moyen entre observations
+  // dépasse un jour de bourse, et une constante fixe traiterait chaque
+  // rendement de période comme un rendement quotidien alors qu'il en couvre
+  // plusieurs — faussant systématiquement l'annualisation.
+  const impliedPeriodsPerYear = returns.length > 0 && durationDays > 0
+    ? returns.length / (durationDays / HISTORICAL_METRIC_CONVENTIONS.annualizationCalendarDays)
+    : null;
+  const annualizedVolatility = periodStd == null || impliedPeriodsPerYear == null
+    ? null
+    : periodStd * Math.sqrt(impliedPeriodsPerYear);
   const drawdown = analyzeDrawdown(wealthPath);
 
   return Object.freeze({
