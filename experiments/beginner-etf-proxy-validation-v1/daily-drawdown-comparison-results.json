@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "beginner-daily-gaussian-drawdown-comparison-v1",
+  "status": "experimental-comparator-only",
+  "artifactEvidence": {
+    "workflowRunId": 31194941758,
+    "artifactId": 9000381064,
+    "artifactSha256": "2da453ef0c45eccd51ac37d851b981299b9ef0c7f4258e4f5ec406ddc5b15c3e"
+  },
+  "preregisteredModel": {
+    "distribution": "gaussian-daily",
+    "annualReturn": 0.045,
+    "annualVolatility": 0.10,
+    "seed": 20260807,
+    "annualTradingDays": 252,
+    "quarterlyTradingDays": 63,
+    "pathCount": 10000
+  },
+  "annual": {
+    "simulation": {
+      "median": 0.0891777999878898,
+      "p95": 0.17283449369193418,
+      "p99": 0.21701245355618226,
+      "maximum": 0.3655258672054612
+    },
+    "adverseWindows": ["2020"],
+    "keyWindow": {
+      "id": "2020",
+      "observedDailyDrawdown": 0.21675901697391753,
+      "band": "p95-maximum",
+      "distanceBelowP99": 0.00025343658226473176
+    }
+  },
+  "quarterly": {
+    "simulation": {
+      "median": 0.04564873073000242,
+      "p95": 0.09476680496077632,
+      "p99": 0.12032233504972713,
+      "maximum": 0.16943922608097295
+    },
+    "adverseWindows": []
+  },
+  "interpretation": {
+    "verdict": "daily-frequency-mostly-covered",
+    "statement": "Les huit drawdowns trimestriels quotidiens sont sous le p95 d'une simulation quotidienne appariée. Le drawdown 2020 reste au-dessus du p95 annuel mais se situe presque exactement au p99 simulé. Ce résultat ne justifie pas une modification du moteur à lui seul."
+  },
+  "limitations": [
+    "Le comparateur quotidien reste gaussien et expérimental.",
+    "Cinq fenêtres annuelles sont insuffisantes pour calibrer une fréquence de dépassement.",
+    "IWDA reste un proxy ETF de WPEA avant 2024.",
+    "La distribution mensuelle de référence reste séparée de ce comparateur quotidien."
+  ]
+}
