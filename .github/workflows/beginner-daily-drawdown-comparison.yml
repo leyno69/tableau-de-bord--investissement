@@ -1,0 +1,32 @@
+name: Beginner daily drawdown comparison
+
+on:
+  pull_request:
+    paths:
+      - 'validation/dailyGaussianDrawdownExperiment.js'
+      - 'validation/dailyGaussianDrawdownExperiment.test.js'
+      - 'experiments/beginner-etf-proxy-validation-v1/run-daily-drawdown-comparison.mjs'
+      - 'experiments/beginner-etf-proxy-validation-v1/results.json'
+      - 'experiments/beginner-historical-pilot-v1/exact-quarterly-results-dev.json'
+      - '.github/workflows/beginner-daily-drawdown-comparison.yml'
+  workflow_dispatch:
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run daily drawdown experiment tests
+        run: node --test validation/dailyGaussianDrawdownExperiment.test.js
+      - name: Run daily drawdown comparison
+        run: node experiments/beginner-etf-proxy-validation-v1/run-daily-drawdown-comparison.mjs
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: beginner-daily-gaussian-drawdown-comparison-v1
+          path: artifacts/beginner-daily-gaussian-drawdown-comparison-v1.json
+          if-no-files-found: error
