@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "dca-empirical-validation-v1",
+  "status": "supporting-empirical-evidence",
+  "artifactEvidence": { "workflowRunId": 31197064508, "artifactId": 9001233752, "artifactSha256": "ee1e21fce179f307af8c155745045ce0045c319279155363d99f80b67af47dcd" },
+  "definition": { "initialAmount": 3000, "monthlyAmount": 150, "months": 60, "annualReturn": 0.07, "contributionTiming": "after-month-return-at-month-end" },
+  "deterministicProjection": { "finalValue": 14887.033854612613, "contributed": 12000, "gain": 2887.033854612613 },
+  "windows": [
+    { "id": "2010-2014", "historicalFinalValue": 18958.95677738369, "delta": 4071.9229227710766, "relativeDelta": 0.2735214390279248 },
+    { "id": "2015-2019", "historicalFinalValue": 16691.474077690164, "delta": 1804.4402230775504, "relativeDelta": 0.12120884796123849 },
+    { "id": "2020-2024", "historicalFinalValue": 18826.876757134392, "delta": 3939.8429025217793, "relativeDelta": 0.26464928749396605 }
+  ],
+  "conclusion": { "status": "supporting-only", "statement": "Les trois fenêtres observées dépassent la projection déterministe à 7 %, sans permettre de calibrer une probabilité de réussite ni de conclure à une garantie future." }
+}
