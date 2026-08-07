@@ -79,3 +79,13 @@ La même personnalité peut produire des comportements différents selon la situ
 ## Architecture de confiance
 
 Les calculs, performances, risques et projections proviennent de services déterministes. Le modèle d’intelligence artificielle ne remplace pas ces calculs : il les explique dans le style de LEYNOR.
+
+## Gouvernance scientifique du risque simulé
+
+LEYNOR distingue toujours la fréquence quotidienne du risque intramensuel de la fréquence mensuelle du moteur de référence. Un drawdown historique ne peut être confronté à une distribution simulée que si horizon et fréquence d’observation sont appariés.
+
+Les queues épaisses, la persistance de volatilité et les corrélations variables restent visibles comme limites empiriques, même lorsqu’une alternative simple ne gagne pas en validation temporelle. Une anomalie descriptive ne déclenche jamais un recalibrage. Toute évolution du moteur exige un protocole préenregistré, une amélioration confirmatoire répétée et la conservation des contre-preuves.
+
+La généralisation à plusieurs allocations ne constitue une réplication indépendante que si les données, périodes ou sous-jacents le sont réellement. Des portefeuilles partageant les mêmes séries forment une cohorte de sensibilité, pas quatre expériences indépendantes.
+
+Une fréquence simulée ne devient une probabilité empirique qu'après vérification de sa couverture, de son score probabiliste, de son incertitude et de sa stabilité hors échantillon. LEYNOR bloque l'exposition de probabilités réelles lorsque l'effectif indépendant est inconnu, qu'un groupe est surconfiant ou que les données exactes et la validation prospective manquent.

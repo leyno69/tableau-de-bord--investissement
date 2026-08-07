@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LEYNOR — Laboratoire Premium</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .lab{max-width:1280px;margin:auto;padding:28px}.lab-grid{display:grid;grid-template-columns:minmax(300px,.75fr) minmax(0,1.5fr);gap:22px}.lab-form,.lab-report{display:grid;gap:14px}.lab-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.lab-progress{height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}.lab-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#2f8fff,#8cc9ff);transition:width .2s}.lab-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.lab-stat{padding:15px;border:1px solid rgba(255,255,255,.08);border-radius:15px;background:rgba(255,255,255,.035)}.lab-stat strong{display:block;font-size:1.35rem;margin-top:6px}.lab-report-section{padding:18px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(255,255,255,.03)}.lab-warning{padding:14px;border:1px solid rgba(255,190,92,.28);background:rgba(255,190,92,.09);border-radius:14px}@media(max-width:900px){.lab-grid{grid-template-columns:1fr}.lab-stat-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:560px){.lab{padding:18px}.lab-fields,.lab-stat-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<main class="lab">
+  <header class="topbar">
+    <div><p class="eyebrow">LABORATOIRE PREMIUM LEYNOR</p><h1>Simulation massive assistée par IA</h1><p class="subtitle">Comparez des milliers de futurs fictifs avec des hypothèses transparentes.</p></div>
+    <a class="btn secondary" href="index.html">← Tableau de bord</a>
+  </header>
+  <div class="lab-warning"><strong>Important :</strong> cette simulation explore des hypothèses. Elle ne prédit pas les marchés et ne constitue pas un conseil d’investissement.</div>
+  <section class="lab-grid" style="margin-top:22px">
+    <article class="panel lab-form">
+      <div class="panel-head"><div><p class="eyebrow">PARAMÈTRES</p><h2>Expérience</h2></div><span class="badge">PREMIUM</span></div>
+      <div class="lab-fields">
+        <label class="field"><span>Portefeuilles</span><input id="labCount" type="number" min="100" max="50000" value="10000"></label>
+        <label class="field"><span>Durée (années)</span><input id="labYears" type="number" min="1" max="50" value="20"></label>
+        <label class="field"><span>Capital initial (€)</span><input id="labInitial" type="number" min="0" value="3000"></label>
+        <label class="field"><span>Versement mensuel (€)</span><input id="labMonthly" type="number" min="0" value="100"></label>
+        <label class="field"><span>Objectif (€)</span><input id="labGoal" type="number" min="0" value="100000"></label>
+        <label class="field"><span>Inflation annuelle (%)</span><input id="labInflation" type="number" step="0.1" value="2"></label>
+        <label class="field"><span>Frais annuels (%)</span><input id="labFees" type="number" step="0.05" value="0.25"></label>
+        <label class="field"><span>Corrélation commune</span><input id="labCorrelation" type="number" min="0" max="0.95" step="0.05" value="0.35"></label>
+        <label class="field"><span>Graine reproductible</span><input id="labSeed" type="number" min="0" value="69"></label>
+        <label class="field"><span>Scénario</span><select id="labScenario"><option value="cycle">Cycle complet</option><option value="croissance">Croissance</option><option value="stagnation">Stagnation</option><option value="crise">Crise prolongée</option><option value="inflation">Inflation élevée</option></select></label>
+      </div>
+      <div><strong>Allocation de référence</strong><p class="subtitle">80 % ETF Monde, 10 % obligations, 5 % or, 5 % technologie/IA.</p></div>
+      <div class="dialog-actions"><button id="labCancel" class="btn secondary" type="button" disabled>Annuler</button><button id="labRun" class="btn" type="button">Lancer la simulation</button></div>
+      <div class="lab-progress" aria-label="Progression"><span id="labProgress"></span></div>
+      <p id="labStatus" class="subtitle" aria-live="polite">Prêt à simuler.</p>
+    </article>
+    <article class="panel lab-report">
+      <div class="panel-head"><div><p class="eyebrow">COMPTE RENDU LEYNOR</p><h2>Résultats</h2></div></div>
+      <div id="labStats" class="lab-stat-grid"><div class="lab-stat"><span>Médiane</span><strong>—</strong></div><div class="lab-stat"><span>Scénario 5 %</span><strong>—</strong></div><div class="lab-stat"><span>Objectif atteint</span><strong>—</strong></div><div class="lab-stat"><span>Drawdown sévère</span><strong>—</strong></div></div>
+      <div id="labReport"><p class="subtitle">L’analyse exhaustive apparaîtra ici après le calcul.</p></div>
+    </article>
+  </section>
+</main>
+<script type="module" src="leynor-lab-ui.js"></script>
+</body>
+</html>

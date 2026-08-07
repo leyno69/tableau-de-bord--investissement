@@ -1,0 +1,329 @@
+import './mobile-ui.js';
+import { brokers } from './brokers.js';
+import { defaultPortfolio, summarizePortfolio, allocationByRegion } from './portfolio.js';
+import { defaultWatchlist, refreshMarketItems } from './market.js';
+import { buildAlerts } from './alerts.js';
+import { repairBrowserStorage, normalizePortfolio, normalizeWatchlist } from './storage-bootstrap.js';
+import { recordBootError, setBootPhase } from './boot-diagnostics.js';
+
+const STORAGE_KEYS = {
+  portfolio: 'invest-dashboard-portfolio',
+  watchlist: 'invest-dashboard-watchlist',
+  broker: 'invest-dashboard-active-broker'
+};
+
+const VERIFIED_ETFS_BY_ISIN = {
+  IE0002XZSHO1: { ticker: 'WPEA', marketSymbol: 'WPEA.PA' },
+  FR0011869312: { ticker: 'PAEJ', marketSymbol: 'PAEJ.PA' }
+};
+
+const money = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 });
+const pct = new Intl.NumberFormat('fr-FR', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function browserStorage() {
+  try {
+    return globalThis.localStorage;
+  } catch (error) {
+    recordBootError(error, 'app.storage.access');
+    return null;
+  }
+}
+
+const storage = browserStorage();
+repairBrowserStorage(storage);
+
+function safeGet(key) {
+  try {
+    return storage?.getItem(key) ?? null;
+  } catch (error) {
+    recordBootError(error, `app.storage.read.${key}`);
+    return null;
+  }
+}
+
+function safeSet(key, value) {
+  try {
+    storage?.setItem(key, value);
+    return Boolean(storage);
+  } catch (error) {
+    recordBootError(error, `app.storage.write.${key}`);
+    return false;
+  }
+}
+
+function cloneFallback(fallback) {
+  try {
+    return structuredClone(fallback);
+  } catch {
+    return JSON.parse(JSON.stringify(fallback));
+  }
+}
+
+function load(key, fallback, normalizer = value => value) {
+  try {
+    const raw = safeGet(key);
+    return normalizer(raw ? JSON.parse(raw) : cloneFallback(fallback));
+  } catch (error) {
+    recordBootError(error, `app.storage.parse.${key}`);
+    return normalizer(cloneFallback(fallback));
+  }
+}
+
+const state = {
+  portfolio: load(STORAGE_KEYS.portfolio, defaultPortfolio, normalizePortfolio),
+  watchlist: load(STORAGE_KEYS.watchlist, defaultWatchlist, normalizeWatchlist),
+  activeBroker: safeGet(STORAGE_KEYS.broker) || 'all'
+};
+
+function migrateVerifiedEtfs() {
+  let changed = false;
+  state.portfolio.positions = state.portfolio.positions.map(position => {
+    const verified = VERIFIED_ETFS_BY_ISIN[position.isin];
+    if (!verified) return position;
+    if (position.ticker === verified.ticker && position.marketSymbol === verified.marketSymbol) return position;
+    changed = true;
+    return { ...position, ...verified };
+  });
+  if (changed) persist();
+}
+
+function persist() {
+  safeSet(STORAGE_KEYS.portfolio, JSON.stringify(state.portfolio));
+  safeSet(STORAGE_KEYS.watchlist, JSON.stringify(state.watchlist));
+  safeSet(STORAGE_KEYS.broker, state.activeBroker);
+}
+
+function brokerName(id) {
+  return brokers.find(b => b.id === id)?.name || id;
+}
+
+function visiblePositions() {
+  return state.activeBroker === 'all' ? state.portfolio.positions : state.portfolio.positions.filter(p => p.broker === state.activeBroker);
+}
+
+function marketStatus(item) {
+  if (item.marketError) return `Donnée marché indisponible : ${item.marketError}`;
+  if (item.marketUpdatedAt) return `EODHD • ${item.marketUpdatedAt}`;
+  return item.marketSymbol ? `EODHD • ${item.marketSymbol}` : 'Cours enregistré localement';
+}
+
+function renderBrokerControls() {
+  const selects = [document.querySelector('#brokerSelect'), document.querySelector('#positionBroker')];
+  for (const [index, select] of selects.entries()) {
+    if (!select) continue;
+    select.innerHTML = '';
+    if (index === 0) select.add(new Option('Tous les courtiers', 'all'));
+    brokers.forEach(b => select.add(new Option(b.name, b.id)));
+  }
+  const brokerSelect = document.querySelector('#brokerSelect');
+  if (brokerSelect) brokerSelect.value = state.activeBroker;
+
+  const brokersPanel = document.querySelector('#brokersPanel');
+  if (brokersPanel) brokersPanel.innerHTML = brokers.map(b => `
+    <div class="broker-row">
+      <div><strong>${b.name}</strong><small>${b.fractional}</small></div>
+      <span class="badge">${b.status}</span>
+    </div>`).join('');
+}
+
+function renderMetrics() {
+  const filtered = { ...state.portfolio, positions: visiblePositions() };
+  const summary = summarizePortfolio(filtered);
+  const setText = (selector, value) => {
+    const element = document.querySelector(selector);
+    if (element) element.textContent = value;
+  };
+  setText('#portfolioValue', money.format(summary.totalValue));
+  setText('#investedValue', money.format(summary.invested));
+  setText('#pnlValue', money.format(summary.pnl));
+  const pnlValue = document.querySelector('#pnlValue');
+  if (pnlValue) pnlValue.className = summary.pnl >= 0 ? 'positive' : 'negative';
+  setText('#pnlPercent', pct.format(summary.pnlPct / 100));
+  setText('#cashValue', money.format(state.portfolio.cash));
+  setText('#portfolioMove', `${summary.pnl >= 0 ? '+' : ''}${money.format(summary.pnl)} latent`);
+}
+
+function renderPortfolio() {
+  const rows = visiblePositions();
+  const table = document.querySelector('#portfolioTable');
+  if (!table) return;
+  if (!rows.length) {
+    table.innerHTML = '<tr><td colspan="7" class="empty">Aucune position pour ce courtier.</td></tr>';
+    return;
+  }
+  table.innerHTML = rows.map(p => {
+    const invested = p.quantity * p.avgPrice;
+    const value = p.quantity * p.price;
+    const perf = invested ? (value - invested) / invested : 0;
+    return `<tr title="${marketStatus(p)}">
+      <td class="asset-cell"><strong>${p.name}</strong><small>${p.ticker} • ${p.type}${p.marketError ? ' • ⚠ marché' : ''}</small></td>
+      <td>${brokerName(p.broker)}</td>
+      <td>${p.quantity.toLocaleString('fr-FR', { maximumFractionDigits: 6 })}</td>
+      <td>${money.format(p.avgPrice)}</td>
+      <td>${money.format(p.price)}</td>
+      <td>${money.format(value)}</td>
+      <td class="${perf >= 0 ? 'positive' : 'negative'}">${pct.format(perf)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAllocation() {
+  const filtered = { ...state.portfolio, positions: visiblePositions() };
+  const allocations = allocationByRegion(filtered);
+  const allocationBars = document.querySelector('#allocationBars');
+  if (!allocationBars) return;
+  allocationBars.innerHTML = allocations.length ? allocations.map(a => `
+    <div class="allocation-row">
+      <div class="allocation-meta"><span>${a.label}</span><strong>${a.percent.toFixed(1)} %</strong></div>
+      <div class="allocation-bar"><span style="width:${Math.max(2, a.percent)}%"></span></div>
+    </div>`).join('') : '<p class="empty">Aucune donnée.</p>';
+}
+
+function signalClass(signal) {
+  if (signal === 'Achat') return 'buy';
+  if (signal === 'Alléger') return 'sell';
+  return '';
+}
+
+function renderWatchlist() {
+  const watchlist = document.querySelector('#watchlist');
+  if (!watchlist) return;
+  watchlist.innerHTML = state.watchlist.map(item => `
+    <article class="watch-card" title="${marketStatus(item)}">
+      <div class="watch-card-top">
+        <div><h3>${item.name}</h3><span class="ticker">${item.ticker}${item.marketError ? ' • ⚠' : ''}</span></div>
+        <span class="badge ${signalClass(item.signal)}">${item.signal}</span>
+      </div>
+      <div class="watch-price">${money.format(item.price)}</div>
+      <div class="${item.change >= 0 ? 'positive' : 'negative'}">${item.change >= 0 ? '+' : ''}${Number(item.change || 0).toFixed(2)} % aujourd’hui</div>
+      <p class="watch-note">${item.marketError || item.note || '—'}</p>
+    </article>`).join('');
+}
+
+function renderAlerts() {
+  const alertsList = document.querySelector('#alertsList');
+  if (!alertsList) return;
+  const alerts = buildAlerts(state.watchlist);
+  alertsList.innerHTML = alerts.map(a => `
+    <div class="alert"><strong>${a.title}</strong><small>${a.text}</small></div>`).join('');
+}
+
+function renderAll() {
+  renderMetrics();
+  renderPortfolio();
+  renderAllocation();
+  renderWatchlist();
+  renderAlerts();
+}
+
+function setupDialogs() {
+  const positionDialog = document.querySelector('#positionDialog');
+  const watchDialog = document.querySelector('#watchDialog');
+  const positionForm = document.querySelector('#positionForm');
+  const watchForm = document.querySelector('#watchForm');
+
+  document.querySelector('#addPositionBtn')?.addEventListener('click', () => positionDialog?.showModal());
+  document.querySelector('#addWatchBtn')?.addEventListener('click', () => watchDialog?.showModal());
+
+  document.querySelector('#savePositionBtn')?.addEventListener('click', (event) => {
+    event.preventDefault();
+    if (!positionForm?.reportValidity()) return;
+    const data = new FormData(positionForm);
+    state.portfolio.positions.push({
+      id: Date.now(),
+      name: String(data.get('name')).trim(),
+      ticker: String(data.get('ticker')).trim().toUpperCase(),
+      marketSymbol: String(data.get('marketSymbol') || '').trim().toUpperCase() || undefined,
+      type: String(data.get('type')),
+      broker: String(data.get('broker')),
+      quantity: Number(data.get('quantity')),
+      avgPrice: Number(data.get('avgPrice')),
+      price: Number(data.get('price')),
+      region: String(data.get('region'))
+    });
+    persist();
+    renderAll();
+    positionForm.reset();
+    positionDialog?.close();
+  });
+
+  document.querySelector('#saveWatchBtn')?.addEventListener('click', (event) => {
+    event.preventDefault();
+    if (!watchForm?.reportValidity()) return;
+    const data = new FormData(watchForm);
+    state.watchlist.push({
+      id: Date.now(),
+      name: String(data.get('name')).trim(),
+      ticker: String(data.get('ticker')).trim().toUpperCase(),
+      marketSymbol: String(data.get('marketSymbol') || '').trim().toUpperCase() || undefined,
+      price: Number(data.get('price')),
+      change: Number(data.get('change')),
+      signal: String(data.get('signal')),
+      note: String(data.get('note')).trim()
+    });
+    persist();
+    renderAll();
+    watchForm.reset();
+    watchDialog?.close();
+  });
+}
+
+async function refreshMarketData() {
+  const button = document.querySelector('#refreshBtn');
+  if (!button) return;
+  const originalLabel = button.textContent;
+  button.disabled = true;
+  button.textContent = 'Actualisation…';
+
+  try {
+    const [watchlist, positions] = await Promise.all([
+      refreshMarketItems(state.watchlist),
+      refreshMarketItems(state.portfolio.positions)
+    ]);
+
+    state.watchlist = normalizeWatchlist(watchlist);
+    state.portfolio = normalizePortfolio({ ...state.portfolio, positions });
+    persist();
+    renderAll();
+
+    const failures = [...watchlist, ...positions].filter(item => item.marketError).length;
+    button.textContent = failures ? `Actualisé • ${failures} erreur${failures > 1 ? 's' : ''}` : 'Actualisé';
+  } catch (error) {
+    recordBootError(error, 'app.market.refresh');
+    button.textContent = 'Erreur marché';
+  } finally {
+    button.disabled = false;
+    window.setTimeout(() => {
+      button.textContent = originalLabel;
+    }, 2500);
+  }
+}
+
+function initializeApplication() {
+  try {
+    setBootPhase('initializing-application');
+    migrateVerifiedEtfs();
+    renderBrokerControls();
+    renderAll();
+    setupDialogs();
+
+    document.querySelector('#brokerSelect')?.addEventListener('change', (event) => {
+      state.activeBroker = event.target.value;
+      persist();
+      renderAll();
+    });
+
+    document.querySelector('#refreshBtn')?.addEventListener('click', refreshMarketData);
+    setBootPhase('ready');
+  } catch (error) {
+    recordBootError(error, 'app.initialize');
+    setBootPhase('degraded');
+    console.error('LEYNOR application initialization failed:', error);
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeApplication, { once: true });
+} else {
+  initializeApplication();
+}

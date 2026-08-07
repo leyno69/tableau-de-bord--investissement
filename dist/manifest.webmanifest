@@ -1,0 +1,45 @@
+{
+  "id": "./",
+  "name": "LEYNOR — Votre copilote d’investissement",
+  "short_name": "LEYNOR",
+  "description": "Votre copilote intelligent pour analyser votre portefeuille, vos objectifs et vos décisions d’investissement.",
+  "lang": "fr-FR",
+  "dir": "ltr",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#050b18",
+  "theme_color": "#071426",
+  "categories": ["finance", "productivity", "education"],
+  "icons": [
+    {
+      "src": "./icons/leynor-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/leynor-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Parler à LEYNOR AI",
+      "short_name": "LEYNOR AI",
+      "description": "Ouvrir directement le copilote intelligent LEYNOR AI",
+      "url": "./?open=leynor-ai",
+      "icons": [{ "src": "./icons/leynor-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Voir mon portefeuille",
+      "short_name": "Portefeuille",
+      "url": "./#portfolio",
+      "icons": [{ "src": "./icons/leynor-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ]
+}

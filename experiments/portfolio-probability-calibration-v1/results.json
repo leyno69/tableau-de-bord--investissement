@@ -1,0 +1,1956 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "portfolio-probability-calibration-v1",
+  "status": "proxy-inconclusive",
+  "origins": [
+    "2018-01",
+    "2018-04",
+    "2018-07",
+    "2018-10",
+    "2019-01",
+    "2019-04",
+    "2019-07",
+    "2019-10",
+    "2020-01",
+    "2020-04",
+    "2020-07",
+    "2020-10",
+    "2021-01",
+    "2021-04",
+    "2021-07",
+    "2021-10",
+    "2022-01",
+    "2022-04",
+    "2022-07",
+    "2022-10",
+    "2023-01"
+  ],
+  "horizonMonths": 12,
+  "simulationPathsPerForecast": 5000,
+  "portfolios": [
+    {
+      "portfolioId": "defensive",
+      "records": [
+        {
+          "portfolioId": "defensive",
+          "asOf": "2018-01",
+          "outcome": 0.9980171314955149,
+          "binaryOutcome": false,
+          "probability": 0.8244,
+          "benchmarkProbability": 0.7741935483870968,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0139716231138274,
+              "upper": 1.0858935858211534
+            },
+            "0.9": {
+              "lower": 0.9655375056996982,
+              "upper": 1.1398803805315683
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2018-04",
+          "outcome": 1.0570303671994685,
+          "binaryOutcome": true,
+          "probability": 0.7928,
+          "benchmarkProbability": 0.7647058823529411,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0067272847607462,
+              "upper": 1.077900831224908
+            },
+            "0.9": {
+              "lower": 0.9579103352563604,
+              "upper": 1.1318801593697727
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2018-07",
+          "outcome": 1.040506460578047,
+          "binaryOutcome": true,
+          "probability": 0.8128,
+          "benchmarkProbability": 0.7837837837837838,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0109750092663101,
+              "upper": 1.0814555925748088
+            },
+            "0.9": {
+              "lower": 0.9631076965223534,
+              "upper": 1.1360511871345054
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2018-10",
+          "outcome": 1.069786621835916,
+          "binaryOutcome": true,
+          "probability": 0.8332,
+          "benchmarkProbability": 0.8,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0145383114415392,
+              "upper": 1.0830660371872922
+            },
+            "0.9": {
+              "lower": 0.9685777236613494,
+              "upper": 1.1329775393951185
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2019-01",
+          "outcome": 1.0921782270032026,
+          "binaryOutcome": true,
+          "probability": 0.725,
+          "benchmarkProbability": 0.7906976744186046,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9958171844926864,
+              "upper": 1.0697311372715035
+            },
+            "0.9": {
+              "lower": 0.9459292390626294,
+              "upper": 1.125311325310134
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2019-04",
+          "outcome": 0.9849893597096687,
+          "binaryOutcome": false,
+          "probability": 0.7902,
+          "benchmarkProbability": 0.782608695652174,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0065150563202354,
+              "upper": 1.0830194640937123
+            },
+            "0.9": {
+              "lower": 0.9556030571467002,
+              "upper": 1.1411424372720669
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2019-07",
+          "outcome": 1.0011687961908364,
+          "binaryOutcome": true,
+          "probability": 0.7814,
+          "benchmarkProbability": 0.7959183673469388,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0053761986295562,
+              "upper": 1.0829521082361735
+            },
+            "0.9": {
+              "lower": 0.9526712312209925,
+              "upper": 1.14233139710945
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2019-10",
+          "outcome": 1.0088729212559369,
+          "binaryOutcome": true,
+          "probability": 0.7952,
+          "benchmarkProbability": 0.8076923076923077,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0078935512052802,
+              "upper": 1.0859437038196922
+            },
+            "0.9": {
+              "lower": 0.9559382368762754,
+              "upper": 1.1428942901105221
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2020-01",
+          "outcome": 1.049628921623338,
+          "binaryOutcome": true,
+          "probability": 0.8162,
+          "benchmarkProbability": 0.8181818181818182,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0119007559494442,
+              "upper": 1.088845649988051
+            },
+            "0.9": {
+              "lower": 0.9594816519059132,
+              "upper": 1.148899975689996
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2020-04",
+          "outcome": 1.1690312367421614,
+          "binaryOutcome": true,
+          "probability": 0.6784,
+          "benchmarkProbability": 0.8103448275862069,
+          "intervals": {
+            "0.5": {
+              "lower": 0.986635957947126,
+              "upper": 1.0713826795792887
+            },
+            "0.9": {
+              "lower": 0.9287831414668795,
+              "upper": 1.1359663905572426
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2020-07",
+          "outcome": 1.1703507501991492,
+          "binaryOutcome": true,
+          "probability": 0.729,
+          "benchmarkProbability": 0.8032786885245902,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9961685328403524,
+              "upper": 1.082446812560225
+            },
+            "0.9": {
+              "lower": 0.9368678751962035,
+              "upper": 1.1534447085961426
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2020-10",
+          "outcome": 1.1901523665552425,
+          "binaryOutcome": true,
+          "probability": 0.7438,
+          "benchmarkProbability": 0.8125,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9987030984524651,
+              "upper": 1.0879913096033487
+            },
+            "0.9": {
+              "lower": 0.9410457935441067,
+              "upper": 1.1572944611662552
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2021-01",
+          "outcome": 1.104258587589853,
+          "binaryOutcome": true,
+          "probability": 0.7662,
+          "benchmarkProbability": 0.8208955223880597,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0030828522926492,
+              "upper": 1.0912073524767099
+            },
+            "0.9": {
+              "lower": 0.9429822301823579,
+              "upper": 1.160344157072748
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2021-04",
+          "outcome": 1.0471603303063846,
+          "binaryOutcome": true,
+          "probability": 0.7946,
+          "benchmarkProbability": 0.8285714285714286,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0101978511794434,
+              "upper": 1.1019794400532505
+            },
+            "0.9": {
+              "lower": 0.9482121434041169,
+              "upper": 1.1682903099918989
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2021-07",
+          "outcome": 1.0169490000683954,
+          "binaryOutcome": true,
+          "probability": 0.8086,
+          "benchmarkProbability": 0.8356164383561644,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0141144567440776,
+              "upper": 1.1032915798490777
+            },
+            "0.9": {
+              "lower": 0.9544632639424384,
+              "upper": 1.1727359170643885
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2021-10",
+          "outcome": 0.9550249584889072,
+          "binaryOutcome": false,
+          "probability": 0.814,
+          "benchmarkProbability": 0.8421052631578947,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0128570193190747,
+              "upper": 1.10011249378418
+            },
+            "0.9": {
+              "lower": 0.9526207612891423,
+              "upper": 1.1697263748418236
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2022-01",
+          "outcome": 0.9740856251048953,
+          "binaryOutcome": false,
+          "probability": 0.8184,
+          "benchmarkProbability": 0.8481012658227848,
+          "intervals": {
+            "0.5": {
+              "lower": 1.015076398084584,
+              "upper": 1.1030274734826975
+            },
+            "0.9": {
+              "lower": 0.9563333111251306,
+              "upper": 1.1734695683967304
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2022-04",
+          "outcome": 0.9723848477531293,
+          "binaryOutcome": false,
+          "probability": 0.8178,
+          "benchmarkProbability": 0.8536585365853658,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0128754424738808,
+              "upper": 1.1017666023040216
+            },
+            "0.9": {
+              "lower": 0.9540644755311978,
+              "upper": 1.1691273464433396
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2022-07",
+          "outcome": 1.0250335866101237,
+          "binaryOutcome": true,
+          "probability": 0.7562,
+          "benchmarkProbability": 0.8470588235294118,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0011658601144964,
+              "upper": 1.0901729819615555
+            },
+            "0.9": {
+              "lower": 0.9380336398444407,
+              "upper": 1.1604925773265105
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2022-10",
+          "outcome": 1.0185130245489211,
+          "binaryOutcome": true,
+          "probability": 0.7428,
+          "benchmarkProbability": 0.8295454545454546,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9985168731347684,
+              "upper": 1.0926747572631446
+            },
+            "0.9": {
+              "lower": 0.9366702165161465,
+              "upper": 1.1669812639775614
+            }
+          }
+        },
+        {
+          "portfolioId": "defensive",
+          "asOf": "2023-01",
+          "outcome": 1.0814571572636853,
+          "binaryOutcome": true,
+          "probability": 0.7282,
+          "benchmarkProbability": 0.8021978021978022,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9952797755331582,
+              "upper": 1.0898379113219483
+            },
+            "0.9": {
+              "lower": 0.9327177281156191,
+              "upper": 1.1604033689173376
+            }
+          }
+        }
+      ],
+      "coverage": [
+        {
+          "level": 0.5,
+          "sampleSize": 21,
+          "hits": 10,
+          "observedCoverage": 0.47619047619047616,
+          "wilson95": {
+            "lower": 0.2834400610153417,
+            "upper": 0.6763046541715557
+          },
+          "compatible": true
+        },
+        {
+          "level": 0.9,
+          "sampleSize": 21,
+          "hits": 18,
+          "observedCoverage": 0.8571428571428571,
+          "wilson95": {
+            "lower": 0.6536393971937906,
+            "upper": 0.9501898750027473
+          },
+          "compatible": true
+        }
+      ],
+      "probability": {
+        "model": {
+          "sampleSize": 21,
+          "brierScore": 0.19931496380952382,
+          "calibrationError": 0.22483809523809528,
+          "calibration": [
+            {
+              "lowerBound": 0.6000000000000001,
+              "upperBound": 0.7000000000000001,
+              "count": 1,
+              "meanProbability": 0.6784,
+              "observedFrequency": 1,
+              "absoluteCalibrationGap": 0.3216
+            },
+            {
+              "lowerBound": 0.7000000000000001,
+              "upperBound": 0.8,
+              "count": 12,
+              "meanProbability": 0.7621166666666666,
+              "observedFrequency": 0.9166666666666666,
+              "absoluteCalibrationGap": 0.15455000000000008
+            },
+            {
+              "lowerBound": 0.8,
+              "upperBound": 0.9,
+              "count": 8,
+              "meanProbability": 0.8181750000000001,
+              "observedFrequency": 0.5,
+              "absoluteCalibrationGap": 0.3181750000000001
+            }
+          ]
+        },
+        "benchmark": {
+          "sampleSize": 21,
+          "brierScore": 0.25,
+          "calibrationError": 0.26190476190476186,
+          "calibration": [
+            {
+              "lowerBound": 0.5,
+              "upperBound": 0.6000000000000001,
+              "count": 21,
+              "meanProbability": 0.5,
+              "observedFrequency": 0.7619047619047619,
+              "absoluteCalibrationGap": 0.26190476190476186
+            }
+          ]
+        },
+        "comparison": {
+          "beatsBenchmark": true,
+          "brierImprovement": 0.05068503619047618
+        },
+        "dynamicBaseRateBrierScore": 0.1884045617817992,
+        "beatsDynamicBaseRate": false
+      }
+    },
+    {
+      "portfolioId": "beginner",
+      "records": [
+        {
+          "portfolioId": "beginner",
+          "asOf": "2018-01",
+          "outcome": 0.9980870976689123,
+          "binaryOutcome": false,
+          "probability": 0.8278,
+          "benchmarkProbability": 0.7741935483870968,
+          "intervals": {
+            "0.5": {
+              "lower": 1.021132681693599,
+              "upper": 1.1370024497326887
+            },
+            "0.9": {
+              "lower": 0.9463135912698127,
+              "upper": 1.2257974198546708
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2018-04",
+          "outcome": 1.0857170399154212,
+          "binaryOutcome": true,
+          "probability": 0.7874,
+          "benchmarkProbability": 0.7647058823529411,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0099422375469214,
+              "upper": 1.1225677687492122
+            },
+            "0.9": {
+              "lower": 0.9364971650482444,
+              "upper": 1.2148980479295308
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2018-07",
+          "outcome": 1.0603320344884122,
+          "binaryOutcome": true,
+          "probability": 0.8156,
+          "benchmarkProbability": 0.7837837837837838,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0173464197045796,
+              "upper": 1.1302204780332061
+            },
+            "0.9": {
+              "lower": 0.9448400070182558,
+              "upper": 1.2178804799957916
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2018-10",
+          "outcome": 1.1031586422879438,
+          "binaryOutcome": true,
+          "probability": 0.8426,
+          "benchmarkProbability": 0.8,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0244590464056298,
+              "upper": 1.1302945583793191
+            },
+            "0.9": {
+              "lower": 0.9516820310863959,
+              "upper": 1.2143678502620163
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2019-01",
+          "outcome": 1.1378295562439926,
+          "binaryOutcome": true,
+          "probability": 0.739,
+          "benchmarkProbability": 0.7906976744186046,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9972729244939387,
+              "upper": 1.113716326317934
+            },
+            "0.9": {
+              "lower": 0.9217133594536359,
+              "upper": 1.203800515482743
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2019-04",
+          "outcome": 0.9791004571019277,
+          "binaryOutcome": false,
+          "probability": 0.7826,
+          "benchmarkProbability": 0.782608695652174,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0099369585668125,
+              "upper": 1.130866753016927
+            },
+            "0.9": {
+              "lower": 0.9333699014902948,
+              "upper": 1.2259706181688492
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2019-07",
+          "outcome": 1.0014421605590267,
+          "binaryOutcome": true,
+          "probability": 0.7798,
+          "benchmarkProbability": 0.7959183673469388,
+          "intervals": {
+            "0.5": {
+              "lower": 1.008006898677066,
+              "upper": 1.1293861766564117
+            },
+            "0.9": {
+              "lower": 0.9259997031532422,
+              "upper": 1.226045434392738
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2019-10",
+          "outcome": 1.011843145003644,
+          "binaryOutcome": true,
+          "probability": 0.7894,
+          "benchmarkProbability": 0.8076923076923077,
+          "intervals": {
+            "0.5": {
+              "lower": 1.009807404257703,
+              "upper": 1.134708717117032
+            },
+            "0.9": {
+              "lower": 0.935395455619554,
+              "upper": 1.2333596366760748
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2020-01",
+          "outcome": 1.0682554490476348,
+          "binaryOutcome": true,
+          "probability": 0.8124,
+          "benchmarkProbability": 0.8181818181818182,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0176890088684523,
+              "upper": 1.139200462542822
+            },
+            "0.9": {
+              "lower": 0.9413798630411908,
+              "upper": 1.2343084345190838
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2020-04",
+          "outcome": 1.2453986719683587,
+          "binaryOutcome": true,
+          "probability": 0.6776,
+          "benchmarkProbability": 0.8103448275862069,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9792241479588872,
+              "upper": 1.1144262045793887
+            },
+            "0.9": {
+              "lower": 0.8976721429093533,
+              "upper": 1.2214236104574376
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2020-07",
+          "outcome": 1.2467932073592394,
+          "binaryOutcome": true,
+          "probability": 0.7438,
+          "benchmarkProbability": 0.8032786885245902,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9976470473295217,
+              "upper": 1.1346785591465727
+            },
+            "0.9": {
+              "lower": 0.9103256251009629,
+              "upper": 1.2402596505697234
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2020-10",
+          "outcome": 1.2750763384684503,
+          "binaryOutcome": true,
+          "probability": 0.7476,
+          "benchmarkProbability": 0.8125,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9991237096202521,
+              "upper": 1.1347343887919266
+            },
+            "0.9": {
+              "lower": 0.9146338690157525,
+              "upper": 1.241303154506812
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2021-01",
+          "outcome": 1.1488900354686078,
+          "binaryOutcome": true,
+          "probability": 0.778,
+          "benchmarkProbability": 0.8208955223880597,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0089148530197738,
+              "upper": 1.1452449685716561
+            },
+            "0.9": {
+              "lower": 0.9193070778730629,
+              "upper": 1.2529108611022564
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2021-04",
+          "outcome": 1.0668580218032149,
+          "binaryOutcome": true,
+          "probability": 0.7948,
+          "benchmarkProbability": 0.8285714285714286,
+          "intervals": {
+            "0.5": {
+              "lower": 1.016002846816335,
+              "upper": 1.1482508450836413
+            },
+            "0.9": {
+              "lower": 0.9281250225884617,
+              "upper": 1.2574680914774747
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2021-07",
+          "outcome": 1.024300967387252,
+          "binaryOutcome": true,
+          "probability": 0.8172,
+          "benchmarkProbability": 0.8356164383561644,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0207080717848336,
+              "upper": 1.1585608201687412
+            },
+            "0.9": {
+              "lower": 0.9288381958791345,
+              "upper": 1.2659895197782576
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2021-10",
+          "outcome": 0.9417942021061562,
+          "binaryOutcome": false,
+          "probability": 0.8098,
+          "benchmarkProbability": 0.8421052631578947,
+          "intervals": {
+            "0.5": {
+              "lower": 1.018628248369489,
+              "upper": 1.155761788245142
+            },
+            "0.9": {
+              "lower": 0.9293880605081014,
+              "upper": 1.2621178900950427
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2022-01",
+          "outcome": 0.9652510911681248,
+          "binaryOutcome": false,
+          "probability": 0.823,
+          "benchmarkProbability": 0.8481012658227848,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0249349476317513,
+              "upper": 1.1588230278693372
+            },
+            "0.9": {
+              "lower": 0.9363350557182811,
+              "upper": 1.26743101391909
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2022-04",
+          "outcome": 0.9637674219739211,
+          "binaryOutcome": false,
+          "probability": 0.8078,
+          "benchmarkProbability": 0.8536585365853658,
+          "intervals": {
+            "0.5": {
+              "lower": 1.017506856838907,
+              "upper": 1.1531885247350473
+            },
+            "0.9": {
+              "lower": 0.9291370890336319,
+              "upper": 1.260898108891439
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2022-07",
+          "outcome": 1.0345793130110388,
+          "binaryOutcome": true,
+          "probability": 0.7542,
+          "benchmarkProbability": 0.8470588235294118,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0015297480511545,
+              "upper": 1.1382858674920886
+            },
+            "0.9": {
+              "lower": 0.9124785072375345,
+              "upper": 1.2427551590792818
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2022-10",
+          "outcome": 1.025231265993874,
+          "binaryOutcome": true,
+          "probability": 0.7428,
+          "benchmarkProbability": 0.8295454545454546,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9976844304295982,
+              "upper": 1.141027670316323
+            },
+            "0.9": {
+              "lower": 0.9055025875604287,
+              "upper": 1.2510298824764574
+            }
+          }
+        },
+        {
+          "portfolioId": "beginner",
+          "asOf": "2023-01",
+          "outcome": 1.1133857013838149,
+          "binaryOutcome": true,
+          "probability": 0.7404,
+          "benchmarkProbability": 0.8021978021978022,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9974674485628299,
+              "upper": 1.1359819888915847
+            },
+            "0.9": {
+              "lower": 0.9115844507009466,
+              "upper": 1.249352959824388
+            }
+          }
+        }
+      ],
+      "coverage": [
+        {
+          "level": 0.5,
+          "sampleSize": 21,
+          "hits": 10,
+          "observedCoverage": 0.47619047619047616,
+          "wilson95": {
+            "lower": 0.2834400610153417,
+            "upper": 0.6763046541715557
+          },
+          "compatible": true
+        },
+        {
+          "level": 0.9,
+          "sampleSize": 21,
+          "hits": 18,
+          "observedCoverage": 0.8571428571428571,
+          "wilson95": {
+            "lower": 0.6536393971937906,
+            "upper": 0.9501898750027473
+          },
+          "compatible": true
+        }
+      ],
+      "probability": {
+        "model": {
+          "sampleSize": 21,
+          "brierScore": 0.1969308571428571,
+          "calibrationError": 0.22375238095238092,
+          "calibration": [
+            {
+              "lowerBound": 0.6000000000000001,
+              "upperBound": 0.7000000000000001,
+              "count": 1,
+              "meanProbability": 0.6776,
+              "observedFrequency": 1,
+              "absoluteCalibrationGap": 0.3224
+            },
+            {
+              "lowerBound": 0.7000000000000001,
+              "upperBound": 0.8,
+              "count": 12,
+              "meanProbability": 0.7649833333333333,
+              "observedFrequency": 0.9166666666666666,
+              "absoluteCalibrationGap": 0.15168333333333328
+            },
+            {
+              "lowerBound": 0.8,
+              "upperBound": 0.9,
+              "count": 8,
+              "meanProbability": 0.8195250000000001,
+              "observedFrequency": 0.5,
+              "absoluteCalibrationGap": 0.31952500000000006
+            }
+          ]
+        },
+        "benchmark": {
+          "sampleSize": 21,
+          "brierScore": 0.25,
+          "calibrationError": 0.26190476190476186,
+          "calibration": [
+            {
+              "lowerBound": 0.5,
+              "upperBound": 0.6000000000000001,
+              "count": 21,
+              "meanProbability": 0.5,
+              "observedFrequency": 0.7619047619047619,
+              "absoluteCalibrationGap": 0.26190476190476186
+            }
+          ]
+        },
+        "comparison": {
+          "beatsBenchmark": true,
+          "brierImprovement": 0.0530691428571429
+        },
+        "dynamicBaseRateBrierScore": 0.1884045617817992,
+        "beatsDynamicBaseRate": false
+      }
+    },
+    {
+      "portfolioId": "dynamic",
+      "records": [
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2018-01",
+          "outcome": 0.9988758736430129,
+          "binaryOutcome": false,
+          "probability": 0.8356,
+          "benchmarkProbability": 0.7741935483870968,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0347503393927278,
+              "upper": 1.1990991766950905
+            },
+            "0.9": {
+              "lower": 0.9254641589093882,
+              "upper": 1.332599673106595
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2018-04",
+          "outcome": 1.1149279263087284,
+          "binaryOutcome": true,
+          "probability": 0.7894,
+          "benchmarkProbability": 0.7647058823529411,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0156937275134292,
+              "upper": 1.1727613335883933
+            },
+            "0.9": {
+              "lower": 0.9105203982739998,
+              "upper": 1.30445301821308
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2018-07",
+          "outcome": 1.0801418238538587,
+          "binaryOutcome": true,
+          "probability": 0.8216,
+          "benchmarkProbability": 0.7837837837837838,
+          "intervals": {
+            "0.5": {
+              "lower": 1.027659536424295,
+              "upper": 1.186857178746932
+            },
+            "0.9": {
+              "lower": 0.9279527487459759,
+              "upper": 1.317074960492274
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2018-10",
+          "outcome": 1.135791367731649,
+          "binaryOutcome": true,
+          "probability": 0.835,
+          "benchmarkProbability": 0.8,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0303400523664026,
+              "upper": 1.1829368522518175
+            },
+            "0.9": {
+              "lower": 0.9328602819978856,
+              "upper": 1.312978530190012
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2019-01",
+          "outcome": 1.1837584029946127,
+          "binaryOutcome": true,
+          "probability": 0.7228,
+          "benchmarkProbability": 0.7906976744186046,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9907490715358562,
+              "upper": 1.1555490018327723
+            },
+            "0.9": {
+              "lower": 0.8893457188448121,
+              "upper": 1.2835262553350444
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2019-04",
+          "outcome": 0.9741267920308485,
+          "binaryOutcome": false,
+          "probability": 0.7932,
+          "benchmarkProbability": 0.782608695652174,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0158494913368057,
+              "upper": 1.1789719516852275
+            },
+            "0.9": {
+              "lower": 0.9052841885788797,
+              "upper": 1.3125597534335773
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2019-07",
+          "outcome": 1.0015297258616476,
+          "binaryOutcome": true,
+          "probability": 0.7836,
+          "benchmarkProbability": 0.7959183673469388,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0121112967725938,
+              "upper": 1.180404572707728
+            },
+            "0.9": {
+              "lower": 0.9052519635320366,
+              "upper": 1.3164661297756846
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2019-10",
+          "outcome": 1.013970927635163,
+          "binaryOutcome": true,
+          "probability": 0.8074,
+          "benchmarkProbability": 0.8076923076923077,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0212295968598228,
+              "upper": 1.1837583602536237
+            },
+            "0.9": {
+              "lower": 0.9121262980960871,
+              "upper": 1.3189051473631919
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2020-01",
+          "outcome": 1.083591076351563,
+          "binaryOutcome": true,
+          "probability": 0.815,
+          "benchmarkProbability": 0.8181818181818182,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0245447868119777,
+              "upper": 1.192650317545552
+            },
+            "0.9": {
+              "lower": 0.9210301798718448,
+              "upper": 1.3245017943472128
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2020-04",
+          "outcome": 1.3174632295306021,
+          "binaryOutcome": true,
+          "probability": 0.6918,
+          "benchmarkProbability": 0.8103448275862069,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9797060563219627,
+              "upper": 1.1587266722847631
+            },
+            "0.9": {
+              "lower": 0.8689760328899458,
+              "upper": 1.295562796959136
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2020-07",
+          "outcome": 1.3189888930361764,
+          "binaryOutcome": true,
+          "probability": 0.7366,
+          "benchmarkProbability": 0.8032786885245902,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9945348601340763,
+              "upper": 1.1814609246215926
+            },
+            "0.9": {
+              "lower": 0.8777384024776226,
+              "upper": 1.3286707811044927
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2020-10",
+          "outcome": 1.3553470916734325,
+          "binaryOutcome": true,
+          "probability": 0.7512,
+          "benchmarkProbability": 0.8125,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0004287095042637,
+              "upper": 1.1882546659510647
+            },
+            "0.9": {
+              "lower": 0.887251822256866,
+              "upper": 1.3438181289545656
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2021-01",
+          "outcome": 1.1904943427602772,
+          "binaryOutcome": true,
+          "probability": 0.7876,
+          "benchmarkProbability": 0.8208955223880597,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0157453767425477,
+              "upper": 1.2016043632625768
+            },
+            "0.9": {
+              "lower": 0.8920026782532507,
+              "upper": 1.3508322747554302
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2021-04",
+          "outcome": 1.0850721989572099,
+          "binaryOutcome": true,
+          "probability": 0.7986,
+          "benchmarkProbability": 0.8285714285714286,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0209281984773018,
+              "upper": 1.2081336075632498
+            },
+            "0.9": {
+              "lower": 0.9035076182698342,
+              "upper": 1.3595807436847855
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2021-07",
+          "outcome": 1.0312637100845847,
+          "binaryOutcome": true,
+          "probability": 0.8134,
+          "benchmarkProbability": 0.8356164383561644,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0274132857184775,
+              "upper": 1.2115681431956495
+            },
+            "0.9": {
+              "lower": 0.9072082801464458,
+              "upper": 1.363679416741126
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2021-10",
+          "outcome": 0.9323887059926284,
+          "binaryOutcome": false,
+          "probability": 0.8136,
+          "benchmarkProbability": 0.8421052631578947,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0245340811395431,
+              "upper": 1.207278643924178
+            },
+            "0.9": {
+              "lower": 0.9111154705133083,
+              "upper": 1.36167928911252
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2022-01",
+          "outcome": 0.9581009042415904,
+          "binaryOutcome": false,
+          "probability": 0.8268,
+          "benchmarkProbability": 0.8481012658227848,
+          "intervals": {
+            "0.5": {
+              "lower": 1.034895357870119,
+              "upper": 1.2172106348310703
+            },
+            "0.9": {
+              "lower": 0.917946390161785,
+              "upper": 1.3673569484626291
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2022-04",
+          "outcome": 0.957322356290568,
+          "binaryOutcome": false,
+          "probability": 0.8152,
+          "benchmarkProbability": 0.8536585365853658,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0283419739076607,
+              "upper": 1.2132132064486936
+            },
+            "0.9": {
+              "lower": 0.9109992026700816,
+              "upper": 1.3612314688116913
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2022-07",
+          "outcome": 1.0429371236463258,
+          "binaryOutcome": true,
+          "probability": 0.7584,
+          "benchmarkProbability": 0.8470588235294118,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0029884677550835,
+              "upper": 1.1858347072953068
+            },
+            "0.9": {
+              "lower": 0.8870637865989587,
+              "upper": 1.3360214911811537
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2022-10",
+          "outcome": 1.0308260896876302,
+          "binaryOutcome": true,
+          "probability": 0.7674,
+          "benchmarkProbability": 0.8295454545454546,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0065602850942459,
+              "upper": 1.1929804489359077
+            },
+            "0.9": {
+              "lower": 0.8841292521036022,
+              "upper": 1.3462530062674407
+            }
+          }
+        },
+        {
+          "portfolioId": "dynamic",
+          "asOf": "2023-01",
+          "outcome": 1.1417273698937023,
+          "binaryOutcome": true,
+          "probability": 0.7432,
+          "benchmarkProbability": 0.8021978021978022,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9973407126357732,
+              "upper": 1.1886418958249672
+            },
+            "0.9": {
+              "lower": 0.8740317498242676,
+              "upper": 1.3368981638916195
+            }
+          }
+        }
+      ],
+      "coverage": [
+        {
+          "level": 0.5,
+          "sampleSize": 21,
+          "hits": 10,
+          "observedCoverage": 0.47619047619047616,
+          "wilson95": {
+            "lower": 0.2834400610153417,
+            "upper": 0.6763046541715557
+          },
+          "compatible": true
+        },
+        {
+          "level": 0.9,
+          "sampleSize": 21,
+          "hits": 19,
+          "observedCoverage": 0.9047619047619048,
+          "wilson95": {
+            "lower": 0.7108586092608176,
+            "upper": 0.9734812325619255
+          },
+          "compatible": true
+        }
+      ],
+      "probability": {
+        "model": {
+          "sampleSize": 21,
+          "brierScore": 0.1981458761904762,
+          "calibrationError": 0.20284761904761894,
+          "calibration": [
+            {
+              "lowerBound": 0.6000000000000001,
+              "upperBound": 0.7000000000000001,
+              "count": 1,
+              "meanProbability": 0.6918,
+              "observedFrequency": 1,
+              "absoluteCalibrationGap": 0.30820000000000003
+            },
+            {
+              "lowerBound": 0.7000000000000001,
+              "upperBound": 0.8,
+              "count": 11,
+              "meanProbability": 0.7665454545454545,
+              "observedFrequency": 0.9090909090909091,
+              "absoluteCalibrationGap": 0.14254545454545453
+            },
+            {
+              "lowerBound": 0.8,
+              "upperBound": 0.9,
+              "count": 9,
+              "meanProbability": 0.8203999999999998,
+              "observedFrequency": 0.5555555555555556,
+              "absoluteCalibrationGap": 0.2648444444444442
+            }
+          ]
+        },
+        "benchmark": {
+          "sampleSize": 21,
+          "brierScore": 0.25,
+          "calibrationError": 0.26190476190476186,
+          "calibration": [
+            {
+              "lowerBound": 0.5,
+              "upperBound": 0.6000000000000001,
+              "count": 21,
+              "meanProbability": 0.5,
+              "observedFrequency": 0.7619047619047619,
+              "absoluteCalibrationGap": 0.26190476190476186
+            }
+          ]
+        },
+        "comparison": {
+          "beatsBenchmark": true,
+          "brierImprovement": 0.05185412380952381
+        },
+        "dynamicBaseRateBrierScore": 0.1884045617817992,
+        "beatsDynamicBaseRate": false
+      }
+    },
+    {
+      "portfolioId": "world-only",
+      "records": [
+        {
+          "portfolioId": "world-only",
+          "asOf": "2018-01",
+          "outcome": 1.013623978201635,
+          "binaryOutcome": true,
+          "probability": 0.831,
+          "benchmarkProbability": 0.7741935483870968,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0317669262320395,
+              "upper": 1.2077359602245274
+            },
+            "0.9": {
+              "lower": 0.9221475060357146,
+              "upper": 1.351499957321313
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2018-04",
+          "outcome": 1.1391015053053277,
+          "binaryOutcome": true,
+          "probability": 0.8094,
+          "benchmarkProbability": 0.7647058823529411,
+          "intervals": {
+            "0.5": {
+              "lower": 1.021293274944897,
+              "upper": 1.186675193002948
+            },
+            "0.9": {
+              "lower": 0.9127350408949537,
+              "upper": 1.3213660445658661
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2018-07",
+          "outcome": 1.0980187839031712,
+          "binaryOutcome": true,
+          "probability": 0.8294,
+          "benchmarkProbability": 0.7837837837837838,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0314957473474013,
+              "upper": 1.2023883631639631
+            },
+            "0.9": {
+              "lower": 0.9207749030815762,
+              "upper": 1.3376189478137057
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2018-10",
+          "outcome": 1.1402028514627378,
+          "binaryOutcome": true,
+          "probability": 0.8466,
+          "benchmarkProbability": 0.8,
+          "intervals": {
+            "0.5": {
+              "lower": 1.036806458422193,
+              "upper": 1.2028873496149801
+            },
+            "0.9": {
+              "lower": 0.9343185639410783,
+              "upper": 1.3275428153099216
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2019-01",
+          "outcome": 1.2191397554130965,
+          "binaryOutcome": true,
+          "probability": 0.7478,
+          "benchmarkProbability": 0.7906976744186046,
+          "intervals": {
+            "0.5": {
+              "lower": 0.9994993315833121,
+              "upper": 1.1659939768068575
+            },
+            "0.9": {
+              "lower": 0.8896746980865601,
+              "upper": 1.3113993423521373
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2019-04",
+          "outcome": 0.9838348074530765,
+          "binaryOutcome": false,
+          "probability": 0.7948,
+          "benchmarkProbability": 0.8043478260869565,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0186107497130565,
+              "upper": 1.196349702031343
+            },
+            "0.9": {
+              "lower": 0.9031649865381794,
+              "upper": 1.342105230590654
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2019-07",
+          "outcome": 0.9982905954419838,
+          "binaryOutcome": false,
+          "probability": 0.7994,
+          "benchmarkProbability": 0.8163265306122449,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0204144522328495,
+              "upper": 1.197708472249571
+            },
+            "0.9": {
+              "lower": 0.9021398898140008,
+              "upper": 1.345077554371741
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2019-10",
+          "outcome": 1.002341262435456,
+          "binaryOutcome": true,
+          "probability": 0.8168,
+          "benchmarkProbability": 0.8269230769230769,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0253209213663093,
+              "upper": 1.197811108024785
+            },
+            "0.9": {
+              "lower": 0.9143271069985385,
+              "upper": 1.3448554034711515
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2020-01",
+          "outcome": 1.0578585760001906,
+          "binaryOutcome": true,
+          "probability": 0.8308,
+          "benchmarkProbability": 0.8363636363636363,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0327102436271605,
+              "upper": 1.2054304978887533
+            },
+            "0.9": {
+              "lower": 0.9213091439551394,
+              "upper": 1.3515150998983159
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2020-04",
+          "outcome": 1.3259428717455193,
+          "binaryOutcome": true,
+          "probability": 0.7032,
+          "benchmarkProbability": 0.8275862068965517,
+          "intervals": {
+            "0.5": {
+              "lower": 0.981000598364667,
+              "upper": 1.1728589039343702
+            },
+            "0.9": {
+              "lower": 0.8645053936640616,
+              "upper": 1.3243255467775161
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2020-07",
+          "outcome": 1.3566400008012605,
+          "binaryOutcome": true,
+          "probability": 0.7618,
+          "benchmarkProbability": 0.819672131147541,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0039714679491851,
+              "upper": 1.1993602770880787
+            },
+            "0.9": {
+              "lower": 0.8767646475814674,
+              "upper": 1.3541189962726132
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2020-10",
+          "outcome": 1.4153976195547449,
+          "binaryOutcome": true,
+          "probability": 0.7692,
+          "benchmarkProbability": 0.8125,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0078579918107349,
+              "upper": 1.2014167622815624
+            },
+            "0.9": {
+              "lower": 0.8831870196621088,
+              "upper": 1.3546820255426746
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2021-01",
+          "outcome": 1.2505419579796824,
+          "binaryOutcome": true,
+          "probability": 0.783,
+          "benchmarkProbability": 0.8208955223880597,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0143114663028852,
+              "upper": 1.22074332172323
+            },
+            "0.9": {
+              "lower": 0.8828004298242289,
+              "upper": 1.3869033821110393
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2021-04",
+          "outcome": 1.1206329321693551,
+          "binaryOutcome": true,
+          "probability": 0.8178,
+          "benchmarkProbability": 0.8285714285714286,
+          "intervals": {
+            "0.5": {
+              "lower": 1.029297682978302,
+              "upper": 1.2263086957459968
+            },
+            "0.9": {
+              "lower": 0.90782502337515,
+              "upper": 1.3813888068185898
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2021-07",
+          "outcome": 1.049645900012294,
+          "binaryOutcome": true,
+          "probability": 0.8098,
+          "benchmarkProbability": 0.8356164383561644,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0285600945263629,
+              "upper": 1.2306824731289963
+            },
+            "0.9": {
+              "lower": 0.9059563888763125,
+              "upper": 1.394789238181843
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2021-10",
+          "outcome": 0.9550464547465469,
+          "binaryOutcome": false,
+          "probability": 0.8186,
+          "benchmarkProbability": 0.8421052631578947,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0326181488156516,
+              "upper": 1.232666797060002
+            },
+            "0.9": {
+              "lower": 0.9092938495566771,
+              "upper": 1.3878961046643041
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2022-01",
+          "outcome": 0.9572637947373,
+          "binaryOutcome": false,
+          "probability": 0.8356,
+          "benchmarkProbability": 0.8481012658227848,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0409648974722197,
+              "upper": 1.2413339948461843
+            },
+            "0.9": {
+              "lower": 0.9105720773392665,
+              "upper": 1.3967644630217102
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2022-04",
+          "outcome": 0.9666267341474064,
+          "binaryOutcome": false,
+          "probability": 0.821,
+          "benchmarkProbability": 0.8536585365853658,
+          "intervals": {
+            "0.5": {
+              "lower": 1.032486838117309,
+              "upper": 1.2287165963242406
+            },
+            "0.9": {
+              "lower": 0.912566540892157,
+              "upper": 1.3897852193494369
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2022-07",
+          "outcome": 1.055381075228306,
+          "binaryOutcome": true,
+          "probability": 0.7784,
+          "benchmarkProbability": 0.8470588235294118,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0135849047522554,
+              "upper": 1.215683251266368
+            },
+            "0.9": {
+              "lower": 0.8918682055799915,
+              "upper": 1.3758750183003379
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2022-10",
+          "outcome": 1.0322782254917553,
+          "binaryOutcome": true,
+          "probability": 0.7654,
+          "benchmarkProbability": 0.8295454545454546,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0062770425599359,
+              "upper": 1.2029250360130286
+            },
+            "0.9": {
+              "lower": 0.8841695067680294,
+              "upper": 1.3747526651183601
+            }
+          }
+        },
+        {
+          "portfolioId": "world-only",
+          "asOf": "2023-01",
+          "outcome": 1.184217834036281,
+          "binaryOutcome": true,
+          "probability": 0.767,
+          "benchmarkProbability": 0.8021978021978022,
+          "intervals": {
+            "0.5": {
+              "lower": 1.0066173612904148,
+              "upper": 1.202533108201307
+            },
+            "0.9": {
+              "lower": 0.8822036215692048,
+              "upper": 1.363398421419808
+            }
+          }
+        }
+      ],
+      "coverage": [
+        {
+          "level": 0.5,
+          "sampleSize": 21,
+          "hits": 9,
+          "observedCoverage": 0.42857142857142855,
+          "wilson95": {
+            "lower": 0.2446996892537596,
+            "upper": 0.6345344563069328
+          },
+          "compatible": true
+        },
+        {
+          "level": 0.9,
+          "sampleSize": 21,
+          "hits": 18,
+          "observedCoverage": 0.8571428571428571,
+          "wilson95": {
+            "lower": 0.6536393971937906,
+            "upper": 0.9501898750027473
+          },
+          "compatible": true
+        }
+      ],
+      "probability": {
+        "model": {
+          "sampleSize": 21,
+          "brierScore": 0.19187787809523807,
+          "calibrationError": 0.06651428571428566,
+          "calibration": [
+            {
+              "lowerBound": 0.7000000000000001,
+              "upperBound": 0.8,
+              "count": 10,
+              "meanProbability": 0.7670000000000001,
+              "observedFrequency": 0.8,
+              "absoluteCalibrationGap": 0.03299999999999992
+            },
+            {
+              "lowerBound": 0.8,
+              "upperBound": 0.9,
+              "count": 11,
+              "meanProbability": 0.8242545454545455,
+              "observedFrequency": 0.7272727272727273,
+              "absoluteCalibrationGap": 0.09698181818181817
+            }
+          ]
+        },
+        "benchmark": {
+          "sampleSize": 21,
+          "brierScore": 0.25,
+          "calibrationError": 0.26190476190476186,
+          "calibration": [
+            {
+              "lowerBound": 0.5,
+              "upperBound": 0.6000000000000001,
+              "count": 21,
+              "meanProbability": 0.5,
+              "observedFrequency": 0.7619047619047619,
+              "absoluteCalibrationGap": 0.26190476190476186
+            }
+          ]
+        },
+        "comparison": {
+          "beatsBenchmark": true,
+          "brierImprovement": 0.05812212190476193
+        },
+        "dynamicBaseRateBrierScore": 0.1924579107538046,
+        "beatsDynamicBaseRate": true
+      }
+    }
+  ],
+  "aggregate": {
+    "rawForecastCount": 84,
+    "coverage": [
+      {
+        "level": 0.5,
+        "sampleSize": 84,
+        "hits": 39,
+        "observedCoverage": 0.4642857142857143,
+        "wilson95": {
+          "lower": 0.3615422828345619,
+          "upper": 0.5701528406236281
+        },
+        "compatible": true
+      },
+      {
+        "level": 0.9,
+        "sampleSize": 84,
+        "hits": 73,
+        "observedCoverage": 0.8690476190476191,
+        "wilson95": {
+          "lower": 0.780539270768134,
+          "upper": 0.9252777868305695
+        },
+        "compatible": true
+      }
+    ],
+    "probability": {
+      "model": {
+        "sampleSize": 84,
+        "brierScore": 0.1965673938095239,
+        "calibrationError": 0.17948809523809522,
+        "calibration": [
+          {
+            "lowerBound": 0.6000000000000001,
+            "upperBound": 0.7000000000000001,
+            "count": 3,
+            "meanProbability": 0.6825999999999999,
+            "observedFrequency": 1,
+            "absoluteCalibrationGap": 0.3174000000000001
+          },
+          {
+            "lowerBound": 0.7000000000000001,
+            "upperBound": 0.8,
+            "count": 45,
+            "meanProbability": 0.7650488888888889,
+            "observedFrequency": 0.8888888888888888,
+            "absoluteCalibrationGap": 0.12383999999999995
+          },
+          {
+            "lowerBound": 0.8,
+            "upperBound": 0.9,
+            "count": 36,
+            "meanProbability": 0.820888888888889,
+            "observedFrequency": 0.5833333333333334,
+            "absoluteCalibrationGap": 0.23755555555555563
+          }
+        ]
+      },
+      "benchmark": {
+        "sampleSize": 84,
+        "brierScore": 0.25,
+        "calibrationError": 0.26190476190476186,
+        "calibration": [
+          {
+            "lowerBound": 0.5,
+            "upperBound": 0.6000000000000001,
+            "count": 84,
+            "meanProbability": 0.5,
+            "observedFrequency": 0.7619047619047619,
+            "absoluteCalibrationGap": 0.26190476190476186
+          }
+        ]
+      },
+      "comparison": {
+        "beatsBenchmark": true,
+        "brierImprovement": 0.0534326061904761
+      }
+    },
+    "independentForecastCount": null,
+    "mayExposeRealWorldProbability": false
+  },
+  "engineModified": false,
+  "blockers": [
+    "Données exactes/licenciées absentes.",
+    "Holdout vierge absent.",
+    "Fenêtres et portefeuilles dépendants.",
+    "Moins de 100 prévisions indépendantes démontrées."
+  ]
+}

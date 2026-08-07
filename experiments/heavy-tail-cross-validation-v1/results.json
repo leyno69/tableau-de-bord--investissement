@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "heavy-tail-cross-validation-v1",
+  "status": "retrospective-temporal-cross-validation",
+  "artifactEvidence": {
+    "workflowRunId": 31196163923,
+    "artifactId": 9000868945,
+    "artifactSha256": "4bce9037ee89238d067b46e36582172bf16efeaadd51ba89d491e473cdfb72ad"
+  },
+  "folds": [
+    { "id": "fold-1", "selectedStudentDf": 4, "gaussianValidationNll": -54.087528168406095, "studentValidationNll": -52.75576570596414, "winner": "gaussian" },
+    { "id": "fold-2", "selectedStudentDf": 6, "gaussianValidationNll": -44.39046831572827, "studentValidationNll": -46.97620639596825, "winner": "student-t" },
+    { "id": "fold-3", "selectedStudentDf": 4, "gaussianValidationNll": -47.583532067871836, "studentValidationNll": -44.246171127510195, "winner": "gaussian" }
+  ],
+  "aggregate": {
+    "studentWins": 1,
+    "gaussianWins": 2,
+    "totalValidationNllDeltaStudentMinusGaussian": 2.083385322563622
+  },
+  "conclusion": {
+    "status": "heavy-tail-alone-not-supported",
+    "statement": "La Student-t améliore un fold sur trois seulement et dégrade le score de validation agrégé. Les queues épaisses seules ne justifient pas un changement du moteur."
+  }
+}

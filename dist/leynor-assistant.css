@@ -1,0 +1,127 @@
+.leynor-launcher {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 40;
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(91, 184, 255, .42);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #173b66, #071426 72%);
+  box-shadow: 0 0 0 1px rgba(214, 171, 83, .1), 0 15px 42px rgba(0, 117, 255, .3);
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.leynor-launcher:hover { transform: translateY(-2px) scale(1.025); box-shadow: 0 0 34px rgba(28, 153, 255, .42), 0 18px 48px rgba(0,0,0,.34); }
+
+.leynor-panel {
+  position: fixed;
+  z-index: 50;
+  right: 22px;
+  bottom: 102px;
+  width: min(450px, calc(100vw - 28px));
+  height: min(720px, calc(100vh - 138px));
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  overflow: hidden;
+  border: 1px solid rgba(83, 159, 222, .22);
+  border-radius: 26px;
+  background: #071426;
+  color: #eef6ff;
+  box-shadow: 0 30px 90px rgba(0, 7, 18, .64), 0 0 54px rgba(0, 119, 255, .12);
+}
+.leynor-panel[hidden] { display: none; }
+
+.leynor-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 19px 18px 17px;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(39, 151, 255, .25), transparent 42%),
+    linear-gradient(135deg, #0b2039, #071426 72%);
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.leynor-identity { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.leynor-head p, .leynor-head h2 { margin: 0; color: inherit; }
+.leynor-head h2 { font-size: 1rem; letter-spacing: -.01em; }
+.leynor-kicker { color: #d6ab53 !important; font-size: .7rem; font-weight: 850; letter-spacing: .17em; }
+.leynor-presence-label { margin-top: 4px !important; color: #8fb8db !important; font-size: .76rem; }
+.leynor-close { border: 0; background: transparent; color: #a9bfd2; font-size: 1.55rem; cursor: pointer; }
+
+.leynor-welcome { display: grid; gap: 4px; padding: 14px 18px; background: rgba(255,255,255,.025); border-bottom: 1px solid rgba(255,255,255,.06); }
+.leynor-welcome strong { color: #f4f8fc; font-size: .91rem; }
+.leynor-welcome span { color: #829ab0; font-size: .76rem; line-height: 1.45; }
+
+.leynor-presence { position: relative; width: 62px; height: 62px; display: grid; place-items: center; flex: 0 0 auto; }
+.leynor-presence.compact { width: 46px; height: 46px; }
+.leynor-presence-halo { position: absolute; inset: 3px; border-radius: 50%; background: rgba(0, 137, 255, .18); filter: blur(8px); animation: leynor-breathe 4.8s ease-in-out infinite; }
+.leynor-presence-core { position: relative; width: 48px; height: 48px; overflow: hidden; display: grid; place-items: center; border: 1px solid rgba(87, 179, 255, .48); border-radius: 50%; background: radial-gradient(circle at 33% 24%, #194c7d, #08172b 72%); box-shadow: inset 0 0 18px rgba(46, 147, 255, .15), 0 0 18px rgba(0, 126, 255, .2); }
+.compact .leynor-presence-core { width: 39px; height: 39px; }
+.leynor-presence-letter { position: relative; z-index: 2; color: #f1f7fc; font-size: 1.35rem; font-weight: 900; letter-spacing: -.08em; transform: translateX(-1px); }
+.compact .leynor-presence-letter { font-size: 1.08rem; }
+.leynor-presence-curve { position: absolute; z-index: 3; left: 10px; bottom: 12px; width: 29px; height: 13px; border-top: 2px solid #d6ab53; border-radius: 50%; transform: rotate(-17deg); box-shadow: 0 -1px 5px rgba(214,171,83,.48); }
+.compact .leynor-presence-curve { left: 8px; bottom: 9px; width: 24px; height: 11px; }
+.leynor-star { position: absolute; z-index: 4; color: #d6ab53; text-shadow: 0 0 8px rgba(214,171,83,.75); animation: leynor-twinkle 5.5s ease-in-out infinite; }
+.leynor-star-one { top: 7px; right: 8px; font-size: .5rem; }
+.leynor-star-two { top: 14px; right: 5px; font-size: .28rem; animation-delay: 1.7s; }
+.leynor-wave { position: absolute; inset: 2px; border: 1px solid rgba(61, 168, 255, .3); border-radius: 50%; opacity: 0; }
+
+.leynor-panel[data-presence="listening"] .leynor-presence-core,
+.leynor-launcher[data-presence="listening"] .leynor-presence-core { box-shadow: 0 0 26px rgba(0,157,255,.72), inset 0 0 22px rgba(0,154,255,.28); }
+.leynor-panel[data-presence="listening"] .leynor-wave,
+.leynor-launcher[data-presence="listening"] .leynor-wave { animation: leynor-listen-wave 1.45s ease-out infinite; }
+.leynor-panel[data-presence="listening"] .leynor-wave-two,
+.leynor-launcher[data-presence="listening"] .leynor-wave-two { animation-delay: .65s; }
+.leynor-panel[data-presence="thinking"] .leynor-presence-core { animation: leynor-think 2s linear infinite; }
+.leynor-panel[data-presence="thinking"] .leynor-star { animation-duration: 1.1s; }
+.leynor-panel[data-presence="speaking"] .leynor-presence-core { animation: leynor-speak .78s ease-in-out infinite alternate; }
+.leynor-panel[data-presence="error"] .leynor-presence-core { border-color: rgba(255, 139, 139, .7); box-shadow: 0 0 22px rgba(255, 77, 77, .24); }
+
+.leynor-messages { overflow-y: auto; padding: 18px; background: linear-gradient(180deg, #09182a, #071426); display: flex; flex-direction: column; gap: 12px; }
+.leynor-message { max-width: 88%; padding: 12px 14px; border-radius: 17px; line-height: 1.48; white-space: pre-wrap; font-size: .9rem; }
+.leynor-message small { display: block; margin-top: 7px; font-size: .68rem; opacity: .58; }
+.leynor-message.user { align-self: flex-end; background: linear-gradient(135deg, #155a92, #0d3c68); color: #fff; border-bottom-right-radius: 5px; }
+.leynor-message.assistant { align-self: flex-start; background: rgba(255,255,255,.055); color: #dce8f3; border: 1px solid rgba(255,255,255,.08); border-bottom-left-radius: 5px; }
+.leynor-message.notice { border-color: rgba(214,171,83,.24); background: rgba(214,171,83,.07); color: #dac79f; }
+.leynor-thinking-message { display: flex; align-items: center; gap: 8px; }
+.leynor-thinking-message .leynor-presence { width: 29px; height: 29px; }
+.leynor-thinking-message .leynor-presence-core { width: 25px; height: 25px; }
+.leynor-thinking-message .leynor-presence-letter { font-size: .7rem; }
+.leynor-thinking-message .leynor-presence-curve, .leynor-thinking-message .leynor-star { display: none; }
+.leynor-typing { display: inline-flex; gap: 4px; align-items: center; }
+.leynor-typing span { width: 5px; height: 5px; border-radius: 50%; background: #d6ab53; opacity: .3; animation: leynor-dot 1.1s infinite; }
+.leynor-typing span:nth-child(2) { animation-delay: .15s; }
+.leynor-typing span:nth-child(3) { animation-delay: .3s; }
+
+.leynor-form { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; padding: 14px; border-top: 1px solid rgba(255,255,255,.07); background: #081629; }
+.leynor-form textarea { resize: none; min-height: 44px; max-height: 120px; padding: 11px 12px; color: #eef6ff; background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.11); border-radius: 13px; font: inherit; }
+.leynor-form textarea::placeholder { color: #6f899f; }
+.leynor-form textarea:focus { outline: none; border-color: rgba(52,164,255,.72); box-shadow: 0 0 0 3px rgba(40, 145, 236, .11); }
+.leynor-send, .leynor-mic { border: 0; border-radius: 12px; min-width: 44px; cursor: pointer; font-weight: 750; }
+.leynor-send { background: linear-gradient(135deg, #d6ab53, #edc979); color: #071426; }
+.leynor-send:disabled { opacity: .4; cursor: not-allowed; }
+.leynor-mic { color: #69baff; background: rgba(45,143,224,.12); border: 1px solid rgba(54,157,242,.2); }
+.leynor-mic[aria-pressed="true"] { color: #fff; background: #167bc0; box-shadow: 0 0 18px rgba(0,146,255,.38); animation: leynor-mic-pulse 1.2s ease-in-out infinite; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+@keyframes leynor-breathe { 0%,100% { transform: scale(.92); opacity: .42; } 50% { transform: scale(1.12); opacity: .9; } }
+@keyframes leynor-twinkle { 0%,72%,100% { opacity: .28; transform: scale(.75); } 78% { opacity: 1; transform: scale(1.32); } }
+@keyframes leynor-listen-wave { 0% { opacity: .65; transform: scale(.82); } 100% { opacity: 0; transform: scale(1.34); } }
+@keyframes leynor-think { to { transform: rotate(360deg); } }
+@keyframes leynor-speak { from { transform: scale(.96); filter: brightness(.92); } to { transform: scale(1.07); filter: brightness(1.2); } }
+@keyframes leynor-dot { 50% { opacity: 1; transform: translateY(-2px); } }
+@keyframes leynor-mic-pulse { 50% { box-shadow: 0 0 28px rgba(0,146,255,.62); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .leynor-presence-halo, .leynor-star, .leynor-wave, .leynor-presence-core, .leynor-typing span, .leynor-mic { animation: none !important; }
+}
+@media (max-width: 600px) {
+  .leynor-launcher { right: 14px; bottom: 14px; }
+  .leynor-panel { inset: 0; width: 100vw; height: 100dvh; border-radius: 0; }
+  .leynor-message { max-width: 92%; }
+}

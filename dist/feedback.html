@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LEYNOR — Retour bêta</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="workspace" style="max-width:1000px;margin:0 auto;padding:32px">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">PROGRAMME BÊTA</p>
+        <h1>Donner un retour sur LEYNOR</h1>
+        <p class="subtitle">Aucune donnée financière réelle n’est incluse automatiquement dans ce formulaire.</p>
+      </div>
+      <div class="topbar-actions"><a class="btn secondary" href="index.html">Retour au tableau de bord</a></div>
+    </header>
+
+    <section class="metric-grid" aria-label="Résumé des retours">
+      <article class="metric-card"><span>Retours enregistrés</span><strong id="feedbackCount">0</strong><small>sur cet appareil</small></article>
+      <article class="metric-card"><span>Facilité moyenne</span><strong id="feedbackEase">—</strong><small>sur 5</small></article>
+      <article class="metric-card"><span>Utilité moyenne</span><strong id="feedbackUsefulness">—</strong><small>sur 5</small></article>
+      <article class="metric-card"><span>Confiance moyenne</span><strong id="feedbackConfidence">—</strong><small>sur 5</small></article>
+    </section>
+
+    <section class="layout-main" style="margin-top:24px">
+      <article class="panel">
+        <div class="panel-head"><div><p class="eyebrow">NOUVEAU RETOUR</p><h2>Expérience du testeur</h2></div><span class="badge">BÊTA</span></div>
+        <div class="form-grid">
+          <label class="field"><span>Prénom ou pseudonyme</span><input id="feedbackTester" placeholder="Optionnel" /></label>
+          <label class="field"><span>Zone testée</span><select id="feedbackArea"><option>Tableau de bord</option><option>Portefeuille</option><option>Tendances</option><option>Simulation</option><option>Assistant LEYNOR</option></select></label>
+          <label class="field"><span>Scénario utilisé</span><input id="feedbackScenario" placeholder="Ex. Débutant prudent" /></label>
+          <label class="field"><span>Type de retour</span><select id="feedbackCategory"><option>Suggestion</option><option>Problème</option><option>Incompréhension</option><option>Point positif</option><option>Donnée ou preuve insuffisante</option></select></label>
+          <label class="field"><span>Facilité d’utilisation</span><select id="feedbackEaseInput"><option value="1">1 — difficile</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5 — très simple</option></select></label>
+          <label class="field"><span>Utilité perçue</span><select id="feedbackUsefulnessInput"><option value="1">1 — faible</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5 — très utile</option></select></label>
+          <label class="field"><span>Confiance dans les informations</span><select id="feedbackConfidenceInput"><option value="1">1 — faible</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5 — élevée</option></select></label>
+          <label class="field" style="grid-column:1/-1"><span>Commentaire</span><textarea id="feedbackMessage" rows="5" required placeholder="Ce qui a été clair, bloquant ou insuffisamment justifié…"></textarea></label>
+        </div>
+        <div class="dialog-actions"><button id="exportFeedback" class="btn secondary" type="button">Exporter les retours</button><button id="saveFeedback" class="btn" type="button">Enregistrer le retour</button></div>
+        <p id="feedbackStatus" class="subtitle" aria-live="polite">Les retours sont stockés localement sur cet appareil.</p>
+      </article>
+
+      <aside class="panel insights-column">
+        <div class="panel-head"><div><p class="eyebrow">DERNIERS RETOURS</p><h2>Historique local</h2></div></div>
+        <div id="feedbackList" class="alerts-list"></div>
+      </aside>
+    </section>
+  </main>
+  <script type="module" src="feedback-ui.js"></script>
+</body>
+</html>
