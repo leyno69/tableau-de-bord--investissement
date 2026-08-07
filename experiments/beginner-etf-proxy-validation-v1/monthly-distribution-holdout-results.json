@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "beginner-monthly-distribution-holdout-v1",
+  "status": "confirmatory-holdout",
+  "artifactEvidence": {
+    "workflowRunId": 31194478626,
+    "artifactId": 9000192481,
+    "artifactSha256": "91f8af9a97f2ad46aa64d995da02087dbcab268f8e3d00601958eb7ec426890c"
+  },
+  "preregistered": {
+    "start": "2024-01-01",
+    "end": "2026-07-31",
+    "alpha": 0.05,
+    "directionalCriterion": "skewness < 0 and excessKurtosis > 0",
+    "statisticalCriterion": "Jarque-Bera approximate p < 0.05"
+  },
+  "period": {
+    "start": "2024-01-02",
+    "end": "2026-07-31",
+    "monthlyObservationCount": 30
+  },
+  "empirical": {
+    "mean": 0.009838169533558738,
+    "sampleVolatility": 0.02605566699091198,
+    "skewness": -0.22871310003901055,
+    "excessKurtosis": 0.30877418696371395,
+    "worstReturn": -0.04755290881556018,
+    "bestReturn": 0.06796719046417699,
+    "beyond2SigmaCount": 1,
+    "beyond3SigmaCount": 0,
+    "negativeBeyond2SigmaCount": 0,
+    "absoluteReturnLag1Correlation": 0.14384230480711147
+  },
+  "normalityDiagnostic": {
+    "statistic": 0.3807252838161504,
+    "approximatePValueDf2": 0.8266592982749043
+  },
+  "replication": {
+    "directionalReplication": true,
+    "statisticalReplication": false,
+    "classification": "directionally-consistent-inconclusive"
+  },
+  "interpretation": {
+    "verdict": "inconclusive",
+    "statement": "Le holdout conserve la direction du signal (asymétrie négative et kurtosis positive), mais ne reproduit pas le rejet statistique de la normalité. Aucune modification du moteur n'est justifiée à ce stade."
+  }
+}
