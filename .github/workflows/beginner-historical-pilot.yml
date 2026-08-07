@@ -1,0 +1,37 @@
+name: Beginner historical pilot
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'experiments/beginner-historical-pilot-v1/**'
+      - 'validation/portfolioHistoricalReplayEngine.js'
+      - 'validation/portfolioHistoricalMetrics.js'
+      - '.github/workflows/beginner-historical-pilot.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  historical-pilot:
+    name: Historical development replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run one-year historical pilot
+        run: node experiments/beginner-historical-pilot-v1/run-historical-dev.mjs
+
+      - name: Upload historical pilot result
+        uses: actions/upload-artifact@v4
+        with:
+          name: beginner-historical-pilot-dev
+          path: artifacts/beginner-historical-pilot-dev.json
+          if-no-files-found: error
