@@ -9,6 +9,9 @@ test('prépare une campagne accélérée reproductible sans fabriquer de fenêtr
   assert.equal(first.status, 'blocked-before-locked-historical-run');
   assert.equal(first.windowRegistry.windows.length, 0);
   assert.equal(first.dependenceMethod.status, 'method-locked-before-return-values');
+  assert.equal(first.metadataSelectionMethod.status, 'selection-method-locked-before-return-values');
+  assert.equal(first.metadataSelectionMethod.minimumTrainingMonths, 36);
+  assert.equal(first.metadataSeal, null);
   assert.equal(first.results.length, 0);
   assert.equal(first.engineModified, false);
 });

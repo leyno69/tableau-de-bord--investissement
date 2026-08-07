@@ -28,6 +28,19 @@ Les deux séries EUR exactes et licenciées sont obligatoires. Les manifestes do
 4. enregistrer tout chevauchement avec une période déjà inspectée ;
 5. laisser `independentWindowCount` à `null` avant l'audit de dépendance.
 
+### Amendement pré-valeurs sur l'estimation
+
+Le protocole initial disait que la moyenne et la variance seraient estimées avec les observations antérieures à l'origine, sans fixer le volume minimal. Cette omission laissait une liberté méthodologique indésirable. Le `2026-08-07T21:48:59Z`, toujours sans manifeste ni valeur licenciée, la règle suivante a été verrouillée :
+
+- intersection des couvertures déclarées ;
+- départ au premier mois civil complet de cette couverture commune ;
+- 36 mois mensuels complets d'estimation avant la première origine, conformément à la campagne de calibration de référence ;
+- un pas de douze mois entre les origines ;
+- fenêtres de douze mois non chevauchantes ;
+- arrêt dès que la maturité dépasse la couverture commune ou atteint la date de préenregistrement.
+
+Cette précision est un amendement documenté avant données, pas une preuve favorable ni une recalibration issue des résultats.
+
 Le fait d'acquérir une nouvelle source pour une ancienne période n'efface pas la connaissance préalable des événements de marché. Les fenêtres concernées restent identifiées `previously-inspected-period`.
 
 ## Score et falsification
@@ -65,6 +78,12 @@ La méthode s'appuie sur l'extension du bootstrap aux séquences stationnaires d
 
 Le verrou est en deux phases. La formule, la graine, les réplications et les règles de décision sont désormais figées. Après réception des seuls manifestes de couverture, elles seront liées à l'empreinte du registre de fenêtres avant lecture des niveaux ou rendements. Aucune longueur de bloc ne pourra ensuite être choisie selon le résultat le plus favorable.
 
+## Barrière d'accès aux données
+
+Le scellement métadonnées-seulement refuse explicitement tout manifeste possédant un champ `series`, `values`, `prices`, `levels`, `returns` ou `csv`. Il enregistre les empreintes attendues des fichiers, calcule l'intersection de couverture, construit le registre et lie l'audit. Une autorisation d'ouverture n'est produite qu'après correspondance de l'empreinte du manifeste scellé. L'empreinte brute du CSV devra encore être vérifiée avant parsing : le scellement ne transforme pas une empreinte déclarée en preuve d'intégrité.
+
+L'absence d'accès analytique aux valeurs au moment du scellement est attestée explicitement. Cette attestation est auditable mais non cryptographique. Si une consultation préalable est découverte, elle doit être conservée ; la cohorte ne peut plus être présentée comme sélectionnée à l'aveugle.
+
 ## Interdictions
 
 - aucune sélection de fenêtre après lecture des rendements ;
@@ -79,3 +98,5 @@ Le verrou est en deux phases. La formule, la graine, les réplications et les r�
 Zéro fenêtre, zéro résultat et zéro règlement sont présents. Le lancement est bloqué par l'absence des deux séries licenciées et de leurs métadonnées de couverture.
 
 La méthode de dépendance est verrouillée. Sa liaison à l'empreinte du registre reste impossible tant que les manifestes ne permettent pas de construire les fenêtres. Cette liaison devra précéder toute lecture des valeurs de rendement.
+
+La méthode de sélection et son minimum de 36 mois sont également verrouillés. Aucun manifeste n'est présent au dépôt au moment de cet amendement ; le scellement effectif reste donc absent et zéro valeur a été lue par cette campagne.

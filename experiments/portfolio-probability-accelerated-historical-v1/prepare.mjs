@@ -6,11 +6,13 @@ import {
   assessAcceleratedHistoricalLaunch
 } from '../../validation/portfolioAcceleratedHistoricalCampaign.js';
 import { createAcceleratedHistoricalDependenceMethod } from '../../validation/portfolioAcceleratedHistoricalDependenceAudit.js';
+import { createAcceleratedHistoricalMetadataSelectionMethod } from '../../validation/portfolioAcceleratedHistoricalMetadataSeal.js';
 import { assessLicensedBeginnerValidationReadiness } from '../../validation/licensedValidationReadiness.js';
 
 const ENGINE_COMMIT = '66d09ccf94bdec3b5c4e1e09fc406e6ccc5df6b9';
 const REGISTERED_AT = '2026-08-07T21:12:47Z';
 const DEPENDENCE_METHOD_REGISTERED_AT = '2026-08-07T21:29:06Z';
+export const METADATA_SELECTION_METHOD_REGISTERED_AT = '2026-08-07T21:48:59Z';
 
 const PREVIOUSLY_INSPECTED_INTERVALS = Object.freeze([
   Object.freeze({ evidenceId: 'scientific-drawdown-diagnostics-v2', startDate: '2014-06-02', endDate: '2023-12-29' }),
@@ -85,6 +87,20 @@ export function prepareAcceleratedHistoricalCampaign() {
       'https://doi.org/10.1093/biomet/82.3.561'
     ]
   });
+  const metadataSelectionMethod = createAcceleratedHistoricalMetadataSelectionMethod({
+    methodId: 'portfolio-probability-accelerated-metadata-selection-v1',
+    methodVersion: '1.0.0',
+    registeredAt: METADATA_SELECTION_METHOD_REGISTERED_AT,
+    protocolFingerprint: protocol.fingerprint,
+    requiredSeriesIds: ['paej', 'worldProxy'],
+    commonCoverageRule: 'intersection-of-declared-coverage',
+    minimumTrainingMonths: 36,
+    horizonMonths: 12,
+    strideMonths: 12,
+    originAlignmentRule: 'first-full-month-after-common-start-plus-training',
+    returnValuesAccessibleAtLock: false,
+    amendmentReason: 'figer avant données le minimum de 36 mois déjà appliqué par la campagne de référence'
+  });
   const dependenceAudit = null;
   const launch = assessAcceleratedHistoricalLaunch({ protocol, windowRegistry, sourceReadiness, dependenceMethod, dependenceAudit });
   return Object.freeze({
@@ -98,6 +114,8 @@ export function prepareAcceleratedHistoricalCampaign() {
     sourceReadiness,
     windowRegistry,
     dependenceMethod,
+    metadataSelectionMethod,
+    metadataSeal: null,
     dependenceAudit,
     launch,
     results: Object.freeze([]),

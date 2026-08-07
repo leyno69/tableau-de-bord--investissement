@@ -11,3 +11,46 @@ Chaque série doit fournir :
 5. les dates d’acquisition et de disponibilité point-in-time.
 
 Le parseur existant `validation/licensedBenchmarkCsv.js` refuse les manifestes non éligibles, les dates dupliquées et les niveaux invalides. Aucun proxy Yahoo ne doit être placé ici ou requalifié en série exacte.
+
+## Scellement métadonnées-seulement de la campagne accélérée
+
+Les deux manifestes sont lus avant les CSV, sous les noms exacts :
+
+- `paej.manifest.json` ;
+- `worldProxy.manifest.json`.
+
+Ils doivent contenir uniquement les champs suivants, sans `series`, `values`, `prices`, `levels`, `returns` ni `csv` :
+
+```json
+{
+  "seriesId": "worldProxy",
+  "provider": "fournisseur contractuel",
+  "licenseReference": "référence vérifiable",
+  "indexCode": "code exact",
+  "returnVariant": "NETR",
+  "currency": "EUR",
+  "observationInterval": "daily",
+  "coverageStart": "YYYY-MM-DD",
+  "coverageEnd": "YYYY-MM-DD",
+  "acquiredAt": "YYYY-MM-DDTHH:mm:ssZ",
+  "pointInTimeStatus": "description auditable",
+  "rawFingerprint": "sha256 sur 64 caractères hexadécimaux",
+  "normalizedFingerprint": "sha256 sur 64 caractères hexadécimaux",
+  "valueFileName": "worldProxy.csv",
+  "valueSchema": "date,level",
+  "validationEligible": true,
+  "returnValuesIncluded": false
+}
+```
+
+Le second manifeste remplace `seriesId` et `valueFileName` par `paej` et `paej.csv`. Les empreintes déclarées seront vérifiées lors de l'ouverture ultérieure des valeurs ; leur simple présence ne démontre pas encore l'intégrité du fichier.
+
+Le scellement s'exécute seulement après avoir fixé un horodatage UTC, sans ouvrir les CSV :
+
+```bash
+LEYNOR_METADATA_SEALED_AT=YYYY-MM-DDTHH:mm:ssZ LEYNOR_RETURN_VALUES_ACCESSED_AT_SEAL=false node experiments/portfolio-probability-accelerated-historical-v1/seal-metadata.mjs
+```
+
+L'artefact produit lie les manifestes, la couverture commune, les fenêtres oldest-first, la méthode de sélection et l'audit de dépendance. Il doit exister avant toute lecture analytique de `paej.csv` ou `worldProxy.csv`. L'étape suivante autorise seulement le hachage des octets bruts ; le parsing des niveaux reste bloqué jusqu'à correspondance de l'empreinte brute.
+
+`LEYNOR_RETURN_VALUES_ACCESSED_AT_SEAL=false` est une attestation auditable, pas une preuve cryptographique d'aveuglement. Si les niveaux ou rendements ont déjà été consultés pour choisir la méthode ou les fenêtres, ne pas produire cette attestation : conserver le fait comme limite et arrêter le scellement de cette cohorte.

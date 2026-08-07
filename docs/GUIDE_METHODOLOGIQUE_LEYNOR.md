@@ -650,10 +650,13 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 
 - horizon de douze mois et moteur inchangé afin de tester la même revendication que la campagne prospective ;
 - fenêtres historiques dérivées des métadonnées uniquement, de la plus ancienne à la plus récente et sans chevauchement temporel ;
+- méthode de sélection amendée avant données : intersection des couvertures, premier mois complet, 36 mois mensuels d'estimation, puis pas annuel de douze mois ;
+- manifestes métadonnées-seulement obligatoires et rejet de tout champ contenant des niveaux, prix, rendements ou séries ;
+- scellement des empreintes attendues, de la couverture, des fenêtres et de l'audit avant toute ouverture des CSV ;
 - registre obligatoire des périodes déjà inspectées, qu'une nouvelle source ne peut pas rendre vierges rétroactivement ;
 - Brier apparié au benchmark dynamique comme critère primaire ;
 - méthode d'incertitude verrouillée sans rendements : bootstrap circulaire par blocs mobiles, longueur `ceil(n^(1/5))`, longueurs voisines obligatoires, 50 000 réplications déterministes et enveloppe bilatérale à 95 % ;
-- liaison future de la méthode à l'empreinte du registre construite depuis les métadonnées, avant lecture des niveaux ;
+- liaison future de la méthode à l'empreinte du registre construite depuis les métadonnées, avant lecture des niveaux ; l'absence actuelle des manifestes empêche encore cette liaison effective ;
 - minimum de douze fenêtres comme plancher de décision négative, sans prétendre démontrer l'indépendance ni la validité asymptotique ;
 - rejet possible uniquement si l'intervalle à 95 % de `Brier moteur − Brier benchmark` est entièrement supérieur à zéro après audit admissible ;
 - victoire historique limitée au statut `retrospective-support-only` ;

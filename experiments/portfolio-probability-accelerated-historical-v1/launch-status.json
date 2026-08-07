@@ -123,6 +123,27 @@
     "status": "method-locked-before-return-values",
     "fingerprint": "d0fdf09917c86ada345c8be7774c9035fe00d7f36f2648633773d6bf838260e4"
   },
+  "metadataSelectionMethod": {
+    "schemaVersion": 1,
+    "methodId": "portfolio-probability-accelerated-metadata-selection-v1",
+    "methodVersion": "1.0.0",
+    "registeredAt": "2026-08-07T21:48:59Z",
+    "protocolFingerprint": "6d8a948448a63c6b341d7a01cf9566513ca091557eff4cb6e23807950874c6ba",
+    "requiredSeriesIds": [
+      "paej",
+      "worldProxy"
+    ],
+    "commonCoverageRule": "intersection-of-declared-coverage",
+    "minimumTrainingMonths": 36,
+    "horizonMonths": 12,
+    "strideMonths": 12,
+    "originAlignmentRule": "first-full-month-after-common-start-plus-training",
+    "returnValuesAccessibleAtLock": false,
+    "amendmentReason": "figer avant données le minimum de 36 mois déjà appliqué par la campagne de référence",
+    "status": "selection-method-locked-before-return-values",
+    "fingerprint": "6213e4da2b0acdea405a60954cfc1d01477d07c778e5f3a30f2cc2fff97a7eef"
+  },
+  "metadataSeal": null,
   "dependenceAudit": null,
   "launch": {
     "schemaVersion": 1,
