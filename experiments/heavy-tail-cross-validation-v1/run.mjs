@@ -32,9 +32,9 @@ function commonDates(a, b) {
   return a.map(point => point.date).filter(date => set.has(date)).sort();
 }
 
-function monthEndReturnsFromTrajectory(trajectory) {
+function monthEndReturnsFromValuePath(valuePath) {
   const monthEnd = new Map();
-  for (const point of trajectory) monthEnd.set(point.date.slice(0, 7), point.portfolioValue);
+  for (const point of valuePath) monthEnd.set(point.date.slice(0, 7), point.value);
   const entries = [...monthEnd.entries()].sort((a, b) => a[0].localeCompare(b[0]));
   const returns = [];
   for (let i = 1; i < entries.length; i += 1) returns.push({ month: entries[i][0], value: entries[i][1] / entries[i-1][1] - 1 });
@@ -88,7 +88,7 @@ async function buildMonthlySeries() {
     seriesByTicker: { WORLD: world, ASIA: asia, CASH: cash },
     startDate: dates[0], endDate: dates.at(-1), contributions: [], rebalanceDates: []
   });
-  return monthEndReturnsFromTrajectory(replay.trajectory);
+  return monthEndReturnsFromValuePath(replay.valuePath);
 }
 
 function valuesBetween(series, startInclusive, endInclusive) {
