@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateHistoricalMetrics, calculateReplayHistoricalMetrics } from './portfolioHistoricalMetrics.js';
+import { calculateHistoricalMetrics, calculateReplayHistoricalMetrics, calculateReplayMonthlyMatchedMetrics, resampleValuePathMonthly } from './portfolioHistoricalMetrics.js';
 import { runHistoricalReplay } from './portfolioHistoricalReplayEngine.js';
 
 test('un apport n’est jamais confondu avec de la performance', () => {
@@ -103,4 +103,32 @@ test('les métriques peuvent être calculées directement depuis un replay avec 
   const metrics = calculateReplayHistoricalMetrics(replay);
   assert.equal(replay.valuePath[1].externalFlow, 100);
   assert.ok(Math.abs(metrics.cumulativeReturn - 0.1) < 1e-12);
+});
+
+test('le rééchantillonnage mensuel conserve la valeur initiale puis la dernière valeur de chaque mois', () => {
+  const sampled = resampleValuePathMonthly([
+    { date: '2020-01-02', value: 100, externalFlow: 0 },
+    { date: '2020-01-15', value: 80, externalFlow: 0 },
+    { date: '2020-01-31', value: 95, externalFlow: 0 },
+    { date: '2020-02-10', value: 90, externalFlow: 0 },
+    { date: '2020-02-28', value: 105, externalFlow: 0 }
+  ]);
+  assert.deepEqual(sampled.map(point => point.date), ['2020-01-02', '2020-01-31', '2020-02-28']);
+});
+
+test('les métriques mensuelles appariées conservent le capital initial dans le drawdown', () => {
+  const replay = {
+    initialCash: 100,
+    valuePath: [
+      { date: '2020-01-02', value: 100, externalFlow: 0 },
+      { date: '2020-01-15', value: 70, externalFlow: 0 },
+      { date: '2020-01-31', value: 80, externalFlow: 0 },
+      { date: '2020-02-28', value: 110, externalFlow: 0 }
+    ]
+  };
+  const daily = calculateReplayHistoricalMetrics(replay);
+  const monthly = calculateReplayMonthlyMatchedMetrics(replay);
+  assert.ok(Math.abs(daily.maxDrawdown + 0.3) < 1e-12);
+  assert.ok(Math.abs(monthly.maxDrawdown + 0.2) < 1e-12);
+  assert.equal(monthly.samplingFrequency, 'monthly');
 });
