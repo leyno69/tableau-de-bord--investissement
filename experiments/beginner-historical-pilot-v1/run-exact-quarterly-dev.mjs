@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { runHistoricalReplay } from '../../validation/portfolioHistoricalReplayEngine.js';
-import { calculateReplayHistoricalMetrics } from '../../validation/portfolioHistoricalMetrics.js';
+import { calculateReplayHistoricalMetrics, calculateReplayMonthlyMatchedMetrics } from '../../validation/portfolioHistoricalMetrics.js';
 
 const QUARTERS = Object.freeze([
   ['2024-Q2', '2024-04-01', '2024-06-30'],
@@ -65,6 +65,7 @@ async function runQuarter(quarter) {
     rebalanceDates: []
   });
   const metrics = calculateReplayHistoricalMetrics(replay);
+  const monthlyMatched = calculateReplayMonthlyMatchedMetrics(replay);
   return Object.freeze({
     id: quarter.id,
     requestedWindow: { startDate: quarter.requestedStart, endDate: quarter.requestedEnd },
@@ -74,7 +75,11 @@ async function runQuarter(quarter) {
     annualizedReturn: metrics.annualizedReturn,
     annualizedVolatility: metrics.annualizedVolatility,
     maxDrawdown: metrics.maxDrawdown,
+    maxDrawdownDaily: metrics.maxDrawdown,
+    maxDrawdownMonthlyMatched: monthlyMatched.maxDrawdown,
+    drawdownComparisonFrequency: 'monthly',
     recovery: metrics.recovery,
+    monthlyMatchedRecovery: monthlyMatched.recovery,
     durationDays: metrics.durationDays
   });
 }
@@ -83,7 +88,7 @@ export async function runExactQuarterlyDevelopmentPilot() {
   const windows = [];
   for (const quarter of QUARTERS) windows.push(await runQuarter(quarter));
   return Object.freeze({
-    schemaVersion: 1,
+    schemaVersion: 2,
     experimentId: 'beginner-exact-quarterly-dev-v1',
     status: 'development-historical-replay',
     track: 'exact',
@@ -94,7 +99,7 @@ export async function runExactQuarterlyDevelopmentPilot() {
     limitations: Object.freeze([
       'Les fenêtres demandées sont non chevauchantes et appartiennent à la piste instrument exact.',
       'La source Yahoo Finance reste development-only et n’est pas validation-eligible.',
-      'Les fenêtres trimestrielles ne sont pas directement comparables aux percentiles annuels sans transformation ou nouvelle simulation de même horizon.',
+      'Le drawdown quotidien est conservé comme mesure de risque haute fréquence ; seul le drawdown mensuel apparié est comparable aux percentiles du moteur mensuel.',
       'Aucun coût, apport ou rééquilibrage n’est appliqué dans ce pilote.'
     ])
   });
