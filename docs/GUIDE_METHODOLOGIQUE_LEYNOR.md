@@ -161,6 +161,10 @@ Une empreinte déterministe doit changer si l’un de ces éléments change. Une
 
 Les périodes de calibration, de validation et de test verrouillé doivent être définies avant lecture des résultats correspondants. Une règle modifiée après observation doit être traitée comme une nouvelle expérience et ne peut pas réutiliser le statut de validation précédent.
 
+Lorsqu'une campagne sélectionne ses fenêtres à partir de manifestes avant ouverture des valeurs, la chaîne d'intégrité doit elle aussi être verrouillée avant les données. LEYNOR doit valider le scellement et les manifestes, vérifier toutes les empreintes de fichiers bruts avant le premier parsing, puis vérifier une représentation normalisée explicitement versionnée avant toute analyse. Une divergence d'une seule entrée bloque l'ensemble de la cohorte ; une réussite technique prouve seulement la concordance des fichiers avec les empreintes scellées, pas la validité scientifique du moteur.
+
+Pour la campagne accélérée v1, la représentation normalisée est un CSV UTF-8 `date,level` strictement ordonné, avec fins de ligne LF, nombres rendus sans zéros décimaux superflus et saut de ligne final. L'artefact de contrôle ne doit conserver aucune valeur historique, seulement les identifiants, empreintes, couvertures et effectifs.
+
 La confrontation historique peut confirmer, fragiliser, réfuter ou laisser inconclusive une conclusion ; elle ne transforme jamais une performance passée en garantie future.
 
 ### 5.2 Proxies historiques

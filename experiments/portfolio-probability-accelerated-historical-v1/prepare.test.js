@@ -11,6 +11,9 @@ test('prépare une campagne accélérée reproductible sans fabriquer de fenêtr
   assert.equal(first.dependenceMethod.status, 'method-locked-before-return-values');
   assert.equal(first.metadataSelectionMethod.status, 'selection-method-locked-before-return-values');
   assert.equal(first.metadataSelectionMethod.minimumTrainingMonths, 36);
+  assert.equal(first.licensedInputGateMethod.status, 'value-gate-method-locked-before-return-values');
+  assert.equal(first.licensedInputGateMethod.rawSetVerificationRule, 'verify-both-before-any-parsing');
+  assert.equal(first.licensedInputGateMethod.returnValuesAccessibleAtLock, false);
   assert.equal(first.metadataSeal, null);
   assert.equal(first.results.length, 0);
   assert.equal(first.engineModified, false);

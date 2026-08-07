@@ -7,12 +7,14 @@ import {
 } from '../../validation/portfolioAcceleratedHistoricalCampaign.js';
 import { createAcceleratedHistoricalDependenceMethod } from '../../validation/portfolioAcceleratedHistoricalDependenceAudit.js';
 import { createAcceleratedHistoricalMetadataSelectionMethod } from '../../validation/portfolioAcceleratedHistoricalMetadataSeal.js';
+import { createAcceleratedHistoricalValueGateMethod } from '../../validation/portfolioAcceleratedHistoricalValueGate.js';
 import { assessLicensedBeginnerValidationReadiness } from '../../validation/licensedValidationReadiness.js';
 
 const ENGINE_COMMIT = '66d09ccf94bdec3b5c4e1e09fc406e6ccc5df6b9';
 const REGISTERED_AT = '2026-08-07T21:12:47Z';
 const DEPENDENCE_METHOD_REGISTERED_AT = '2026-08-07T21:29:06Z';
 export const METADATA_SELECTION_METHOD_REGISTERED_AT = '2026-08-07T21:48:59Z';
+export const VALUE_GATE_METHOD_REGISTERED_AT = '2026-08-07T22:15:01Z';
 
 const PREVIOUSLY_INSPECTED_INTERVALS = Object.freeze([
   Object.freeze({ evidenceId: 'scientific-drawdown-diagnostics-v2', startDate: '2014-06-02', endDate: '2023-12-29' }),
@@ -101,6 +103,11 @@ export function prepareAcceleratedHistoricalCampaign() {
     returnValuesAccessibleAtLock: false,
     amendmentReason: 'figer avant données le minimum de 36 mois déjà appliqué par la campagne de référence'
   });
+  const licensedInputGateMethod = createAcceleratedHistoricalValueGateMethod({
+    registeredAt: VALUE_GATE_METHOD_REGISTERED_AT,
+    protocolFingerprint: protocol.fingerprint,
+    returnValuesAccessibleAtLock: false
+  });
   const dependenceAudit = null;
   const launch = assessAcceleratedHistoricalLaunch({ protocol, windowRegistry, sourceReadiness, dependenceMethod, dependenceAudit });
   return Object.freeze({
@@ -115,6 +122,7 @@ export function prepareAcceleratedHistoricalCampaign() {
     windowRegistry,
     dependenceMethod,
     metadataSelectionMethod,
+    licensedInputGateMethod,
     metadataSeal: null,
     dependenceAudit,
     launch,

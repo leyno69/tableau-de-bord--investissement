@@ -82,6 +82,19 @@ Le verrou est en deux phases. La formule, la graine, les réplications et les r�
 
 Le scellement métadonnées-seulement refuse explicitement tout manifeste possédant un champ `series`, `values`, `prices`, `levels`, `returns` ou `csv`. Il enregistre les empreintes attendues des fichiers, calcule l'intersection de couverture, construit le registre et lie l'audit. Une autorisation d'ouverture n'est produite qu'après correspondance de l'empreinte du manifeste scellé. L'empreinte brute du CSV devra encore être vérifiée avant parsing : le scellement ne transforme pas une empreinte déclarée en preuve d'intégrité.
 
+Le `2026-08-07T22:15:01Z`, toujours sans accès aux séries licenciées, le sas d'intégrité suivant est verrouillé :
+
+- SHA-256 sur les octets exacts de chaque fichier brut ;
+- concordance obligatoire des deux empreintes brutes avant le premier parsing ;
+- décodage UTF-8 strict et parseur `date,level` versionné ;
+- concordance des première et dernière observations avec la couverture déclarée ;
+- sérialisation normalisée exacte : en-tête `date,level`, observations triées par date, fins de ligne LF, représentation numérique JavaScript canonique et saut de ligne final ;
+- SHA-256 sur les octets UTF-8 de cette sérialisation normalisée ;
+- concordance des deux empreintes normalisées avant toute analyse ;
+- artefact d'intégrité limité aux empreintes, couvertures et effectifs, sans niveau historique incorporé.
+
+Ce sas démontre la concordance entre les fichiers reçus et les empreintes préalablement scellées. Il ne démontre ni l'exactitude économique du fournisseur, ni l'indépendance des fenêtres, ni la validité du moteur.
+
 L'absence d'accès analytique aux valeurs au moment du scellement est attestée explicitement. Cette attestation est auditable mais non cryptographique. Si une consultation préalable est découverte, elle doit être conservée ; la cohorte ne peut plus être présentée comme sélectionnée à l'aveugle.
 
 ## Interdictions
@@ -99,4 +112,4 @@ Zéro fenêtre, zéro résultat et zéro règlement sont présents. Le lancement
 
 La méthode de dépendance est verrouillée. Sa liaison à l'empreinte du registre reste impossible tant que les manifestes ne permettent pas de construire les fenêtres. Cette liaison devra précéder toute lecture des valeurs de rendement.
 
-La méthode de sélection et son minimum de 36 mois sont également verrouillés. Aucun manifeste n'est présent au dépôt au moment de cet amendement ; le scellement effectif reste donc absent et zéro valeur a été lue par cette campagne.
+La méthode de sélection et son minimum de 36 mois ainsi que le sas d'intégrité brut puis normalisé sont également verrouillés. Aucun manifeste n'est présent au dépôt au moment de ces amendements ; le scellement effectif et la preuve d'entrée restent donc absents, et zéro valeur a été lue par cette campagne.

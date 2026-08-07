@@ -41,7 +41,9 @@ La réception est divisée en deux opérations irréversibles dans cet ordre :
 
 1. lire uniquement `paej.manifest.json` et `worldProxy.manifest.json` ;
 2. sceller leurs empreintes, la couverture commune, les fenêtres et la liaison de l'audit ;
-3. seulement ensuite autoriser l'ouverture des CSV dont les empreintes correspondent au scellement.
+3. seulement ensuite autoriser le hachage des deux CSV ;
+4. vérifier les deux empreintes brutes avant le premier parsing ;
+5. parser, vérifier la couverture exacte et les deux empreintes normalisées avant toute analyse.
 
 Le code rejette les manifestes qui incorporent des champs de valeurs. La règle de fenêtre est déterministe : intersection des couvertures déclarées, premier mois civil complet, 36 mois d'apprentissage, puis fenêtres de douze mois non chevauchantes oldest-first. Aucune date ne peut être retirée après connaissance d'un rendement.
 
@@ -53,6 +55,14 @@ Commande à exécuter après dépôt des deux manifestes, mais avant toute ouver
 LEYNOR_METADATA_SEALED_AT=YYYY-MM-DDTHH:mm:ssZ LEYNOR_RETURN_VALUES_ACCESSED_AT_SEAL=false node experiments/portfolio-probability-accelerated-historical-v1/seal-metadata.mjs
 ```
 
+Le sas de valeurs est verrouillé depuis le `2026-08-07T22:15:01Z`, toujours sans manifeste ni valeur licenciée. Sa sérialisation normalisée est un CSV UTF-8 canonique `date,level`, ordonné par date, avec fins de ligne LF, représentation numérique JavaScript sans zéros décimaux superflus et saut de ligne final. Les deux empreintes brutes doivent correspondre avant le premier parsing : l'échec d'une série empêche donc l'ouverture des deux.
+
+Après le scellement, la commande suivante produit uniquement une preuve d'intégrité sans persister les valeurs ni lancer l'analyse :
+
+```bash
+LEYNOR_LICENSED_INPUTS_VERIFIED_AT=YYYY-MM-DDTHH:mm:ssZ node experiments/portfolio-probability-accelerated-historical-v1/verify-licensed-inputs.mjs
+```
+
 ## État initial
 
 La campagne est `blocked-before-locked-historical-run` :
@@ -62,6 +72,7 @@ La campagne est `blocked-before-locked-historical-run` :
 - les fenêtres ne peuvent être dérivées des seules métadonnées de couverture tant que les manifestes ne sont pas disponibles ;
 - la méthode d'audit est verrouillée sans rendement, mais ne peut être liée à l'empreinte du registre avant réception des manifestes de couverture ;
 - la méthode de sélection est verrouillée sans rendement, mais aucun scellement de métadonnées n'existe encore ;
+- le sas d'intégrité brut puis normalisé est verrouillé, mais aucune preuve d'entrée ne peut exister sans les fichiers licenciés ;
 - zéro résultat a été produit.
 
 Commande de reproduction :

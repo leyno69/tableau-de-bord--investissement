@@ -143,6 +143,23 @@
     "status": "selection-method-locked-before-return-values",
     "fingerprint": "6213e4da2b0acdea405a60954cfc1d01477d07c778e5f3a30f2cc2fff97a7eef"
   },
+  "licensedInputGateMethod": {
+    "schemaVersion": 1,
+    "methodId": "portfolio-probability-accelerated-historical-value-gate-v1",
+    "registeredAt": "2026-08-07T22:15:01Z",
+    "protocolFingerprint": "6d8a948448a63c6b341d7a01cf9566513ca091557eff4cb6e23807950874c6ba",
+    "rawFingerprintAlgorithm": "sha256-exact-file-bytes",
+    "rawSetVerificationRule": "verify-both-before-any-parsing",
+    "textDecoding": "utf-8-fatal",
+    "parser": "licensed-benchmark-csv-date-level-v1",
+    "normalizedSerialization": "utf8-csv-date-level-lf-final-newline-numeric-string-v1",
+    "normalizedFingerprintAlgorithm": "sha256-canonical-normalized-bytes",
+    "coverageRule": "first-and-last-observed-date-equal-declared-coverage",
+    "evidenceValuesPolicy": "metadata-and-fingerprints-only",
+    "returnValuesAccessibleAtLock": false,
+    "status": "value-gate-method-locked-before-return-values",
+    "fingerprint": "ac973298855c74a0ae1d4ba343646d6ce798dc295658c8cfa6954aafa28d2735"
+  },
   "metadataSeal": null,
   "dependenceAudit": null,
   "launch": {

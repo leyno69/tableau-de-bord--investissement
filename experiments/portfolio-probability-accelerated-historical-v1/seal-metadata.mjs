@@ -20,10 +20,14 @@ export async function loadAcceleratedHistoricalCoverageManifests({ readText = re
 export function buildAcceleratedHistoricalMetadataSeal({ manifestInputs, sealedAt, returnValuesAccessibleAtSeal } = {}) {
   const campaign = prepareAcceleratedHistoricalCampaign();
   const selectionMethod = campaign.metadataSelectionMethod;
+  if (Date.parse(sealedAt) < Date.parse(campaign.licensedInputGateMethod.registeredAt)) {
+    throw new TypeError('sealedAt doit être postérieur ou égal au verrouillage du sas de valeurs.');
+  }
   return Object.freeze({
     schemaVersion: 1,
     experimentId: campaign.experimentId,
     selectionMethod,
+    licensedInputGateMethod: campaign.licensedInputGateMethod,
     metadataSeal: sealAcceleratedHistoricalMetadata({
       protocol: campaign.protocol,
       dependenceMethod: campaign.dependenceMethod,
