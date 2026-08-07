@@ -31,7 +31,7 @@ La perte de Brier est comparée origine par origine au benchmark. La revendicati
 2. un audit séparé déclare la structure de dépendance admissible pour une décision négative ;
 3. l'intervalle à 95 % préenregistré de la différence `Brier moteur − Brier benchmark` est entièrement supérieur à zéro.
 
-La méthode d'incertitude devra tenir compte de la dépendance et être verrouillée avant exécution. Aucun intervalle iid standard ne peut être substitué après observation.
+La méthode d'incertitude est verrouillée avant exécution : bootstrap circulaire par blocs mobiles, longueur `ceil(n^(1/5))`, sensibilité obligatoire aux longueurs voisines, 50 000 réplications et graine déterministe. La décision utilise l'enveloppe conservatrice des intervalles basic bootstrap bilatéraux à 95 %. Aucun intervalle iid standard ne peut être substitué après observation.
 
 ## État initial
 
@@ -40,7 +40,7 @@ La campagne est `blocked-before-locked-historical-run` :
 - `worldProxy` exact/licencié manque ;
 - `paej` exact/licencié manque ;
 - les fenêtres ne peuvent être dérivées des seules métadonnées de couverture tant que les manifestes ne sont pas disponibles ;
-- la méthode d'audit de dépendance ne peut être verrouillée qu'après détermination de la structure des fenêtres, mais avant lecture des rendements ;
+- la méthode d'audit est verrouillée sans rendement, mais ne peut être liée à l'empreinte du registre avant réception des manifestes de couverture ;
 - zéro résultat a été produit.
 
 Commande de reproduction :

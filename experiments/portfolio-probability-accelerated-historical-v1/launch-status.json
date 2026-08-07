@@ -93,15 +93,46 @@
     "independentWindowCount": null,
     "fingerprint": "3e11b33b04a3f8fb6f927f914fb343d3f4fd09dd88c7905e09d67ac62c09a6ab"
   },
+  "dependenceMethod": {
+    "schemaVersion": 1,
+    "auditId": "portfolio-probability-accelerated-historical-dependence-v1",
+    "campaignId": "portfolio-probability-accelerated-historical-v1",
+    "registeredAt": "2026-08-07T21:29:06Z",
+    "protocolFingerprint": "6d8a948448a63c6b341d7a01cf9566513ca091557eff4cb6e23807950874c6ba",
+    "statistic": "mean-paired-brier-loss-delta",
+    "resamplingMethod": "circular-moving-block-bootstrap",
+    "blockLengthRule": "ceil-n-power-one-fifth",
+    "blockLengthSensitivityOffsets": [
+      -1,
+      0,
+      1
+    ],
+    "confidenceLevel": 0.95,
+    "intervalType": "basic-bootstrap-two-sided-envelope",
+    "bootstrapReplicates": 50000,
+    "bootstrapSeed": 20260807,
+    "minimumWindowCount": 12,
+    "chronologicalOrderRequired": true,
+    "returnValuesAccessibleAtLock": false,
+    "positiveDecisionAuthority": "retrospective-support-only",
+    "negativeDecisionAuthority": "may-reject-after-bound-dependence-audit",
+    "references": [
+      "https://doi.org/10.1214/aos/1176347265",
+      "https://doi.org/10.1093/biomet/82.3.561"
+    ],
+    "status": "method-locked-before-return-values",
+    "fingerprint": "d0fdf09917c86ada345c8be7774c9035fe00d7f36f2648633773d6bf838260e4"
+  },
   "dependenceAudit": null,
   "launch": {
     "schemaVersion": 1,
     "campaignId": "portfolio-probability-accelerated-historical-v1",
     "protocolFingerprint": "6d8a948448a63c6b341d7a01cf9566513ca091557eff4cb6e23807950874c6ba",
     "windowRegistryFingerprint": "3e11b33b04a3f8fb6f927f914fb343d3f4fd09dd88c7905e09d67ac62c09a6ab",
+    "dependenceMethodFingerprint": "d0fdf09917c86ada345c8be7774c9035fe00d7f36f2648633773d6bf838260e4",
     "dependenceAuditFingerprint": null,
     "blockers": [
-      "dependence-audit:method-not-locked",
+      "dependence-audit:window-registry-not-bound",
       "historical-window-registry:empty-before-source-metadata",
       "licensed-data:paej:missing",
       "licensed-data:worldProxy:missing"
@@ -112,7 +143,7 @@
     "independentWindowCount": null,
     "mayValidateProbabilityClaim": false,
     "mayExposeRealWorldProbability": false,
-    "fingerprint": "e2dbc3ac5679326541bee0cb08e971ccd3059506543355959e3dcf8b7384d006"
+    "fingerprint": "3a433219585c381f2a0122f428564ddb0066975904d37914c4a8cc7489273307"
   },
   "results": [],
   "engineModified": false

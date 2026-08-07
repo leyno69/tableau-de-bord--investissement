@@ -652,8 +652,10 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - fenêtres historiques dérivées des métadonnées uniquement, de la plus ancienne à la plus récente et sans chevauchement temporel ;
 - registre obligatoire des périodes déjà inspectées, qu'une nouvelle source ne peut pas rendre vierges rétroactivement ;
 - Brier apparié au benchmark dynamique comme critère primaire ;
-- méthode d'incertitude tenant compte de la dépendance à verrouiller avant exécution ;
+- méthode d'incertitude verrouillée sans rendements : bootstrap circulaire par blocs mobiles, longueur `ceil(n^(1/5))`, longueurs voisines obligatoires, 50 000 réplications déterministes et enveloppe bilatérale à 95 % ;
+- liaison future de la méthode à l'empreinte du registre construite depuis les métadonnées, avant lecture des niveaux ;
+- minimum de douze fenêtres comme plancher de décision négative, sans prétendre démontrer l'indépendance ni la validité asymptotique ;
 - rejet possible uniquement si l'intervalle à 95 % de `Brier moteur − Brier benchmark` est entièrement supérieur à zéro après audit admissible ;
 - victoire historique limitée au statut `retrospective-support-only` ;
 - aucune autorité de validation positive et aucune exposition d'une probabilité réelle ;
-- statut initial bloqué : zéro fenêtre, audit de dépendance non verrouillé et zéro résultat tant que les métadonnées exactes/licenciées manquent.
+- statut bloqué : méthode verrouillée, mais zéro fenêtre, aucune liaison au registre et zéro résultat tant que les métadonnées exactes/licenciées manquent.

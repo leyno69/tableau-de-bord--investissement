@@ -140,7 +140,7 @@ export function createAcceleratedHistoricalWindowRegistry(protocol, candidateWin
   return Object.freeze({ ...payload, fingerprint: sha256(payload) });
 }
 
-export function assessAcceleratedHistoricalLaunch({ protocol, windowRegistry, sourceReadiness, dependenceAudit, resultRegistry = [] } = {}) {
+export function assessAcceleratedHistoricalLaunch({ protocol, windowRegistry, sourceReadiness, dependenceMethod, dependenceAudit, resultRegistry = [] } = {}) {
   if (!protocol?.fingerprint || !windowRegistry?.fingerprint) throw new TypeError('protocol et windowRegistry verrouillés requis.');
   if (windowRegistry.protocolFingerprint !== protocol.fingerprint) throw new TypeError('windowRegistry ne correspond pas au protocol.');
   if (!Array.isArray(resultRegistry)) throw new TypeError('resultRegistry doit être un tableau.');
@@ -152,11 +152,20 @@ export function assessAcceleratedHistoricalLaunch({ protocol, windowRegistry, so
     blockers.push(...sourceBlockers.map(value => `licensed-data:${value}`));
   }
   if (windowRegistry.windows.length === 0) blockers.push('historical-window-registry:empty-before-source-metadata');
+  let dependenceMethodFingerprint = null;
   let dependenceAuditFingerprint = null;
-  if (dependenceAudit?.status !== 'locked-before-return-values') {
+  if (dependenceMethod?.status !== 'method-locked-before-return-values') {
     blockers.push('dependence-audit:method-not-locked');
   } else {
+    dependenceMethodFingerprint = sha256Text(dependenceMethod.fingerprint, 'dependenceMethod.fingerprint');
+    if (dependenceMethod.protocolFingerprint !== protocol.fingerprint) blockers.push('dependence-audit:method-protocol-mismatch');
+  }
+  if (dependenceAudit?.status !== 'locked-before-return-values') {
+    blockers.push('dependence-audit:window-registry-not-bound');
+  } else {
     dependenceAuditFingerprint = sha256Text(dependenceAudit.fingerprint, 'dependenceAudit.fingerprint');
+    if (dependenceMethodFingerprint && dependenceAudit.methodFingerprint !== dependenceMethodFingerprint) blockers.push('dependence-audit:method-binding-mismatch');
+    if (dependenceAudit.windowRegistryFingerprint !== windowRegistry.fingerprint) blockers.push('dependence-audit:window-registry-binding-mismatch');
   }
   if (resultRegistry.length > 0) blockers.push('result-registry:must-be-empty-at-launch');
   const payload = {
@@ -164,6 +173,7 @@ export function assessAcceleratedHistoricalLaunch({ protocol, windowRegistry, so
     campaignId: protocol.campaignId,
     protocolFingerprint: protocol.fingerprint,
     windowRegistryFingerprint: windowRegistry.fingerprint,
+    dependenceMethodFingerprint,
     dependenceAuditFingerprint,
     blockers: Object.freeze([...new Set(blockers)].sort()),
     readyToRun: blockers.length === 0,

@@ -5,10 +5,12 @@ import {
   createAcceleratedHistoricalWindowRegistry,
   assessAcceleratedHistoricalLaunch
 } from '../../validation/portfolioAcceleratedHistoricalCampaign.js';
+import { createAcceleratedHistoricalDependenceMethod } from '../../validation/portfolioAcceleratedHistoricalDependenceAudit.js';
 import { assessLicensedBeginnerValidationReadiness } from '../../validation/licensedValidationReadiness.js';
 
 const ENGINE_COMMIT = '66d09ccf94bdec3b5c4e1e09fc406e6ccc5df6b9';
 const REGISTERED_AT = '2026-08-07T21:12:47Z';
+const DEPENDENCE_METHOD_REGISTERED_AT = '2026-08-07T21:29:06Z';
 
 const PREVIOUSLY_INSPECTED_INTERVALS = Object.freeze([
   Object.freeze({ evidenceId: 'scientific-drawdown-diagnostics-v2', startDate: '2014-06-02', endDate: '2023-12-29' }),
@@ -60,8 +62,31 @@ export function prepareAcceleratedHistoricalCampaign() {
   });
   const sourceReadiness = assessLicensedBeginnerValidationReadiness();
   const windowRegistry = createAcceleratedHistoricalWindowRegistry(protocol, []);
+  const dependenceMethod = createAcceleratedHistoricalDependenceMethod({
+    auditId: 'portfolio-probability-accelerated-historical-dependence-v1',
+    campaignId: protocol.campaignId,
+    registeredAt: DEPENDENCE_METHOD_REGISTERED_AT,
+    protocolFingerprint: protocol.fingerprint,
+    statistic: 'mean-paired-brier-loss-delta',
+    resamplingMethod: 'circular-moving-block-bootstrap',
+    blockLengthRule: 'ceil-n-power-one-fifth',
+    blockLengthSensitivityOffsets: [-1, 0, 1],
+    confidenceLevel: 0.95,
+    intervalType: 'basic-bootstrap-two-sided-envelope',
+    bootstrapReplicates: 50000,
+    bootstrapSeed: 20260807,
+    minimumWindowCount: 12,
+    chronologicalOrderRequired: true,
+    returnValuesAccessibleAtLock: false,
+    positiveDecisionAuthority: 'retrospective-support-only',
+    negativeDecisionAuthority: 'may-reject-after-bound-dependence-audit',
+    references: [
+      'https://doi.org/10.1214/aos/1176347265',
+      'https://doi.org/10.1093/biomet/82.3.561'
+    ]
+  });
   const dependenceAudit = null;
-  const launch = assessAcceleratedHistoricalLaunch({ protocol, windowRegistry, sourceReadiness, dependenceAudit });
+  const launch = assessAcceleratedHistoricalLaunch({ protocol, windowRegistry, sourceReadiness, dependenceMethod, dependenceAudit });
   return Object.freeze({
     schemaVersion: 1,
     experimentId: protocol.campaignId,
@@ -72,6 +97,7 @@ export function prepareAcceleratedHistoricalCampaign() {
     previouslyInspectedIntervals: PREVIOUSLY_INSPECTED_INTERVALS,
     sourceReadiness,
     windowRegistry,
+    dependenceMethod,
     dependenceAudit,
     launch,
     results: Object.freeze([]),

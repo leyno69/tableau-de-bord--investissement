@@ -42,6 +42,29 @@ Une valeur positive favorise le benchmark. Le rejet de la revendication probabil
 
 Une valeur entièrement inférieure à zéro ne valide pas le moteur : elle produit uniquement `retrospective-support-only`. La campagne prospective à douze mois reste nécessaire.
 
+## Méthode de dépendance verrouillée
+
+La spécification méthodologique est verrouillée le `2026-08-07T21:29:06Z`, sans accès aux valeurs de rendement :
+
+- statistique : moyenne chronologique des différences de pertes de Brier appariées ;
+- rééchantillonnage : bootstrap circulaire par blocs mobiles ;
+- longueur primaire : `ceil(n^(1/5))`, où `n` est le nombre de fenêtres annuelles non chevauchantes ;
+- analyse de sensibilité obligatoire : longueurs primaire − 1, primaire et primaire + 1, bornées entre 1 et `n` ;
+- 50 000 réplications, graine déterministe `20260807` ;
+- intervalle bilatéral à 95 % de type basic bootstrap pour chaque longueur ;
+- intervalle décisionnel : enveloppe conservatrice, soit la plus petite borne basse et la plus grande borne haute ;
+- ordre chronologique du registre obligatoire ;
+- au moins douze fenêtres avant toute décision négative.
+
+Le seuil de douze est un plancher opérationnel préenregistré : il garantit au moins quatre blocs à la longueur maximale prévue lorsque `n = 12`, mais ne démontre ni indépendance ni validité asymptotique. Le rapport conserve donc explicitement la limite `block-bootstrap-is-asymptotic-not-proof-of-independence`.
+
+La méthode s'appuie sur l'extension du bootstrap aux séquences stationnaires de Künsch et sur les règles de longueur de bloc de Hall, Horowitz et Jing. Ces références justifient la famille de méthode, pas l'adéquation de données qui ne sont pas encore disponibles :
+
+- Künsch, 1989, DOI [`10.1214/aos/1176347265`](https://doi.org/10.1214/aos/1176347265) ;
+- Hall, Horowitz et Jing, 1995, DOI [`10.1093/biomet/82.3.561`](https://doi.org/10.1093/biomet/82.3.561).
+
+Le verrou est en deux phases. La formule, la graine, les réplications et les règles de décision sont désormais figées. Après réception des seuls manifestes de couverture, elles seront liées à l'empreinte du registre de fenêtres avant lecture des niveaux ou rendements. Aucune longueur de bloc ne pourra ensuite être choisie selon le résultat le plus favorable.
+
 ## Interdictions
 
 - aucune sélection de fenêtre après lecture des rendements ;
@@ -55,4 +78,4 @@ Une valeur entièrement inférieure à zéro ne valide pas le moteur : elle prod
 
 Zéro fenêtre, zéro résultat et zéro règlement sont présents. Le lancement est bloqué par l'absence des deux séries licenciées et de leurs métadonnées de couverture.
 
-L'audit de dépendance est également absent. Sa méthode et son empreinte devront être verrouillées après construction du registre de fenêtres à partir des métadonnées, mais avant toute lecture des valeurs de rendement.
+La méthode de dépendance est verrouillée. Sa liaison à l'empreinte du registre reste impossible tant que les manifestes ne permettent pas de construire les fenêtres. Cette liaison devra précéder toute lecture des valeurs de rendement.

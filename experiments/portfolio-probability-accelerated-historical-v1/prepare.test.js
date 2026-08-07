@@ -8,6 +8,7 @@ test('prépare une campagne accélérée reproductible sans fabriquer de fenêtr
   assert.deepEqual(first, second);
   assert.equal(first.status, 'blocked-before-locked-historical-run');
   assert.equal(first.windowRegistry.windows.length, 0);
+  assert.equal(first.dependenceMethod.status, 'method-locked-before-return-values');
   assert.equal(first.results.length, 0);
   assert.equal(first.engineModified, false);
 });
@@ -25,5 +26,6 @@ test('bloque explicitement les données manquantes et la sélection des fenêtre
   assert.ok(artifact.launch.blockers.includes('licensed-data:worldProxy:missing'));
   assert.ok(artifact.launch.blockers.includes('licensed-data:paej:missing'));
   assert.ok(artifact.launch.blockers.includes('historical-window-registry:empty-before-source-metadata'));
-  assert.ok(artifact.launch.blockers.includes('dependence-audit:method-not-locked'));
+  assert.ok(artifact.launch.blockers.includes('dependence-audit:window-registry-not-bound'));
+  assert.equal(artifact.launch.blockers.includes('dependence-audit:method-not-locked'), false);
 });
