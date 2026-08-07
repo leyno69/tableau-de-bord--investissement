@@ -1,0 +1,31 @@
+name: Beginner quarterly comparison
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    name: Quarterly simulation vs exact history
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run quarterly comparison
+        run: |
+          mkdir -p artifacts
+          node experiments/beginner-historical-pilot-v1/run-quarterly-comparison.mjs > artifacts/beginner-quarterly-comparison.json
+      - name: Upload quarterly comparison
+        uses: actions/upload-artifact@v4
+        with:
+          name: beginner-quarterly-comparison
+          path: artifacts/beginner-quarterly-comparison.json

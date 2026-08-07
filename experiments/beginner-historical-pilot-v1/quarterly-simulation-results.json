@@ -1,0 +1,42 @@
+{
+  "experimentId": "beginner-quarterly-simulation-v1",
+  "definition": {
+    "portfolioCount": 10000,
+    "months": 3,
+    "initialAmount": 10000,
+    "monthlyContribution": 0,
+    "annualInflation": 0,
+    "annualFees": 0,
+    "seed": 20260807,
+    "annualReturn": 0.045,
+    "annualVolatility": 0.10
+  },
+  "summary": {
+    "nominal": {
+      "p05": 9297.200064335098,
+      "p25": 9759.226541602447,
+      "median": 10092.467875619623,
+      "p75": 10454.323804451053,
+      "p95": 10952.850517676536,
+      "minimum": 8348.545075677508,
+      "maximum": 12100.378938023225
+    },
+    "drawdown": {
+      "median": 0.023324670198907056,
+      "p95": 0.07868558259824793,
+      "maximum": 0.16514549243224919
+    }
+  },
+  "artifactEvidence": {
+    "workflowRunId": 31185772150,
+    "artifactId": 8996640307,
+    "artifactSha256": "43561525f2bf32473204a881ad9358d412fcdd0c93e72c7185692fcad81f47fe"
+  },
+  "status": "simulation-pilot-only",
+  "limitations": [
+    "Le pilote utilise l'hypothèse agrégée du preset beginner.",
+    "Les actifs ne disposent pas encore d'une matrice de corrélation dans cette version.",
+    "Le modèle mensuel gaussien reste simplifié.",
+    "Ces résultats servent à une confrontation descriptive et ne constituent pas une validation scientifique finale."
+  ]
+}

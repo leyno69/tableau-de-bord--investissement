@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "beginner-quarterly-simulation-vs-exact-history-dev-v1",
+  "status": "descriptive-development-comparison",
+  "horizonMonths": 3,
+  "simulation": {
+    "portfolioCount": 10000,
+    "seed": 20260807,
+    "nominal": {
+      "p05": 9297.200064335098,
+      "p25": 9759.226541602447,
+      "median": 10092.467875619623,
+      "p75": 10454.323804451053,
+      "p95": 10952.850517676536
+    },
+    "drawdown": {
+      "median": 0.023324670198907056,
+      "p95": 0.07868558259824793,
+      "maximum": 0.16514549243224919
+    }
+  },
+  "windows": [
+    { "id": "2024-Q2", "finalValueBand": "median-p75", "drawdownBand": "below-median" },
+    { "id": "2024-Q3", "finalValueBand": "median-p75", "drawdownBand": "median-p95" },
+    { "id": "2024-Q4", "finalValueBand": "median-p75", "drawdownBand": "below-median" },
+    { "id": "2025-Q1", "finalValueBand": "p05-p25", "drawdownBand": "median-p95" },
+    { "id": "2025-Q2", "finalValueBand": "median-p75", "drawdownBand": "p95-maximum" },
+    { "id": "2025-Q3", "finalValueBand": "p75-p95", "drawdownBand": "below-median" },
+    { "id": "2025-Q4", "finalValueBand": "median-p75", "drawdownBand": "median-p95" },
+    { "id": "2026-Q1", "finalValueBand": "p25-median", "drawdownBand": "median-p95" }
+  ],
+  "adverseEvidence": [
+    {
+      "windowId": "2025-Q2",
+      "metric": "drawdown",
+      "band": "p95-maximum",
+      "observed": 0.08678871282363232,
+      "simulationP95": 0.07868558259824793,
+      "simulationMaximum": 0.16514549243224919
+    }
+  ],
+  "artifactEvidence": {
+    "workflowRunId": 31185974372,
+    "artifactId": 8996726134,
+    "artifactSha256": "8d77e9633da514f18f9437add5f027a5b03fec025baedf1d6362acf5ce0457c9"
+  },
+  "interpretation": {
+    "verdict": null,
+    "statement": "Une fenêtre dépasse le p95 simulé de drawdown. Cette preuve adverse est conservée sans recalibration rétroactive ni verdict scientifique."
+  },
+  "limitations": [
+    "La source historique reste development-only.",
+    "Le modèle utilise une hypothèse agrégée et non une modélisation instrument par instrument.",
+    "L'absence de matrice de corrélation reste une limite du moteur.",
+    "Huit fenêtres indépendantes constituent encore un petit échantillon."
+  ]
+}
