@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "beginner-monthly-distribution-adequacy-v1",
+  "status": "diagnostic-only",
+  "artifactEvidence": {
+    "workflowRunId": 31194269965,
+    "artifactId": 9000105380,
+    "artifactSha256": "14a40b8419c13e772aaa84b0b1923b977032bed24eec69cef8748b74ca336fa3"
+  },
+  "period": {
+    "start": "2014-06-02",
+    "end": "2023-12-29",
+    "monthlyObservationCount": 114
+  },
+  "modelReference": {
+    "annualReturn": 0.045,
+    "annualVolatility": 0.1,
+    "distribution": "gaussian-monthly"
+  },
+  "empirical": {
+    "mean": 0.00616758399832187,
+    "sampleVolatility": 0.027827074762346582,
+    "skewness": -0.47019437120147495,
+    "excessKurtosis": 0.7731889274116659,
+    "worstReturn": -0.08355747277913528,
+    "bestReturn": 0.07069936631030083,
+    "beyond2SigmaCount": 7,
+    "beyond3SigmaCount": 1,
+    "negativeBeyond2SigmaCount": 3,
+    "absoluteReturnLag1Correlation": 0.1509033632001963
+  },
+  "normalityDiagnostic": {
+    "statistic": 7.04022249547347,
+    "approximatePValueDf2": 0.02959614248087632,
+    "rejectAtFivePercent": true
+  },
+  "interpretation": {
+    "verdict": "diagnostic-normality-rejection",
+    "statement": "La normalité mensuelle est rejetée à 5 % sur l'échantillon diagnostique 2014-2023. Ce résultat doit être reproduit hors échantillon avant toute modification du moteur."
+  }
+}
