@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "portfolio-probability-prospective-v1",
+  "status": "blocked-before-first-forecast",
+  "protocol": {
+    "schemaVersion": 1,
+    "campaignId": "portfolio-probability-prospective-v1",
+    "protocolVersion": "1.0.0",
+    "registeredAt": "2026-08-07T20:35:00Z",
+    "engineCommit": "66d09ccf94bdec3b5c4e1e09fc406e6ccc5df6b9",
+    "assumptionsFingerprint": "134423f77b232a94456a9bcb00cca9be0be83a76e61e14bdfd62bc40a143c7b1",
+    "timezone": "Europe/Paris",
+    "cadence": "quarterly",
+    "horizonMonths": 12,
+    "simulationPathsPerForecast": 5000,
+    "minimumIndependentForecasts": 100,
+    "portfolioIds": [
+      "defensive",
+      "beginner",
+      "dynamic",
+      "world-only"
+    ],
+    "coverageLevels": [
+      0.5,
+      0.9
+    ],
+    "probabilityEvent": "final-value-greater-than-initial-value",
+    "benchmark": "dynamic-point-in-time-base-rate",
+    "score": "brier-score",
+    "exactLicensedDataRequired": true,
+    "independentHoldoutRequired": true,
+    "recalibrationBeforeDecisionForbidden": true,
+    "fingerprint": "5b5845c18b0c147892f8104625dc62c195ca79a3c843796b9acc7d1788bb5c77"
+  },
+  "calendar": {
+    "schemaVersion": 1,
+    "campaignId": "portfolio-probability-prospective-v1",
+    "protocolFingerprint": "5b5845c18b0c147892f8104625dc62c195ca79a3c843796b9acc7d1788bb5c77",
+    "timezone": "Europe/Paris",
+    "entries": [
+      {
+        "scheduleId": "portfolio-probability-prospective-v1-origin-01",
+        "targetOriginLocalDate": "2026-10-01",
+        "maturityTargetLocalDate": "2027-10-01",
+        "timezone": "Europe/Paris",
+        "sealRule": "first-eligible-observation-after-prior-month-end",
+        "independenceStatus": "not-demonstrated",
+        "mayCountAsIndependent": false
+      },
+      {
+        "scheduleId": "portfolio-probability-prospective-v1-origin-02",
+        "targetOriginLocalDate": "2027-01-01",
+        "maturityTargetLocalDate": "2028-01-01",
+        "timezone": "Europe/Paris",
+        "sealRule": "first-eligible-observation-after-prior-month-end",
+        "independenceStatus": "not-demonstrated",
+        "mayCountAsIndependent": false
+      },
+      {
+        "scheduleId": "portfolio-probability-prospective-v1-origin-03",
+        "targetOriginLocalDate": "2027-04-01",
+        "maturityTargetLocalDate": "2028-04-01",
+        "timezone": "Europe/Paris",
+        "sealRule": "first-eligible-observation-after-prior-month-end",
+        "independenceStatus": "not-demonstrated",
+        "mayCountAsIndependent": false
+      },
+      {
+        "scheduleId": "portfolio-probability-prospective-v1-origin-04",
+        "targetOriginLocalDate": "2027-07-01",
+        "maturityTargetLocalDate": "2028-07-01",
+        "timezone": "Europe/Paris",
+        "sealRule": "first-eligible-observation-after-prior-month-end",
+        "independenceStatus": "not-demonstrated",
+        "mayCountAsIndependent": false
+      },
+      {
+        "scheduleId": "portfolio-probability-prospective-v1-origin-05",
+        "targetOriginLocalDate": "2027-10-01",
+        "maturityTargetLocalDate": "2028-10-01",
+        "timezone": "Europe/Paris",
+        "sealRule": "first-eligible-observation-after-prior-month-end",
+        "independenceStatus": "not-demonstrated",
+        "mayCountAsIndependent": false
+      },
+      {
+        "scheduleId": "portfolio-probability-prospective-v1-origin-06",
+        "targetOriginLocalDate": "2028-01-01",
+        "maturityTargetLocalDate": "2029-01-01",
+        "timezone": "Europe/Paris",
+        "sealRule": "first-eligible-observation-after-prior-month-end",
+        "independenceStatus": "not-demonstrated",
+        "mayCountAsIndependent": false
+      },
+      {
+        "scheduleId": "portfolio-probability-prospective-v1-origin-07",
+        "targetOriginLocalDate": "2028-04-01",
+        "maturityTargetLocalDate": "2029-04-01",
+        "timezone": "Europe/Paris",
+        "sealRule": "first-eligible-observation-after-prior-month-end",
+        "independenceStatus": "not-demonstrated",
+        "mayCountAsIndependent": false
+      },
+      {
+        "scheduleId": "portfolio-probability-prospective-v1-origin-08",
+        "targetOriginLocalDate": "2028-07-01",
+        "maturityTargetLocalDate": "2029-07-01",
+        "timezone": "Europe/Paris",
+        "sealRule": "first-eligible-observation-after-prior-month-end",
+        "independenceStatus": "not-demonstrated",
+        "mayCountAsIndependent": false
+      }
+    ],
+    "fingerprint": "369ed4a9fd3df8f8eea4bb5f96acc2e11d2781188c85af2b606ffbb91934ff35"
+  },
+  "assumptions": {
+    "portfolioCohort": [
+      {
+        "id": "defensive",
+        "world": 0.3,
+        "asia": 0.1,
+        "cash": 0.6
+      },
+      {
+        "id": "beginner",
+        "world": 0.5,
+        "asia": 0.15,
+        "cash": 0.35
+      },
+      {
+        "id": "dynamic",
+        "world": 0.75,
+        "asia": 0.2,
+        "cash": 0.05
+      },
+      {
+        "id": "world-only",
+        "world": 1,
+        "asia": 0,
+        "cash": 0
+      }
+    ],
+    "returnFrequency": "monthly",
+    "estimationRule": "mean-and-variance-from-observations-available-before-as-of",
+    "simulationDistribution": "unchanged-production-gaussian-monthly",
+    "simulationPathsPerForecast": 5000,
+    "seedRule": "sha256-campaign-origin-portfolio-to-uint32",
+    "probabilityEvent": "final-value-greater-than-initial-value",
+    "horizonMonths": 12,
+    "intervalLevels": [
+      0.5,
+      0.9
+    ],
+    "benchmark": "dynamic-point-in-time-base-rate",
+    "primaryScore": "brier-score"
+  },
+  "sourceReadiness": {
+    "schemaVersion": 1,
+    "ready": false,
+    "blockers": [
+      "paej:missing",
+      "worldProxy:missing"
+    ],
+    "requiredTrack": "licensed-proxy-validation",
+    "fallbackToDevelopmentSourceAllowed": false
+  },
+  "launch": {
+    "schemaVersion": 1,
+    "campaignId": "portfolio-probability-prospective-v1",
+    "protocolFingerprint": "5b5845c18b0c147892f8104625dc62c195ca79a3c843796b9acc7d1788bb5c77",
+    "calendarFingerprint": "369ed4a9fd3df8f8eea4bb5f96acc2e11d2781188c85af2b606ffbb91934ff35",
+    "evaluatedForecastCount": 0,
+    "independentForecastCount": null,
+    "blockers": [
+      "licensed-data:paej:missing",
+      "licensed-data:worldProxy:missing"
+    ],
+    "readyToSealForecasts": false,
+    "mayExposeRealWorldProbability": false,
+    "status": "blocked-before-first-forecast",
+    "fingerprint": "bc6952faddf0ccc3231367fc2d4f8b8ae9211b50bf0eac2d067fad12c3db2324"
+  },
+  "forecasts": [],
+  "settlements": [],
+  "engineModified": false
+}

@@ -55,11 +55,33 @@ export function evaluateProbabilityCalibration(records, benchmarkProbability) {
 
 function fingerprint(value) { return createHash('sha256').update(JSON.stringify(value)).digest('hex'); }
 
-export function createProspectiveForecast(input) {
-  const payload = { schemaVersion: 1, forecastId: String(input.forecastId || '').trim(), engineCommit: String(input.engineCommit || '').trim(), portfolioId: String(input.portfolioId || '').trim(), asOf: iso(input.asOf, 'asOf'), maturesAt: iso(input.maturesAt, 'maturesAt'), horizonMonths: Number(input.horizonMonths), probability: probability(input.probability, 'probability'), intervals: normalizeIntervals(input.intervals), assumptionsFingerprint: String(input.assumptionsFingerprint || '').trim(), createdWithoutOutcomeAccess: input.createdWithoutOutcomeAccess === true };
+function sha256(value, field) {
+  const text = String(value || '').trim().toLowerCase();
+  if (!/^[a-f0-9]{64}$/.test(text)) throw new TypeError(`${field} doit être une empreinte SHA-256.`);
+  return text;
+}
+
+function sourceManifestFingerprints(input) {
+  if (!Array.isArray(input) || input.length === 0) throw new TypeError('datasetManifestFingerprints doit être un tableau non vide.');
+  const values = input.map((value, index) => sha256(value, `datasetManifestFingerprints[${index}]`)).sort();
+  if (new Set(values).size !== values.length) throw new TypeError('datasetManifestFingerprints contient un doublon.');
+  return Object.freeze(values);
+}
+
+export function createProspectiveForecast(input, now = new Date().toISOString()) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new TypeError('input doit être un objet.');
+  for (const forbidden of ['outcome', 'binaryOutcome', 'observedAt', 'settlement']) {
+    if (Object.hasOwn(input, forbidden)) throw new TypeError(`${forbidden} est interdit lors du scellement d'une prévision.`);
+  }
+  const normalizedNow = iso(now, 'now');
+  const payload = { schemaVersion: 1, forecastId: String(input.forecastId || '').trim(), engineCommit: String(input.engineCommit || '').trim(), portfolioId: String(input.portfolioId || '').trim(), asOf: iso(input.asOf, 'asOf'), sealedAt: iso(input.sealedAt ?? normalizedNow, 'sealedAt'), maturesAt: iso(input.maturesAt, 'maturesAt'), horizonMonths: Number(input.horizonMonths), probability: probability(input.probability, 'probability'), benchmarkProbability: probability(input.benchmarkProbability, 'benchmarkProbability'), intervals: normalizeIntervals(input.intervals), assumptionsFingerprint: sha256(input.assumptionsFingerprint, 'assumptionsFingerprint'), datasetManifestFingerprints: sourceManifestFingerprints(input.datasetManifestFingerprints), inputDataFingerprint: sha256(input.inputDataFingerprint, 'inputDataFingerprint'), simulationSeed: Number(input.simulationSeed), createdWithoutOutcomeAccess: input.createdWithoutOutcomeAccess === true };
   if (!payload.forecastId || !payload.engineCommit || !payload.portfolioId || !payload.assumptionsFingerprint) throw new TypeError('identifiants et empreintes requis.');
   if (!Number.isInteger(payload.horizonMonths) || payload.horizonMonths < 1) throw new TypeError('horizonMonths invalide.');
+  if (!Number.isSafeInteger(payload.simulationSeed) || payload.simulationSeed < 0 || payload.simulationSeed > 0xffffffff) throw new TypeError('simulationSeed doit être un entier uint32.');
   if (Date.parse(payload.maturesAt) <= Date.parse(payload.asOf)) throw new TypeError('maturesAt doit être postérieur à asOf.');
+  if (Date.parse(payload.asOf) > Date.parse(payload.sealedAt)) throw new TypeError('asOf ne peut pas être postérieur à sealedAt.');
+  if (Date.parse(payload.sealedAt) >= Date.parse(payload.maturesAt)) throw new TypeError('sealedAt doit être antérieur à maturesAt.');
+  if (Date.parse(payload.sealedAt) > Date.parse(normalizedNow)) throw new TypeError('sealedAt ne peut pas être postérieur à now.');
   if (!payload.createdWithoutOutcomeAccess) throw new TypeError('createdWithoutOutcomeAccess doit être true.');
   return Object.freeze({ ...payload, fingerprint: fingerprint(payload) });
 }

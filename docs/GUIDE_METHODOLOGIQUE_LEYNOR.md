@@ -634,3 +634,14 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - intervalles de Wilson conservés comme descriptifs mais non inférentiels sous dépendance ;
 - empreinte obligatoire des entrées de source en direct, avec limite explicite lorsqu’aucun instantané reconstructible n’est archivé ;
 - exposition de probabilités réelles interdite tant que données exactes, holdout vierge et validation prospective manquent.
+
+### Validation prospective probabiliste v1
+
+- protocole, hypothèse, moteur, cohorte, horizon et règle de décision versionnés avant toute première prévision ;
+- calendrier trimestriel interprété dans le fuseau `Europe/Paris`, avec horodatage UTC exact au scellement ;
+- `asOf`, `sealedAt`, `maturesAt`, benchmark point-in-time, graine et empreintes des sources obligatoires ; aucun résultat ne peut être présent dans un objet de prévision ;
+- première vague de huit origines considérée comme calendrier de collecte, jamais comme huit observations indépendantes ;
+- effectif indépendant maintenu à `null` tant que le chevauchement temporel et les actifs partagés ne sont pas traités par un protocole séparé ;
+- données exactes/licenciées et holdout prospectif obligatoires ; aucun fallback vers Yahoo ;
+- Brier strictement meilleur que le benchmark dynamique, couverture compatible et au moins 100 prévisions effectivement indépendantes avant toute conclusion favorable ;
+- statut initial `blocked-before-first-forecast` : aucune prévision fabriquée tant que les séries éligibles manquent.

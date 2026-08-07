@@ -32,6 +32,8 @@ Chaque future prévision doit enregistrer le commit moteur, l'empreinte des hypo
 
 Les intervalles d’une prévision sont normalisés et figés profondément avant empreinte. `binaryOutcome` doit être strictement booléen et une observation datée dans le futur par rapport à l’horloge de règlement est refusée.
 
+La campagne prospective indépendante est préenregistrée dans `PORTFOLIO_PROBABILITY_PROSPECTIVE_V1.md`. Elle ajoute `sealedAt`, interdit tout champ de résultat lors du scellement, fixe le calendrier à `Europe/Paris` et bloque la première prévision tant que les données exactes/licenciées manquent.
+
 ## Données exactes
 
 Le même pipeline acceptera un export CSV `date,level` seulement avec un manifeste indiquant fournisseur, référence de licence, indice, variante de rendement, devise et `validationEligible: true`. Aucune source proxy ne peut être requalifiée silencieusement en donnée exacte.
