@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "beginner-exact-quarterly-dev-v1",
+  "status": "development-historical-replay",
+  "track": "exact",
+  "source": {
+    "providerId": "yahoo-finance-chart-dev",
+    "usage": "development",
+    "validationEligibleSource": false
+  },
+  "allocation": { "WPEA": 0.5, "PAEJ": 0.15, "CASH": 0.35 },
+  "windows": [
+    { "id": "2024-Q2", "finalValue": 10337.415838254998, "cumulativeReturn": 0.033741583825499744, "annualizedVolatility": 0.060192212537725776, "maxDrawdown": -0.01973832180263424, "recovered": true },
+    { "id": "2024-Q3", "finalValue": 10163.547011736115, "cumulativeReturn": 0.016354701173611152, "annualizedVolatility": 0.10818129626418248, "maxDrawdown": -0.055508483688364585, "recovered": true },
+    { "id": "2024-Q4", "finalValue": 10387.760503062998, "cumulativeReturn": 0.038776050306299714, "annualizedVolatility": 0.06923651722920902, "maxDrawdown": -0.019427490992711682, "recovered": true },
+    { "id": "2025-Q1", "finalValue": 9569.632694877233, "cumulativeReturn": -0.04303673051227752, "annualizedVolatility": 0.09269689639648594, "maxDrawdown": -0.06896286151017628, "recovered": false },
+    { "id": "2025-Q2", "finalValue": 10134.558129886878, "cumulativeReturn": 0.013455812988688143, "annualizedVolatility": 0.15941026049141133, "maxDrawdown": -0.08678871282363232, "recovered": true },
+    { "id": "2025-Q3", "finalValue": 10512.705206173929, "cumulativeReturn": 0.05127052061739201, "annualizedVolatility": 0.06637810002311377, "maxDrawdown": -0.019595324520340962, "recovered": true },
+    { "id": "2025-Q4", "finalValue": 10189.942130335958, "cumulativeReturn": 0.01899421303359472, "annualizedVolatility": 0.0828295432114523, "maxDrawdown": -0.02790097453195106, "recovered": false },
+    { "id": "2026-Q1", "finalValue": 9766.03656543194, "cumulativeReturn": -0.023396343456806634, "annualizedVolatility": 0.0765681057226366, "maxDrawdown": -0.04386319435080166, "recovered": false }
+  ],
+  "artifactEvidence": {
+    "workflowRunId": 31185040789,
+    "artifactId": 8996353062,
+    "artifactSha256": "e4c499d0a1b415806657581642684daa6febc7fa22c39685ac897b622ce0e73c"
+  },
+  "limitations": [
+    "La source Yahoo Finance reste development-only et n’est pas validation-eligible.",
+    "Les huit fenêtres sont non chevauchantes au niveau calendaire.",
+    "Ces résultats trimestriels ne doivent pas être comparés directement à la distribution annuelle existante.",
+    "Aucun coût, apport ou rééquilibrage n’est appliqué."
+  ]
+}
