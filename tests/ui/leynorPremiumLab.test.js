@@ -73,6 +73,27 @@ test('une campagne compare plusieurs allocations avec les mêmes paramètres et 
   assert.ok(Object.isFrozen(first.comparison));
 });
 
+test('une campagne reste reproductible scénario par scénario même quand le nombre d’actifs diffère, sans revendiquer un appariement des tirages', () => {
+  const threeAssetAllocation = [
+    { id: 'world', label: 'ETF Monde', weight: 0.6, annualReturn: 0.07, annualVolatility: 0.16 },
+    { id: 'bonds', label: 'Obligations', weight: 0.3, annualReturn: 0.03, annualVolatility: 0.06 },
+    { id: 'gold', label: 'Or', weight: 0.1, annualReturn: 0.02, annualVolatility: 0.14 }
+  ];
+  const input = {
+    name: 'Comparaison à nombre d’actifs différent',
+    shared: { portfolioCount: 250, years: 15, initialAmount: 5000, monthlyContribution: 150, annualInflation: 0.02, annualFees: 0.003, goal: 80000, seed: 12345 },
+    scenarios: [
+      { id: 'deux-actifs', label: 'Deux actifs', allocation },
+      { id: 'trois-actifs', label: 'Trois actifs', allocation: threeAssetAllocation }
+    ]
+  };
+  const first = runSimulationCampaign(input);
+  const second = runSimulationCampaign(input);
+  assert.deepEqual(first, second);
+  assert.match(first.methodology.statement, /reproductibilité de chaque scénario pris isolément/);
+  assert.match(first.methodology.statement, /pas un appariement des tirages aléatoires/);
+});
+
 test('la campagne refuse les identifiants dupliqués et un scénario unique', () => {
   const shared = { portfolioCount: 10, years: 5, seed: 1 };
   assert.throws(() => createSimulationCampaign({ shared, scenarios: [{ id: 'seul', allocation }] }), /entre 2/);
