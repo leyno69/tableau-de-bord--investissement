@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "beginner-quarterly-drawdown-frequency-diagnostics-v1",
+  "status": "descriptive-diagnostics",
+  "artifactEvidence": {
+    "workflowRunId": 31193751886,
+    "artifactId": 8999896267,
+    "artifactSha256": "a21f04d1d36bc6630873d0aa828fb45a3eca6c7aa6ea3277488b4b230f07db6f"
+  },
+  "simulationHorizonMonths": 3,
+  "simulationDrawdown": {
+    "median": 0.023324670198907056,
+    "p95": 0.07868558259824793,
+    "maximum": 0.16514549243224919
+  },
+  "summary": {
+    "dailyAdverseWindows": ["2025-Q2"],
+    "monthlyMatchedAdverseWindows": [],
+    "maxIntramonthDrawdownGap": 0.08678871282363243
+  },
+  "keyWindow": {
+    "id": "2025-Q2",
+    "dailyDrawdown": 0.08678871282363243,
+    "monthlySampledDrawdown": 0,
+    "dailyBand": "p95-maximum",
+    "monthlyMatchedBand": "at-or-below-median"
+  },
+  "interpretation": {
+    "verdict": "frequency-mismatch-found",
+    "statement": "Le dépassement 2025-Q2 du p95 simulé disparaît lorsque le drawdown historique est échantillonné mensuellement comme la simulation 3 mois. L'observation quotidienne reste conservée comme risque intramensuel, mais elle n'est plus une preuve adverse appariée contre cette distribution mensuelle."
+  },
+  "limitations": [
+    "La disparition du dépassement apparié ne prouve pas que le modèle gaussien est correct.",
+    "Le moteur mensuel ne décrit pas explicitement le risque intramensuel ; ce risque doit être traité comme une métrique distincte si LEYNOR souhaite l'exposer.",
+    "La source Yahoo reste development-only pour cette piste instrument exact."
+  ]
+}

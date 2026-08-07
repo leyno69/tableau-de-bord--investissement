@@ -6,7 +6,7 @@ on:
       - 'validation/historicalRiskDiagnostics.js'
       - 'validation/historicalRiskDiagnostics.test.js'
       - 'experiments/beginner-etf-proxy-validation-v1/**'
-      - 'experiments/beginner-historical-pilot-v1/results.json'
+      - 'experiments/beginner-historical-pilot-v1/**'
       - '.github/workflows/beginner-drawdown-risk-diagnostics.yml'
   workflow_dispatch:
 
@@ -21,11 +21,15 @@ jobs:
           node-version: 22
       - name: Run diagnostic unit tests
         run: node --test validation/historicalRiskDiagnostics.test.js
-      - name: Run historical risk diagnostics
+      - name: Run annual historical risk diagnostics
         run: node experiments/beginner-etf-proxy-validation-v1/run-risk-diagnostics.mjs
-      - name: Upload diagnostic artifact
+      - name: Run quarterly drawdown frequency diagnostics
+        run: node experiments/beginner-historical-pilot-v1/run-quarterly-risk-diagnostics.mjs
+      - name: Upload diagnostic artifacts
         uses: actions/upload-artifact@v4
         with:
           name: beginner-drawdown-risk-diagnostics-v1
-          path: artifacts/beginner-drawdown-risk-diagnostics-v1.json
+          path: |
+            artifacts/beginner-drawdown-risk-diagnostics-v1.json
+            artifacts/beginner-quarterly-drawdown-frequency-diagnostics-v1.json
           if-no-files-found: error
