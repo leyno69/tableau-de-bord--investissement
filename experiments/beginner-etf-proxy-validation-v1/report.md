@@ -6,15 +6,19 @@ Portefeuille `beginner` : 50 % proxy World, 15 % PAEJ réel, 35 % cash. Le proxy
 
 Cette piste n'est pas une validation officielle MSCI. Elle constitue une preuve empirique structurée sur instruments de marché réels.
 
+## Note de recalcul (2026-08-08)
+
+La colonne « Volatilité annualisée » ci-dessous a été recalculée après correction d'un bug (PR #308) : le calcul utilisait une constante fixe de 252 jours de bourse alors que les calendriers d'IWDA.AS et de PAEJ.PA sont mélangés. La volatilité annualisée est désormais dérivée de la fréquence réelle d'observation de chaque fenêtre. Rendement cumulé, drawdown max et bandes de comparaison à la simulation sont inchangés — seule cette métrique dépendait du calcul corrigé. Recalcul exécuté via le workflow CI dédié (Yahoo Finance inaccessible en local).
+
 ## Résultats annuels
 
 | Fenêtre | Rendement cumulé | Volatilité annualisée | Drawdown max | Bande valeur finale | Bande drawdown |
 | --- | ---: | ---: | ---: | --- | --- |
-| 2015 | +5,46 % | 13,85 % | -14,84 % | médiane–p75 | médiane–p95 |
-| 2018 | -3,67 % | 9,38 % | -9,69 % | p05–p25 | médiane–p95 |
-| 2020 | +4,01 % | 16,10 % | -21,68 % | p25–médiane | **p95–maximum** |
-| 2022 | -8,89 % | 10,75 % | -10,07 % | p05–p25 | médiane–p95 |
-| 2023 | +8,85 % | 6,95 % | -4,72 % | médiane–p75 | sous médiane |
+| 2015 | +5,46 % | 13,96 % | -14,84 % | médiane–p75 | médiane–p95 |
+| 2018 | -3,67 % | 9,44 % | -9,69 % | p05–p25 | médiane–p95 |
+| 2020 | +4,01 % | 16,26 % | -21,68 % | p25–médiane | **p95–maximum** |
+| 2022 | -8,89 % | 10,90 % | -10,07 % | p05–p25 | médiane–p95 |
+| 2023 | +8,85 % | 7,02 % | -4,72 % | médiane–p75 | sous médiane |
 
 ## Confrontation à la simulation annuelle
 
