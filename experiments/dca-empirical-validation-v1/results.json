@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "dca-empirical-validation-v1",
+  "status": "supporting-empirical-evidence",
+  "artifactEvidence": {
+    "workflowRunId": 31197064508,
+    "artifactId": 9001233752,
+    "artifactSha256": "ee1e21fce179f307af8c155745045ce0045c319279155363d99f80b67af47dcd"
+  },
+  "source": {
+    "provider": "Yahoo Finance chart API",
+    "symbol": "IWDA.AS",
+    "licensedBenchmarkSource": false
+  },
+  "definition": {
+    "initialAmount": 3000,
+    "monthlyAmount": 150,
+    "months": 60,
+    "annualReturn": 0.07,
+    "contributionTiming": "after-month-return-at-month-end"
+  },
+  "deterministicProjection": {
+    "finalValue": 14887.033854612613,
+    "contributed": 12000,
+    "gain": 2887.033854612613
+  },
+  "windows": [
+    {
+      "id": "2010-2014",
+      "historical": { "finalValue": 18958.95677738369, "contributed": 12000, "gain": 6958.95677738369 },
+      "finalValueDelta": 4071.9229227710766,
+      "relativeFinalValueErrorVsProjection": 0.2735214390279248
+    },
+    {
+      "id": "2015-2019",
+      "historical": { "finalValue": 16691.474077690164, "contributed": 12000, "gain": 4691.4740776901635 },
+      "finalValueDelta": 1804.4402230775504,
+      "relativeFinalValueErrorVsProjection": 0.12120884796123849
+    },
+    {
+      "id": "2020-2024",
+      "historical": { "finalValue": 18826.876757134392, "contributed": 12000, "gain": 6826.876757134392 },
+      "finalValueDelta": 3939.8429025217793,
+      "relativeFinalValueErrorVsProjection": 0.26464928749396605
+    }
+  ],
+  "interpretation": {
+    "verdict": null,
+    "statement": "Les trois fenêtres historiques terminent au-dessus de la projection déterministe à 7 %, mais ce constat ne constitue ni une probabilité calibrée ni une validation prédictive."
+  },
+  "limitations": [
+    "IWDA.AS est utilisé comme proxy ETF Monde et non comme historique de WPEA.",
+    "Le calculateur DCA est déterministe et ne produit pas de distribution de probabilité.",
+    "Trois fenêtres de cinq ans ne suffisent pas à calibrer une probabilité de réussite.",
+    "Le cash résiduel du preset portefeuille est hors périmètre : cette expérience valide uniquement le calculateur DCA séparé."
+  ]
+}
