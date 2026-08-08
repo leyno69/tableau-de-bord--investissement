@@ -45,3 +45,15 @@ test('le track exact/proxy est vérifié explicitement', () => {
 test('une période inversée est rejetée', () => {
   assert.throws(() => createHistoricalDatasetManifest({ ...fixtureInput, start: '2020-02-01', end: '2020-01-01' }), /end/);
 });
+
+test('un jour calendaire inexistant est rejeté plutôt que glissé silencieusement au mois suivant', () => {
+  assert.throws(
+    () => createHistoricalDatasetManifest({ ...fixtureInput, start: '2020-02-30' }),
+    /date calendaire valide/
+  );
+});
+
+test('un horodatage complet (acquiredAt) reste accepté, pas seulement une date pure', () => {
+  const manifest = createHistoricalDatasetManifest({ ...fixtureInput, acquiredAt: '2026-08-07T12:34:56Z' });
+  assert.equal(manifest.acquiredAt, '2026-08-07T12:34:56Z');
+});
