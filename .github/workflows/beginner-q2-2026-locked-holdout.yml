@@ -1,0 +1,29 @@
+name: Beginner Q2 2026 locked holdout
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  holdout:
+    name: Locked Q2 2026 holdout
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run locked holdout
+        run: node experiments/beginner-historical-pilot-v1/run-q2-2026-locked-holdout.mjs
+      - name: Upload locked holdout result
+        uses: actions/upload-artifact@v4
+        with:
+          name: beginner-q2-2026-locked-holdout
+          path: artifacts/beginner-q2-2026-locked-holdout.json
