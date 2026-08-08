@@ -1,0 +1,26 @@
+name: Heavy-tail cross-validation v1
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/heavy-tail-cross-validation-v1/**'
+      - '.github/workflows/heavy-tail-cross-validation-v1.yml'
+  workflow_dispatch:
+
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run temporal cross-validation
+        run: node experiments/heavy-tail-cross-validation-v1/run.mjs
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: heavy-tail-cross-validation-v1
+          path: artifacts/heavy-tail-cross-validation-v1.json
+          if-no-files-found: error
