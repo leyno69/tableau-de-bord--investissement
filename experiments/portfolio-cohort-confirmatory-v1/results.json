@@ -1,0 +1,314 @@
+{
+  "schemaVersion": 1,
+  "experimentId": "portfolio-cohort-confirmatory-v1",
+  "status": "confirmatory-proxy-generalization",
+  "source": {
+    "provider": "Yahoo Finance chart API",
+    "symbols": [
+      "IWDA.AS",
+      "PAEJ.PA"
+    ],
+    "adjustedClose": true,
+    "alignedInputSha256": "3ff80fb4f9c16b21dca2d35efc6ecb4996031de44406204fb386a15c7dda838f"
+  },
+  "cohort": [
+    {
+      "id": "defensive",
+      "world": 0.3,
+      "asia": 0.1,
+      "cash": 0.6
+    },
+    {
+      "id": "beginner",
+      "world": 0.5,
+      "asia": 0.15,
+      "cash": 0.35
+    },
+    {
+      "id": "dynamic",
+      "world": 0.75,
+      "asia": 0.2,
+      "cash": 0.05
+    },
+    {
+      "id": "world-only",
+      "world": 1,
+      "asia": 0,
+      "cash": 0
+    }
+  ],
+  "folds": [
+    {
+      "id": "fold-1",
+      "trainEnd": "2017-12",
+      "start": "2018-01",
+      "end": "2019-12"
+    },
+    {
+      "id": "fold-2",
+      "trainEnd": "2019-12",
+      "start": "2020-01",
+      "end": "2021-12"
+    },
+    {
+      "id": "fold-3",
+      "trainEnd": "2021-12",
+      "start": "2022-01",
+      "end": "2023-12"
+    }
+  ],
+  "portfolios": [
+    {
+      "definition": {
+        "id": "defensive",
+        "world": 0.3,
+        "asia": 0.1,
+        "cash": 0.6
+      },
+      "folds": [
+        {
+          "id": "fold-1",
+          "trainingCount": 42,
+          "validationCount": 24,
+          "selectedDf": 4,
+          "selectedLambda": 0.9,
+          "gaussianNll": -62.9971626962594,
+          "studentNll": -61.351312015586494,
+          "ewmaNll": -60.699983156425944,
+          "studentDelta": 1.6458506806729076,
+          "ewmaDelta": 2.297179539833458,
+          "studentWins": false,
+          "ewmaWins": false
+        },
+        {
+          "id": "fold-2",
+          "trainingCount": 66,
+          "validationCount": 24,
+          "selectedDf": 6,
+          "selectedLambda": 0.97,
+          "gaussianNll": -51.527486758725374,
+          "studentNll": -54.52070863791622,
+          "ewmaNll": -52.82441299102195,
+          "studentDelta": -2.9932218791908483,
+          "ewmaDelta": -1.2969262322965776,
+          "studentWins": true,
+          "ewmaWins": true
+        },
+        {
+          "id": "fold-3",
+          "trainingCount": 90,
+          "validationCount": 24,
+          "selectedDf": 4,
+          "selectedLambda": 0.97,
+          "gaussianNll": -53.91395421621618,
+          "studentNll": -50.25014778504916,
+          "ewmaNll": -55.00664412185305,
+          "studentDelta": 3.663806431167025,
+          "ewmaDelta": -1.0926899056368669,
+          "studentWins": false,
+          "ewmaWins": true
+        }
+      ],
+      "historicalMonthlyMaxDrawdown": 0.09693490606989301,
+      "gaussianMonthlyDrawdown": {
+        "median": 0.07092350929113164,
+        "p95": 0.12629146181490916,
+        "maximum": 0.23850988199273448
+      }
+    },
+    {
+      "definition": {
+        "id": "beginner",
+        "world": 0.5,
+        "asia": 0.15,
+        "cash": 0.35
+      },
+      "folds": [
+        {
+          "id": "fold-1",
+          "trainingCount": 42,
+          "validationCount": 24,
+          "selectedDf": 4,
+          "selectedLambda": 0.9,
+          "gaussianNll": -54.0875281684062,
+          "studentNll": -52.75576570596425,
+          "ewmaNll": -51.644170593132934,
+          "studentDelta": 1.3317624624419508,
+          "ewmaDelta": 2.443357575273268,
+          "studentWins": false,
+          "ewmaWins": false
+        },
+        {
+          "id": "fold-2",
+          "trainingCount": 66,
+          "validationCount": 24,
+          "selectedDf": 6,
+          "selectedLambda": 0.97,
+          "gaussianNll": -44.39046831572821,
+          "studentNll": -46.976206395968184,
+          "ewmaNll": -44.83783127731098,
+          "studentDelta": -2.5857380802399774,
+          "ewmaDelta": -0.4473629615827761,
+          "studentWins": true,
+          "ewmaWins": true
+        },
+        {
+          "id": "fold-3",
+          "trainingCount": 90,
+          "validationCount": 24,
+          "selectedDf": 4,
+          "selectedLambda": 0.97,
+          "gaussianNll": -47.58353206787182,
+          "studentNll": -44.24617112751018,
+          "ewmaNll": -47.92824095809173,
+          "studentDelta": 3.3373609403616413,
+          "ewmaDelta": -0.3447088902199056,
+          "studentWins": false,
+          "ewmaWins": true
+        }
+      ],
+      "historicalMonthlyMaxDrawdown": 0.13746068754731877,
+      "gaussianMonthlyDrawdown": {
+        "median": 0.10754761556384353,
+        "p95": 0.18856873906560614,
+        "maximum": 0.3443642416991447
+      }
+    },
+    {
+      "definition": {
+        "id": "dynamic",
+        "world": 0.75,
+        "asia": 0.2,
+        "cash": 0.05
+      },
+      "folds": [
+        {
+          "id": "fold-1",
+          "trainingCount": 42,
+          "validationCount": 24,
+          "selectedDf": 4,
+          "selectedLambda": 0.9,
+          "gaussianNll": -47.76581704203252,
+          "studentNll": -46.79216945319552,
+          "ewmaNll": -45.31965445300351,
+          "studentDelta": 0.9736475888370038,
+          "ewmaDelta": 2.446162589029015,
+          "studentWins": false,
+          "ewmaWins": false
+        },
+        {
+          "id": "fold-2",
+          "trainingCount": 66,
+          "validationCount": 24,
+          "selectedDf": 6,
+          "selectedLambda": 0.97,
+          "gaussianNll": -39.62912888550599,
+          "studentNll": -41.87191337903453,
+          "ewmaNll": -39.4719258154743,
+          "studentDelta": -2.2427844935285393,
+          "ewmaDelta": 0.15720307003169154,
+          "studentWins": true,
+          "ewmaWins": false
+        },
+        {
+          "id": "fold-3",
+          "trainingCount": 90,
+          "validationCount": 24,
+          "selectedDf": 4,
+          "selectedLambda": 0.97,
+          "gaussianNll": -43.33787814431186,
+          "studentNll": -40.45655452125452,
+          "ewmaNll": -43.294094937413156,
+          "studentDelta": 2.881323623057341,
+          "ewmaDelta": 0.043783206898702076,
+          "studentWins": false,
+          "ewmaWins": false
+        }
+      ],
+      "historicalMonthlyMaxDrawdown": 0.17455939818959218,
+      "gaussianMonthlyDrawdown": {
+        "median": 0.14537362914508736,
+        "p95": 0.250605026749054,
+        "maximum": 0.44251370994399686
+      }
+    },
+    {
+      "definition": {
+        "id": "world-only",
+        "world": 1,
+        "asia": 0,
+        "cash": 0
+      },
+      "folds": [
+        {
+          "id": "fold-1",
+          "trainingCount": 42,
+          "validationCount": 24,
+          "selectedDf": 6,
+          "selectedLambda": 0.9,
+          "gaussianNll": -46.30300321273911,
+          "studentNll": -45.99317593523669,
+          "ewmaNll": -43.816569748812704,
+          "studentDelta": 0.30982727750241423,
+          "ewmaDelta": 2.486433463926403,
+          "studentWins": false,
+          "ewmaWins": false
+        },
+        {
+          "id": "fold-2",
+          "trainingCount": 66,
+          "validationCount": 24,
+          "selectedDf": 8,
+          "selectedLambda": 0.97,
+          "gaussianNll": -37.05158758036948,
+          "studentNll": -38.85312009240092,
+          "ewmaNll": -37.23044444298357,
+          "studentDelta": -1.801532512031443,
+          "ewmaDelta": -0.17885686261409006,
+          "studentWins": true,
+          "ewmaWins": true
+        },
+        {
+          "id": "fold-3",
+          "trainingCount": 90,
+          "validationCount": 24,
+          "selectedDf": 6,
+          "selectedLambda": 0.97,
+          "gaussianNll": -41.27703200545825,
+          "studentNll": -39.82276622889198,
+          "ewmaNll": -41.31839057665922,
+          "studentDelta": 1.4542657765662739,
+          "ewmaDelta": -0.04135857120096631,
+          "studentWins": false,
+          "ewmaWins": true
+        }
+      ],
+      "historicalMonthlyMaxDrawdown": 0.18609983229193458,
+      "gaussianMonthlyDrawdown": {
+        "median": 0.15127776255523165,
+        "p95": 0.2595696306829332,
+        "maximum": 0.4581611404281791
+      }
+    }
+  ],
+  "aggregate": {
+    "cellCount": 12,
+    "studentWins": 4,
+    "ewmaWins": 6,
+    "studentWinRate": 0.3333333333333333,
+    "ewmaWinRate": 0.5,
+    "studentAggregateNllDelta": 5.97456781561575,
+    "ewmaAggregateNllDelta": 6.472216021441355,
+    "studentPrototypeAuthorized": false,
+    "ewmaPrototypeAuthorized": false
+  },
+  "decisionRule": "alternative aggregate NLL delta < 0 and win rate >= 0.75 authorizes only a separate prototype",
+  "engineModified": false,
+  "limitations": [
+    "Proxies Yahoo non licenciés.",
+    "Les cours Yahoo sont interrogés en direct et peuvent être révisés ; leur empreinte détecte une dérive sans archiver la version source.",
+    "Périodes déjà observées.",
+    "Allocations dépendantes car elles partagent les mêmes sous-jacents.",
+    "Le protocole et les résultats sont publiés dans la même PR : le préenregistrement n’est pas horodaté indépendamment."
+  ]
+}

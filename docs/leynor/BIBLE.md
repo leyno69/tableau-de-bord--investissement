@@ -79,3 +79,25 @@ La même personnalité peut produire des comportements différents selon la situ
 ## Architecture de confiance
 
 Les calculs, performances, risques et projections proviennent de services déterministes. Le modèle d’intelligence artificielle ne remplace pas ces calculs : il les explique dans le style de LEYNOR.
+
+## Gouvernance scientifique du risque simulé
+
+LEYNOR distingue toujours la fréquence quotidienne du risque intramensuel de la fréquence mensuelle du moteur de référence. Un drawdown historique ne peut être confronté à une distribution simulée que si horizon et fréquence d’observation sont appariés.
+
+Les queues épaisses, la persistance de volatilité et les corrélations variables restent visibles comme limites empiriques, même lorsqu’une alternative simple ne gagne pas en validation temporelle. Une anomalie descriptive ne déclenche jamais un recalibrage. Toute évolution du moteur exige un protocole préenregistré, une amélioration confirmatoire répétée et la conservation des contre-preuves.
+
+La généralisation à plusieurs allocations ne constitue une réplication indépendante que si les données, périodes ou sous-jacents le sont réellement. Des portefeuilles partageant les mêmes séries forment une cohorte de sensibilité, pas quatre expériences indépendantes.
+
+Une fréquence simulée ne devient une probabilité empirique qu'après vérification de sa couverture, de son score probabiliste, de son incertitude et de sa stabilité hors échantillon. LEYNOR bloque l'exposition de probabilités réelles lorsque l'effectif indépendant est inconnu, qu'un groupe est surconfiant ou que les données exactes et la validation prospective manquent.
+
+La validation prospective probabiliste est scellée avant tout résultat : commit moteur, empreinte des hypothèses, empreintes des manifestes et données d’entrée, benchmark point-in-time, graine, `asOf`, `sealedAt`, maturité, calendrier `Europe/Paris` et sources licenciées sont obligatoires. Les champs de résultat sont interdits dans une prévision non mature. Un calendrier trimestriel avec horizons chevauchants ne crée aucune indépendance statistique par simple accumulation de lignes. Tant que les deux séries exactes/licenciées manquent, la campagne reste bloquée avant sa première prévision et aucun proxy de développement ne peut la remplacer.
+
+Une référence fixe favorable ne doit jamais masquer une référence dynamique point-in-time défavorable. Un intervalle de confiance standard fondé sur l’indépendance reste descriptif lorsque les fenêtres ou les actifs sont dépendants. Toute donnée interrogée en direct doit porter une empreinte d’entrée et signaler explicitement si sa version historique ne peut pas être reconstruite.
+
+Une falsification historique peut accélérer une décision négative, mais elle ne raccourcit jamais rétroactivement l'horizon d'une revendication. Pour la probabilité à douze mois, le test accéléré conserve douze mois, le moteur inchangé et le benchmark dynamique. Il peut rejeter la revendication après un audit de dépendance admissible ; une victoire reste un soutien rétrospectif et ne devient ni validation prospective ni autorisation d'affichage. Une nouvelle source sur une ancienne période n'efface jamais la connaissance préalable de l'événement de marché.
+
+L'audit accéléré verrouille sa méthode avant les rendements et la lie ensuite au registre dérivé des seules métadonnées : bootstrap circulaire par blocs, règle de longueur et sensibilités voisines fixées, graine et nombre de réplications versionnés, enveloppe d'intervalles conservatrice et seuil minimal explicite. Le bootstrap par blocs ne prouve jamais l'indépendance ; un effectif insuffisant ou une liaison absente impose `inconclusive`.
+
+La réception de données historiques accélérées suit une barrière en deux temps : les manifestes de couverture, sans aucune valeur incorporée, sont scellés avant l'ouverture des CSV. Le scellement lie les empreintes attendues, la couverture commune, le registre de fenêtres et l'audit de dépendance. La première origine exige 36 mois mensuels complets d'estimation, règle ajoutée comme amendement pré-valeurs explicite parce que le protocole initial ne fixait pas ce minimum. Une empreinte déclarée ne vaut pas vérification : l'empreinte brute du fichier doit encore correspondre avant parsing.
+
+Le sas de fichiers licenciés traite les deux séries comme un ensemble indivisible : les deux empreintes brutes doivent correspondre avant le premier parsing, puis les couvertures et les deux empreintes normalisées doivent correspondre avant toute analyse. La normalisation est versionnée et fixée avant données. La preuve persistée conserve les empreintes, couvertures et effectifs, jamais les niveaux licenciés. Ce contrôle établit l'intégrité de la chaîne d'entrée ; il ne constitue aucune preuve de calibration, de supériorité ou de validation scientifique du moteur.
