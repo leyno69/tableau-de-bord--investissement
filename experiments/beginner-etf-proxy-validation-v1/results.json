@@ -15,15 +15,15 @@
     { "ticker": "CASH", "weight": 0.35 }
   ],
   "windows": [
-    { "id": "2015", "effectiveWindow": { "startDate": "2015-01-02", "endDate": "2015-12-30", "commonObservationCount": 255 }, "metrics": { "finalValue": 10546.082639334789, "cumulativeReturn": 0.054608263933478174, "annualizedReturn": 0.05511063848850162, "annualizedVolatility": 0.1384734012197696, "maxDrawdown": -0.14844922746452383, "recovered": false, "recoveryDaysFromTrough": null } },
-    { "id": "2018", "effectiveWindow": { "startDate": "2018-01-02", "endDate": "2018-12-31", "commonObservationCount": 255 }, "metrics": { "finalValue": 9633.405072055659, "cumulativeReturn": -0.03665949279443381, "annualizedReturn": -0.0368817351583528, "annualizedVolatility": 0.09375655001303244, "maxDrawdown": -0.09691651251854771, "recovered": false, "recoveryDaysFromTrough": null } },
-    { "id": "2020", "effectiveWindow": { "startDate": "2020-01-02", "endDate": "2020-12-31", "commonObservationCount": 257 }, "metrics": { "finalValue": 10401.326510840569, "cumulativeReturn": 0.040132651084056725, "annualizedReturn": 0.040272364585626885, "annualizedVolatility": 0.16102729700498433, "maxDrawdown": -0.21675901697391753, "recovered": true, "recoveryDaysFromTrough": 280 } },
-    { "id": "2022", "effectiveWindow": { "startDate": "2022-01-03", "endDate": "2022-12-30", "commonObservationCount": 257 }, "metrics": { "finalValue": 9110.70733915588, "cumulativeReturn": -0.08892926608440987, "annualizedReturn": -0.0899259117955401, "annualizedVolatility": 0.10754607785976521, "maxDrawdown": -0.10067138145868615, "recovered": false, "recoveryDaysFromTrough": null } },
-    { "id": "2023", "effectiveWindow": { "startDate": "2023-01-02", "endDate": "2023-12-29", "commonObservationCount": 255 }, "metrics": { "finalValue": 10885.239137511053, "cumulativeReturn": 0.08852391375110558, "annualizedReturn": 0.08960954049736358, "annualizedVolatility": 0.06952958017520863, "maxDrawdown": -0.04722811361283796, "recovered": true, "recoveryDaysFromTrough": 40 } }
+    { "id": "2015", "effectiveWindow": { "startDate": "2015-01-02", "endDate": "2015-12-30", "commonObservationCount": 255 }, "metrics": { "finalValue": 10546.082639334789, "cumulativeReturn": 0.054608263933478174, "annualizedReturn": 0.05511063848850162, "annualizedVolatility": 0.13964304671303845, "maxDrawdown": -0.14844922746452383, "recovered": false, "recoveryDaysFromTrough": null } },
+    { "id": "2018", "effectiveWindow": { "startDate": "2018-01-02", "endDate": "2018-12-31", "commonObservationCount": 255 }, "metrics": { "finalValue": 9633.405072055659, "cumulativeReturn": -0.03665949279443381, "annualizedReturn": -0.0368817351583528, "annualizedVolatility": 0.09441816307565079, "maxDrawdown": -0.09691651251854771, "recovered": false, "recoveryDaysFromTrough": null } },
+    { "id": "2020", "effectiveWindow": { "startDate": "2020-01-02", "endDate": "2020-12-31", "commonObservationCount": 257 }, "metrics": { "finalValue": 10401.326510840569, "cumulativeReturn": 0.040132651084056725, "annualizedReturn": 0.040272364585626885, "annualizedVolatility": 0.1625770267388965, "maxDrawdown": -0.21675901697391753, "recovered": true, "recoveryDaysFromTrough": 280 } },
+    { "id": "2022", "effectiveWindow": { "startDate": "2022-01-03", "endDate": "2022-12-30", "commonObservationCount": 257 }, "metrics": { "finalValue": 9110.70733915588, "cumulativeReturn": -0.08892926608440987, "annualizedReturn": -0.0899259117955401, "annualizedVolatility": 0.10903133789943033, "maxDrawdown": -0.10067138145868615, "recovered": false, "recoveryDaysFromTrough": null } },
+    { "id": "2023", "effectiveWindow": { "startDate": "2023-01-02", "endDate": "2023-12-29", "commonObservationCount": 255 }, "metrics": { "finalValue": 10885.239137511053, "cumulativeReturn": 0.08852391375110558, "annualizedReturn": 0.08960954049736358, "annualizedVolatility": 0.07021392441913424, "maxDrawdown": -0.04722811361283796, "recovered": true, "recoveryDaysFromTrough": 40 } }
   ],
   "artifactEvidence": {
-    "workflowRunId": 31189265579,
-    "artifactId": 8998071855,
-    "artifactSha256": "7696838d884e37ac086aba9420228a8c0f7dd1f4aa5161c1a544724a28af7eb9"
+    "workflowRunId": 31253253552,
+    "artifactId": 9020644322,
+    "artifactSha256": "f8212df891c44fa2edc4b5d7a69dc9789ee20a266445b99e2dd536653e1bef67"
   }
 }
