@@ -1,6 +1,6 @@
 import { runHistoricalReplay } from './portfolioHistoricalReplayEngine.js';
 import { calculateReplayHistoricalMetrics } from './portfolioHistoricalMetrics.js';
-import { BEGINNER_PROXY_VALIDATION_PLAN_V1 } from './portfolioIndependentWindowPlan.js';
+import { assertNonOverlappingWindows, BEGINNER_PROXY_VALIDATION_PLAN_V1 } from './portfolioIndependentWindowPlan.js';
 
 function licensedSeries(input, field) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new TypeError(`${field} requis.`);
@@ -20,6 +20,7 @@ function sliceWindow(series, startDate, endDate) {
 export function runLicensedBeginnerProxyValidation({ worldProxy, paej, plan = BEGINNER_PROXY_VALIDATION_PLAN_V1 } = {}) {
   const worldSeries = licensedSeries(worldProxy, 'worldProxy');
   const paejSeries = licensedSeries(paej, 'paej');
+  assertNonOverlappingWindows(plan.windows);
   const results = [];
 
   for (const window of plan.windows) {

@@ -24,7 +24,11 @@ export function createSimulationResultSnapshot(input) {
     volatilityMean: finite(input.volatilityMean, 'volatilityMean'),
     maxDrawdownMean: finite(input.maxDrawdownMean, 'maxDrawdownMean'),
     lossFrequency: finite(input.lossFrequency, 'lossFrequency'),
-    recoveryDurationMean: finite(input.recoveryDurationMean, 'recoveryDurationMean'),
+    // Le suffixe d'unité est délibéré : le seul autre calcul de durée de
+    // récupération du dépôt (`recoveryMonthsMedian`, dans les moteurs de
+    // résilience/sensibilité) est exprimé en mois. Un nom ambigu inviterait à
+    // brancher l'un dans l'autre sans conversion.
+    recoveryDurationMeanDays: finite(input.recoveryDurationMeanDays, 'recoveryDurationMeanDays'),
     goalProbability: finite(input.goalProbability, 'goalProbability'),
     percentiles: Object.freeze(percentiles),
     assumptions: Object.freeze([...(input.assumptions ?? [])].map((item, index) => text(item, `assumptions[${index}]`))),

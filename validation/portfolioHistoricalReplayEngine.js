@@ -11,8 +11,13 @@ function nonEmpty(value, field) {
 
 function dateOnly(value, field) {
   const normalized = nonEmpty(value, field);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized) || Number.isNaN(Date.parse(`${normalized}T00:00:00Z`))) {
-    throw new TypeError(`${field} doit être une date ISO YYYY-MM-DD.`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) throw new TypeError(`${field} doit être une date ISO YYYY-MM-DD.`);
+  // Date.parse ne rejette pas un jour calendaire inexistant (ex. 30
+  // février) : il le fait glisser en silence vers le mois suivant. L'aller-
+  // retour vers toISOString() détecte ce glissement.
+  const parsed = Date.parse(`${normalized}T00:00:00Z`);
+  if (!Number.isFinite(parsed) || new Date(parsed).toISOString().slice(0, 10) !== normalized) {
+    throw new TypeError(`${field} doit être une date calendaire valide.`);
   }
   return normalized;
 }
@@ -152,16 +157,30 @@ function rebalance({ allocation, prices, cash, holdings, costPolicy, events, dat
     const target = targets.get(ticker);
     if (current > target + 1e-9) nextCash = sellNotional({ ticker, notional: current - target, price: prices.get(ticker), cash: nextCash, holdings, costPolicy, events, date, reason: 'REBALANCE' });
   }
-  for (const item of allocation) {
-    const ticker = item.ticker;
-    const current = (holdings.get(ticker) ?? 0) * prices.get(ticker);
-    const target = targets.get(ticker);
-    if (current < target - 1e-9) {
-      const desired = target - current;
-      const rate = effectiveCostBps(ticker, costPolicy) / 10000;
-      const maxNotional = nextCash / (1 + rate);
-      const notional = Math.min(desired, maxNotional);
-      nextCash = buyToTarget({ ticker, targetNotional: notional, price: prices.get(ticker), cash: nextCash, holdings, costPolicy, events, date, reason: 'REBALANCE' });
+
+  const buyNeeds = allocation
+    .map(item => {
+      const ticker = item.ticker;
+      const current = (holdings.get(ticker) ?? 0) * prices.get(ticker);
+      return { ticker, desired: targets.get(ticker) - current };
+    })
+    .filter(need => need.desired > 1e-9);
+
+  if (buyNeeds.length > 0) {
+    const totalDesired = buyNeeds.reduce((sum, need) => sum + need.desired, 0);
+    // Un déficit de trésorerie (dû aux coûts de transaction des ventes et
+    // achats de rééquilibrage) est réparti proportionnellement aux besoins
+    // de chaque actif, sur le même principe que investCashByWeights —
+    // jamais dans l'ordre du tableau allocation, ce qui privilégiait
+    // arbitrairement les premiers actifs listés au détriment des suivants.
+    const weightedCostRate = buyNeeds.reduce(
+      (sum, need) => sum + (need.desired / totalDesired) * effectiveCostBps(need.ticker, costPolicy) / 10000,
+      0
+    );
+    const investable = nextCash / (1 + weightedCostRate);
+    const scale = Math.min(1, investable / totalDesired);
+    for (const need of buyNeeds) {
+      nextCash = buyToTarget({ ticker: need.ticker, targetNotional: need.desired * scale, price: prices.get(need.ticker), cash: nextCash, holdings, costPolicy, events, date, reason: 'REBALANCE' });
     }
   }
   return nextCash;
@@ -222,7 +241,12 @@ export function runHistoricalReplay(input) {
       cash = investCashByWeights({ amount: externalFlow, allocation, prices, cash, holdings, costPolicy, events, date, reason: 'CONTRIBUTION' });
       totalCosts += events.slice(before).reduce((sum, event) => sum + event.cost, 0);
     }
-    if (rebalanceSet.has(date) && date !== firstDate) {
+    if (rebalanceSet.has(date)) {
+      // Aucun cas particulier pour firstDate : rebalance() ne produit un
+      // BUY/SELL que si un actif s'écarte du poids cible de plus de 1e-9 ;
+      // juste après l'allocation initiale, tout est déjà au poids cible, et
+      // l'appel devient naturellement un no-op silencieux et sans coût —
+      // pas un no-op caché comme avant, où la date était ignorée sans trace.
       const before = events.length;
       cash = rebalance({ allocation, prices, cash, holdings, costPolicy, events, date });
       totalCosts += events.slice(before).reduce((sum, event) => sum + event.cost, 0);

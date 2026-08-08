@@ -1,12 +1,18 @@
 const MS_PER_DAY = 86400000;
 
 export const HISTORICAL_METRIC_CONVENTIONS = Object.freeze({
-  schemaVersion: 1,
+  schemaVersion: 2,
   returnMethod: 'time-weighted-flow-adjusted',
   annualizationCalendarDays: 365.2425,
-  volatilityPeriodsPerYear: 252,
+  // v1 utilisait une constante fixe de 252 périodes/an, fausse dès que
+  // valuePath a des trous (ex. intersection de deux calendriers de bourse
+  // distincts). v2 dérive le nombre de périodes/an de la durée réelle
+  // observée. Pour une série vraiment quotidienne sans trou, le résultat
+  // reste proche de l'ancienne convention.
+  volatilityAnnualizationMethod: 'implied-periods-per-year-from-observed-duration',
   volatilityEstimator: 'sample-standard-deviation',
   drawdownBasis: 'flow-adjusted-wealth-index',
+  drawdownSign: 'negative-or-zero',
   recoveryBasis: 'calendar-days'
 });
 
@@ -125,8 +131,20 @@ export function calculateHistoricalMetrics({ valuePath, openingCapital }) {
   const annualizedReturn = durationDays > 0
     ? Math.pow(1 + cumulativeReturn, HISTORICAL_METRIC_CONVENTIONS.annualizationCalendarDays / durationDays) - 1
     : null;
-  const dailyStd = sampleStd(returns);
-  const annualizedVolatility = dailyStd == null ? null : dailyStd * Math.sqrt(HISTORICAL_METRIC_CONVENTIONS.volatilityPeriodsPerYear);
+  const periodStd = sampleStd(returns);
+  // Le nombre de rendements de période par an est dérivé de l'écart réel entre
+  // les dates observées, pas d'une constante fixe (252) : dès que valuePath
+  // mélange des calendriers de bourse différents (ex. deux places distinctes,
+  // via l'intersection des dates communes), l'écart moyen entre observations
+  // dépasse un jour de bourse, et une constante fixe traiterait chaque
+  // rendement de période comme un rendement quotidien alors qu'il en couvre
+  // plusieurs — faussant systématiquement l'annualisation.
+  const impliedPeriodsPerYear = returns.length > 0 && durationDays > 0
+    ? returns.length / (durationDays / HISTORICAL_METRIC_CONVENTIONS.annualizationCalendarDays)
+    : null;
+  const annualizedVolatility = periodStd == null || impliedPeriodsPerYear == null
+    ? null
+    : periodStd * Math.sqrt(impliedPeriodsPerYear);
   const drawdown = analyzeDrawdown(wealthPath);
 
   return Object.freeze({

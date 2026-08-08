@@ -34,6 +34,13 @@ test('une même graine produit exactement le même rapport', () => {
   assert.deepEqual(runMassSimulation(input), runMassSimulation(input));
 });
 
+test('la graine 0 est distincte de la graine 1, pas repliée dessus', () => {
+  const base = { portfolioCount: 250, years: 15, initialAmount: 5000, monthlyContribution: 150, annualInflation: 0.02, annualFees: 0.003, goal: 80000, allocation };
+  const reportWithSeedZero = runMassSimulation({ ...base, seed: 0 });
+  const reportWithSeedOne = runMassSimulation({ ...base, seed: 1 });
+  assert.notDeepEqual(reportWithSeedZero, reportWithSeedOne);
+});
+
 test('le rapport agrège les percentiles, le risque et la probabilité d’objectif', () => {
   const report = runMassSimulation({ portfolioCount: 500, years: 20, initialAmount: 3000, monthlyContribution: 100, annualInflation: 0.02, annualFees: 0.0025, goal: 100000, seed: 42, allocation });
   assert.equal(report.summary.portfolioCount, 500);
@@ -64,6 +71,27 @@ test('une campagne compare plusieurs allocations avec les mêmes paramètres et 
   assert.equal(first.methodology.commonSeed, 12345);
   assert.match(first.methodology.nonRecommendation, /sans désigner de meilleur portefeuille/);
   assert.ok(Object.isFrozen(first.comparison));
+});
+
+test('une campagne reste reproductible scénario par scénario même quand le nombre d’actifs diffère, sans revendiquer un appariement des tirages', () => {
+  const threeAssetAllocation = [
+    { id: 'world', label: 'ETF Monde', weight: 0.6, annualReturn: 0.07, annualVolatility: 0.16 },
+    { id: 'bonds', label: 'Obligations', weight: 0.3, annualReturn: 0.03, annualVolatility: 0.06 },
+    { id: 'gold', label: 'Or', weight: 0.1, annualReturn: 0.02, annualVolatility: 0.14 }
+  ];
+  const input = {
+    name: 'Comparaison à nombre d’actifs différent',
+    shared: { portfolioCount: 250, years: 15, initialAmount: 5000, monthlyContribution: 150, annualInflation: 0.02, annualFees: 0.003, goal: 80000, seed: 12345 },
+    scenarios: [
+      { id: 'deux-actifs', label: 'Deux actifs', allocation },
+      { id: 'trois-actifs', label: 'Trois actifs', allocation: threeAssetAllocation }
+    ]
+  };
+  const first = runSimulationCampaign(input);
+  const second = runSimulationCampaign(input);
+  assert.deepEqual(first, second);
+  assert.match(first.methodology.statement, /reproductibilité de chaque scénario pris isolément/);
+  assert.match(first.methodology.statement, /pas un appariement des tirages aléatoires/);
 });
 
 test('la campagne refuse les identifiants dupliqués et un scénario unique', () => {

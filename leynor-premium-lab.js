@@ -23,7 +23,7 @@ function requiredText(value, name) {
 }
 
 function createSeededRandom(seed = 1) {
-  let state = (Number(seed) >>> 0) || 1;
+  let state = Number(seed) >>> 0;
   return () => {
     state = (state * 1664525 + 1013904223) >>> 0;
     return state / 4294967296;
@@ -232,7 +232,17 @@ export function runSimulationCampaign(input) {
     }))),
     methodology: Object.freeze({
       commonSeed: campaign.shared.seed,
-      statement: 'Chaque scénario utilise les mêmes paramètres communs et la même graine pour permettre une comparaison reproductible.',
+      // Chaque scénario appelle runMassSimulation indépendamment, qui crée
+      // son propre createSeededRandom(seed) : la graine commune garantit la
+      // reproductibilité de CHAQUE scénario pris isolément (mêmes entrées,
+      // même sortie), pas un appariement des tirages entre scénarios. Les
+      // chocs mensuels sont consommés dans l'ordre de definition.allocation ;
+      // deux scénarios avec un nombre ou un ordre d'actifs différent
+      // consomment donc les tirages de leur flux respectif à des positions
+      // différentes, et ne bénéficient pas d'une réduction de variance par
+      // tirages communs (comparaison appariée) — uniquement de la même
+      // reproductibilité individuelle.
+      statement: 'Chaque scénario utilise les mêmes paramètres communs et la même graine, ce qui garantit la reproductibilité de chaque scénario pris isolément — pas un appariement des tirages aléatoires entre scénarios ayant un nombre ou un ordre d’actifs différent.',
       nonRecommendation: 'La campagne compare des résultats simulés sans désigner de meilleur portefeuille ni formuler de recommandation.'
     })
   });

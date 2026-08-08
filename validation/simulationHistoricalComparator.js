@@ -32,6 +32,30 @@ function compareMetric(name, historicalValue, simulatedValue) {
   });
 }
 
+// Un drawdown est, par convention dans ce module (voir portfolioHistoricalMetrics.js
+// et les fixtures de test ci-contre), exprimé en valeur négative ou nulle des
+// deux côtés. Certaines sources (le moteur Monte Carlo `leynor-premium-lab.js`)
+// exposent au contraire une magnitude positive : les brancher sans conversion
+// ici doublerait ou inverserait silencieusement l'écart calculé. On refuse
+// donc explicitement toute valeur strictement positive plutôt que de risquer
+// une comparaison corrompue sans erreur.
+function compareMaxDrawdown(historicalValue, simulatedValue) {
+  const historical = finite(historicalValue, 'historical.maxDrawdown');
+  const simulated = finite(simulatedValue, 'simulation.maxDrawdown');
+  if (historical > 0 || simulated > 0) {
+    throw new TypeError(
+      'maxDrawdown doit être exprimé en valeur négative ou nulle des deux côtés (convention de ce module) ; une valeur positive a été fournie — vérifier la source avant de la convertir.'
+    );
+  }
+  return Object.freeze({
+    metric: 'maxDrawdown',
+    historical,
+    simulated,
+    delta: historical - simulated,
+    relativeErrorVsSimulation: relativeError(historical, simulated)
+  });
+}
+
 export function compareSimulationToHistorical({ snapshot, historicalMetrics }) {
   if (!snapshot || typeof snapshot !== 'object') throw new TypeError('snapshot requis.');
   if (!historicalMetrics || typeof historicalMetrics !== 'object') throw new TypeError('historicalMetrics requis.');
@@ -39,11 +63,11 @@ export function compareSimulationToHistorical({ snapshot, historicalMetrics }) {
   const comparisons = Object.freeze([
     compareMetric('return', historicalMetrics.cumulativeReturn, snapshot.returnMean),
     compareMetric('volatility', historicalMetrics.annualizedVolatility, snapshot.volatilityMean),
-    compareMetric('maxDrawdown', historicalMetrics.maxDrawdown, snapshot.maxDrawdownMean)
+    compareMaxDrawdown(historicalMetrics.maxDrawdown, snapshot.maxDrawdownMean)
   ]);
 
   const historicalRecoveryDays = historicalMetrics.recovery?.recoveryDaysFromTrough;
-  const simulatedRecoveryDays = finite(snapshot.recoveryDurationMean, 'snapshot.recoveryDurationMean');
+  const simulatedRecoveryDays = finite(snapshot.recoveryDurationMeanDays, 'snapshot.recoveryDurationMeanDays');
   const recovery = Object.freeze({
     historicalRecovered: historicalMetrics.recovery?.recovered === true,
     historicalRecoveryDays: historicalRecoveryDays == null ? null : nonNegativeInteger(historicalRecoveryDays, 'historicalMetrics.recovery.recoveryDaysFromTrough'),

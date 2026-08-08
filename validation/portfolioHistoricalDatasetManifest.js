@@ -7,7 +7,21 @@ function nonEmpty(value, field) {
 
 function isoDate(value, field) {
   const normalized = nonEmpty(value, field);
-  if (!/^\d{4}-\d{2}-\d{2}/.test(normalized) || Number.isNaN(Date.parse(normalized))) throw new TypeError(`${field} doit être une date ISO valide.`);
+  // Ce champ accepte aussi bien une date pure (start/end) qu'un horodatage
+  // complet (acquiredAt) : on ne peut donc pas ancrer la regex en fin de
+  // chaîne, seulement exiger un préfixe YYYY-MM-DD valide. Date.parse ne
+  // rejette pas un jour calendaire inexistant (ex. 30 février) : il le fait
+  // glisser en silence vers le mois suivant. Un aller-retour sur le préfixe
+  // détecte ce glissement, que le reste de la chaîne soit vide ou porte une
+  // heure.
+  const match = /^(\d{4}-\d{2}-\d{2})/.exec(normalized);
+  if (!match) throw new TypeError(`${field} doit être une date ISO valide.`);
+  const datePrefix = match[1];
+  const parsedPrefix = Date.parse(`${datePrefix}T00:00:00Z`);
+  if (!Number.isFinite(parsedPrefix) || new Date(parsedPrefix).toISOString().slice(0, 10) !== datePrefix) {
+    throw new TypeError(`${field} doit être une date calendaire valide.`);
+  }
+  if (Number.isNaN(Date.parse(normalized))) throw new TypeError(`${field} doit être une date ISO valide.`);
   return normalized;
 }
 

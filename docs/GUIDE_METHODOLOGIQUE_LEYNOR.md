@@ -193,9 +193,9 @@ Pour chaque période après la première valorisation, le rendement ajusté des 
 
 Le rendement cumulé est obtenu par chaînage géométrique des rendements ajustés. Le rendement annualisé utilise la durée calendaire réelle et une année conventionnelle de `365.2425` jours.
 
-Pour des observations quotidiennes de marché, la volatilité annualisée utilise l’écart-type échantillonnal des rendements de période et le facteur `sqrt(252)`. Cette convention ne suppose ni exactement 252 séances chaque année, ni indépendance ou normalité des rendements ; elle sert de convention de comparaison versionnée.
+La volatilité annualisée utilise l’écart-type échantillonnal des rendements de période et un facteur `sqrt(périodes par an)`. **Depuis le schéma v2**, le nombre de périodes par an est dérivé de la durée calendaire réelle observée et du nombre de rendements de période (`nombre de rendements / (durée en jours / 365,2425)`), et non plus d’une constante fixe de 252. Une constante fixe suppose une observation par jour de bourse exact ; dès que `valuePath` mélange des calendriers différents (par exemple l’intersection de deux places boursières distinctes dans une piste multi-proxy), l’écart réel entre observations dépasse un jour, et une constante fixe fausserait systématiquement l’annualisation. Pour une série véritablement quotidienne sans trou, le résultat reste proche de l’ancienne convention v1 (~252). Cette correction de v1 vers v2 est un correctif de mise en œuvre d’une convention déjà documentée, pas un changement de convention décidé après lecture de résultats — mais tout rapport déjà publié dont la volatilité annualisée dépend de séries à calendriers mélangés doit être recalculé sous v2 avant d’être réutilisé.
 
-Le drawdown maximal est mesuré sur l’indice de richesse ajusté des flux, afin qu’un apport ne puisse pas masquer artificiellement une baisse. La récupération conserve le sommet précédent, le creux, la date éventuelle de récupération, la durée du creux à la récupération et la durée totale sous le sommet. Une trajectoire non récupérée reste explicitement non récupérée.
+Le drawdown maximal est mesuré sur l’indice de richesse ajusté des flux, afin qu’un apport ne puisse pas masquer artificiellement une baisse. **Convention de signe explicite : le drawdown maximal est une valeur négative ou nulle** (`wealthIndex / peakValue - 1`), jamais une magnitude positive — toute source produisant un drawdown en magnitude positive doit être convertie avant comparaison, sous peine de doubler ou d’inverser silencieusement l’écart calculé. La récupération conserve le sommet précédent, le creux, la date éventuelle de récupération, la durée du creux à la récupération (`recoveryDaysFromTrough`, en jours calendaires) et la durée totale sous le sommet. Une trajectoire non récupérée reste explicitement non récupérée.
 
 Les métriques d’une piste proxy restent celles du proxy. Elles ne doivent jamais être présentées comme l’historique de l’instrument réel avant son existence.
 
@@ -504,8 +504,8 @@ Les changements méthodologiques significatifs doivent être consignés dans la 
 - séparation obligatoire entre performance et apports/retraits externes ;
 - rendement cumulé fondé sur un chaînage géométrique ajusté des flux ;
 - annualisation calendaire versionnée sur 365.2425 jours ;
-- volatilité quotidienne annualisée avec estimateur échantillonnal et facteur 252 ;
-- drawdown et récupération calculés sur un indice de richesse ajusté des flux ;
+- volatilité annualisée avec estimateur échantillonnal et fréquence de périodes/an dérivée de la durée réelle observée (schéma v2) ;
+- drawdown maximal exprimé en valeur négative ou nulle, jamais en magnitude positive ; récupération et drawdown calculés sur un indice de richesse ajusté des flux ;
 - conservation explicite des périodes non récupérées.
 
 ### Comparaison simulation / historique
